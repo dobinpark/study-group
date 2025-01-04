@@ -6,12 +6,15 @@ const protectedRoutes = [
   '/dashboard',
   '/profile',
   '/settings',
-  // 추가 보호 경로...
+  '/notifications',
+  '/posts/create',
+  '/posts/edit',
+  // 인증이 필요한 경로만 명시적으로 지정
 ];
 
 export function middleware(request: NextRequest) {
   // 현재 경로가 보호된 라우트인지 확인
-  const isProtectedRoute = protectedRoutes.some(route => 
+  const isProtectedRoute = protectedRoutes.some(route =>
     request.nextUrl.pathname.startsWith(route)
   );
 
@@ -34,14 +37,12 @@ export function middleware(request: NextRequest) {
 // 미들웨어가 실행될 경로 설정
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public folder
-     */
-    '/((?!api|_next/static|_next/image|favicon.ico|public).*)',
+    // 인증이 필요한 경로만 명시적으로 지정
+    '/dashboard/:path*',
+    '/profile/:path*',
+    '/settings/:path*',
+    '/notifications/:path*',
+    '/posts/create/:path*',
+    '/posts/edit/:path*',
   ],
 }; 
