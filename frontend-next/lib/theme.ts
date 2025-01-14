@@ -20,4 +20,4 @@ export const theme = createTheme({
       'sans-serif',
     ].join(','),
   },
-}); 
+});

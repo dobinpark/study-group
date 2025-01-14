@@ -9,7 +9,7 @@ export class FileUploadService {
   private readonly uploadDir: string;
 
   constructor(private configService: ConfigService) {
-    this.uploadDir = this.configService.get('UPLOAD_DIR');
+    this.uploadDir = this.configService.get('UPLOAD_DIR') || 'uploads';
     this.ensureUploadDirectoryExists();
   }
 

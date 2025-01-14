@@ -4,4 +4,4 @@ declare namespace NodeJS {
     NEXTAUTH_URL: string;
     NEXTAUTH_SECRET: string;
   }
-} 
+}

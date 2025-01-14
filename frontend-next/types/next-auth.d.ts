@@ -17,4 +17,4 @@ declare module 'next-auth/jwt' {
     user: CustomUser;
     accessToken?: string;
   }
-} 
+}

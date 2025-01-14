@@ -3,9 +3,7 @@
 import Link from 'next/link';
 import { FiMenu, FiX } from 'react-icons/fi';
 import { useState } from 'react';
-import NotificationMenu from './NotificationMenu';
 import { useAuth } from '../../contexts/AuthContext';
-import LoadingSpinner from './LoadingSpinner';
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -14,7 +12,7 @@ export default function Navbar() {
   if (isLoading) {
     return (
       <div className="h-16 bg-white shadow-sm flex items-center justify-center">
-        <LoadingSpinner size="small" />
+        '로딩 중...'
       </div>
     );
   }
@@ -47,7 +45,6 @@ export default function Navbar() {
             </div>
           </div>
           <div className="hidden sm:ml-6 sm:flex sm:items-center">
-            <NotificationMenu />
             <div className="ml-3 relative">
               <span className="text-sm text-gray-700 mr-4">
                 {user.username}

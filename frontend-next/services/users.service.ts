@@ -16,4 +16,4 @@ export const usersService = {
         axios.delete<ApiResponse<void>>('/api/users/profile/avatar'),
     updatePassword: (data: { currentPassword: string; newPassword: string }) =>
         axios.patch<ApiResponse<void>>('/api/users/password', data),
-}; 
+};

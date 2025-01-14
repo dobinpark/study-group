@@ -30,4 +30,4 @@ export default function Logo() {
       </Box>
     </Link>
   );
-} 
+}

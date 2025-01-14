@@ -2,7 +2,6 @@
 
 import { FormEvent, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { useAuth } from '../../contexts/AuthContext';
 
 export default function LoginPage() {
@@ -74,11 +73,7 @@ export default function LoginPage() {
               disabled={isLoading}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50"
             >
-              {isLoading ? (
-                <LoadingSpinner size="small" className="text-white" />
-              ) : (
-                '로그인'
-              )}
+              {isLoading ? '로딩 중...' : '로그인'}
             </button>
           </div>
         </form>

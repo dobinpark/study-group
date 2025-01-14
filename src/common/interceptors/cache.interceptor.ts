@@ -5,8 +5,8 @@ import {
   CallHandler,
 } from '@nestjs/common';
 import { CacheInterceptor } from '@nestjs/cache-manager';
-import { CACHE_KEYS } from '../../posts/cache/constants/cache-keys.constants';
-import { CacheKeyError } from '../../posts/cache/errors/cache.errors';
+import { CACHE_KEYS } from '../../board/posts/cache/constants/cache-keys.constants';
+import { CacheKeyError } from '../../board/posts/cache/errors/cache.errors';
 import { Observable } from 'rxjs';
 
 @Injectable()

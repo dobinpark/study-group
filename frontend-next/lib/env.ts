@@ -14,4 +14,4 @@ export const validateEnv = () => {
       `Missing required environment variables: ${missingEnvVars.join(', ')}`
     );
   }
-}; 
+};

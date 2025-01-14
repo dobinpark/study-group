@@ -1,3 +1,5 @@
+'use client';
+
 import { AppProps } from 'next/app';
 import { CacheProvider, EmotionCache } from '@emotion/react';
 import createEmotionCache from '../lib/createEmotionCache';
@@ -14,10 +16,10 @@ interface MyAppProps extends AppProps {
   emotionCache?: EmotionCache;
 }
 
-export default function MyApp({ 
-  Component, 
-  pageProps, 
-  emotionCache = clientSideEmotionCache 
+export default function MyApp({
+  Component,
+  pageProps,
+  emotionCache = clientSideEmotionCache,
 }: MyAppProps) {
   return (
     <CacheProvider value={emotionCache}>
@@ -30,4 +32,4 @@ export default function MyApp({
       </ErrorBoundary>
     </CacheProvider>
   );
-} 
+}

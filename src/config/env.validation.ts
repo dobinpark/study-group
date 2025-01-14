@@ -38,7 +38,7 @@ export class EnvironmentVariables {
 
   @IsString()
   @IsNotEmpty()
-  UPLOAD_DIR: string;
+  UPLOAD_DIR: string = 'uploads';
 
   @IsNumber()
   @IsOptional()

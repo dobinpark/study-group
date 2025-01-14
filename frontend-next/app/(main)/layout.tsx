@@ -8,7 +8,7 @@ export default function MainLayout({
 }) {
   return (
     <AuthGuard>
-      <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gray-50">
         <Navbar />
         <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
           {children}
@@ -16,4 +16,4 @@ export default function MainLayout({
       </div>
     </AuthGuard>
   );
-} 
+}

@@ -38,4 +38,4 @@ export interface DashboardStats {
     content: string;
     createdAt: string;
   }[];
-} 
+}

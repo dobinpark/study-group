@@ -34,4 +34,4 @@ export default function PageHeader({ title, breadcrumbs }: PageHeaderProps) {
       </Typography>
     </Box>
   );
-} 
+}
