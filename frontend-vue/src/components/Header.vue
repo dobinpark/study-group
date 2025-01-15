@@ -19,6 +19,7 @@
 							<button @click="logout" class="logout-button">로그아웃</button>
 						</template>
 						<template v-else>
+							<span class="login-text">로그인하세요.</span>
 							<router-link to="/login">
 								<img src="@/assets/images/man.png" alt="로그인" class="login-icon" />
 							</router-link>
@@ -34,7 +35,8 @@
 						<li>분야별</li>
 						<li>전공별</li>
 						<li>지역별</li>
-						<li>문의사항</li>
+						<li>커뮤니티</li>
+						<li>고객센터</li>
 					</ul>
 				</div>
 			</div>
@@ -93,6 +95,8 @@ onMounted(() => {
 </script>
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap');
+
 .top-container {
 	width: 100%;
 	height: 80px;
@@ -133,10 +137,19 @@ onMounted(() => {
 }
 
 .title {
-	font-size: 50px;
-	font-weight: bold;
-	color: #000;
+	font-size: 65px;
+	font-weight: 400;
+	color: #1a365d;
 	text-decoration: none;
+	font-family: 'Nanum Pen Script', cursive;
+	letter-spacing: 1px;
+	text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+	transition: all 0.3s ease;
+}
+
+.title:hover {
+	color: #4A90E2;
+	transform: scale(1.05) rotate(-2deg);
 }
 
 .welcome-text {
@@ -164,7 +177,7 @@ onMounted(() => {
 	list-style: none;
 	margin: 0;
 	padding: 0;
-	gap: 10rem;
+	gap: 13rem;
 }
 
 .nav-items li {
@@ -203,5 +216,11 @@ onMounted(() => {
 
 .logout-button:hover {
 	background-color: #e5e7eb;
+}
+
+.login-text {
+	font-size: 16px;
+	color: #666;
+	margin-right: 8px;
 }
 </style>

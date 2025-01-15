@@ -1,79 +1,50 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <template>
-	<form @submit.prevent="signup">
-		<div class="border-b border-gray-900/10 pb-12">
-			<h2 class="mt-10 text-center text-2xl/9 font-bold tracking-tight text-gray-900">회원가입</h2>
-
-			<div class="sm:col-span-5">
-				<label for="username" class="block text-sm/6 font-medium text-gray-900">아이디</label>
-				<div class="mt-2">
-					<input id="username" name="username" type="text" v-model="username" autocomplete="username"
-						placeholder="ex) example" class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1
-								 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2
-								 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6" />
+	<div class="signup-container">
+		<div class="signup-content">
+			<h1 class="signup-title">회원가입</h1>
+			<form @submit.prevent="signup" class="signup-form">
+				<div class="form-group">
+					<label for="username">아이디</label>
+					<input type="text" id="username" v-model="username" required placeholder="아이디를 입력하세요" />
 				</div>
-			</div>
 
-			<div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
-				<div class="sm:col-span-3">
-					<label for="password" class="block text-sm/6 font-medium text-gray-900">비밀번호</label>
-					<div class="mt-2">
-						<input type="password" v-model="password" name="password" id="password" autocomplete="password"
-							placeholder="ex) 최소 8자 이상, 영어/숫자/특수문자 각각 1자 이상 포함" class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1
-									 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2
-									 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6" />
+				<div class="form-row">
+					<div class="form-group">
+						<label for="password">비밀번호</label>
+						<input type="password" id="password" v-model="password" required
+							placeholder="최소 8자 이상, 영어/숫자/특수문자 포함" />
+					</div>
+
+					<div class="form-group">
+						<label for="confirmPassword">비밀번호 재확인</label>
+						<input type="password" id="confirmPassword" v-model="confirmPassword" required
+							placeholder="비밀번호를 다시 입력하세요." />
 					</div>
 				</div>
 
-				<div class="sm:col-span-3">
-					<label for="confirmPassword" class="block text-sm/6 font-medium text-gray-900">비밀번호 재확인</label>
-					<div class="mt-2">
-						<input type="password" v-model="confirmPassword" name="confirmPassword" id="confirmPassword"
-							autocomplete="current-password" placeholder="ex) 12345678" class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1
-									 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2
-									 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6" />
-					</div>
+				<div class="form-group">
+					<label for="nickname">닉네임</label>
+					<input type="text" id="nickname" v-model="nickname" required placeholder="닉네임을 입력하세요" />
 				</div>
 
-				<div class="sm:col-span-6">
-					<label for="nickname" class="block text-sm/6 font-medium text-gray-900">닉네임</label>
-					<div class="mt-2">
-						<input id="nickname" name="nickname" type="text" v-model="nickname" autocomplete="nickname"
-							placeholder="ex) 홍길동" class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1
-									 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2
-									 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6" />
-					</div>
+				<div class="form-group">
+					<label for="email">이메일</label>
+					<input type="email" id="email" v-model="email" required placeholder="example@example.com" />
 				</div>
 
-				<div class="sm:col-span-6">
-					<label for="email" class="block text-sm/6 font-medium text-gray-900">이메일</label>
-					<div class="mt-2">
-						<input id="email" name="email" type="email" v-model="email" autocomplete="email"
-							placeholder="ex) example@example.com" class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1
-									 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2
-									 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6" />
-					</div>
+				<div class="form-group">
+					<label for="phoneNumber">전화번호</label>
+					<input type="tel" id="phoneNumber" v-model="phoneNumber" required placeholder="010-1234-5678" />
 				</div>
 
-				<div class="sm:col-span-6">
-					<label for="phoneNumber" class="block text-sm/6 font-medium text-gray-900">전화번호</label>
-					<div class="mt-2">
-						<input id="phoneNumber" name="phoneNumber" type="text" v-model="phoneNumber" ocomplete="tel"
-							placeholder="ex) 010-1234-5678" class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1
-									 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2
-									 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6" />
-					</div>
+				<div class="button-group">
+					<button type="button" @click="cancel" class="cancel-button">취소</button>
+					<button type="submit" class="submit-button">회원가입</button>
 				</div>
-			</div>
+			</form>
 		</div>
-
-		<div class="mt-6 flex items-center justify-end gap-x-6">
-			<button type="button" @click="cancel" class="text-sm/6 font-semibold text-gray-900">취소</button>
-			<button type="submit" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm
-							hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2
-							focus-visible:outline-indigo-600">회원가입</button>
-		</div>
-	</form>
+	</div>
 </template>
 
 <script setup>
@@ -96,7 +67,6 @@ const cancel = () => {
 
 const signup = async () => {
 	try {
-		// 입력값 검증
 		if (!username.value || !password.value || !confirmPassword.value || !nickname.value || !email.value || !phoneNumber.value) {
 			alert('모든 필드를 입력해주세요.');
 			return;
@@ -107,7 +77,6 @@ const signup = async () => {
 			return;
 		}
 
-		// 전화번호 형식 변환 (하이픈 제거)
 		const formattedPhoneNumber = phoneNumber.value.replace(/-/g, '');
 
 		const response = await axios.post('http://localhost:3000/auth/signup', {
@@ -130,25 +99,133 @@ const signup = async () => {
 </script>
 
 <style scoped>
-.signup {
+.signup-container {
+	width: 100%;
+	min-height: calc(100vh - 140px);
 	display: flex;
-	flex-direction: column;
-	align-items: center;
 	justify-content: center;
-	margin-top: 20px;
+	align-items: flex-start;
 }
 
-form {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	width: 100%;
-	max-width: 600px;
+.signup-content {
+	width: 70%;
+	background: linear-gradient(135deg, #f5f7fa 0%, #e4e9f2 100%);
+	padding: 3rem;
+	border-radius: 8px;
+	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.signup-title {
+	font-size: 2.5rem;
+	font-weight: 700;
+	color: #2d3748;
+	text-align: center;
+	margin-bottom: 2rem;
+	font-family: 'Pretendard', 'Arial', sans-serif;
+}
+
+.signup-form {
+	max-width: 800px;
 	margin: 0 auto;
-	padding: 20px;
+}
+
+.form-row {
+	display: flex;
+	gap: 2rem;
+	margin-bottom: 1.5rem;
+}
+
+.form-row .form-group {
+	flex: 1;
+}
+
+.form-group {
+	margin-bottom: 1.5rem;
+}
+
+label {
+	display: block;
+	font-size: 1rem;
+	color: #4a5568;
+	margin-bottom: 0.5rem;
+	font-weight: 500;
 }
 
 input {
-	margin: 10px 0;
+	width: 100%;
+	padding: 0.75rem;
+	border: 2px solid #e2e8f0;
+	border-radius: 6px;
+	font-size: 1rem;
+	transition: all 0.2s;
+}
+
+input:focus {
+	outline: none;
+	border-color: #4A90E2;
+	box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+.button-group {
+	display: flex;
+	gap: 1rem;
+	justify-content: flex-end;
+	margin-top: 2rem;
+}
+
+.submit-button,
+.cancel-button {
+	padding: 0.75rem 2rem;
+	border: none;
+	border-radius: 6px;
+	font-size: 1rem;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.2s;
+}
+
+.submit-button {
+	background-color: #4A90E2;
+	color: white;
+}
+
+.submit-button:hover {
+	background-color: #357abd;
+	transform: translateY(-1px);
+}
+
+.cancel-button {
+	background-color: #e2e8f0;
+	color: #4a5568;
+}
+
+.cancel-button:hover {
+	background-color: #cbd5e0;
+	transform: translateY(-1px);
+}
+
+@media (max-width: 768px) {
+	.signup-content {
+		width: 90%;
+		padding: 2rem;
+	}
+
+	.signup-title {
+		font-size: 2rem;
+	}
+
+	.form-row {
+		flex-direction: column;
+		gap: 0;
+	}
+
+	.button-group {
+		flex-direction: column;
+	}
+
+	.submit-button,
+	.cancel-button {
+		width: 100%;
+	}
 }
 </style>
