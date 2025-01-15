@@ -7,4 +7,4 @@
     "database": "study_group",
     "entities": ["dist/**/*.entity{.ts,.js}"],
     "synchronize": true
-  }
+}

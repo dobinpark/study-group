@@ -4,15 +4,15 @@ import { CreatePostDto } from '../dto/create-post.dto';
 
 @Controller('posts')
 export class PostsController {
-  constructor(private readonly postsService: PostsService) { }
+    constructor(private readonly postsService: PostsService) { }
 
-  @Get(':id')
-  getPost(@Param('id') id: string) {
-    return this.postsService.getPost(id);
-  }
+    @Get(':id')
+    getPost(@Param('id') id: string) {
+        return this.postsService.getPost(id);
+    }
 
-  @Post()
-  createPost(@Body() createPostDto: CreatePostDto) {
-    return this.postsService.createPost(createPostDto);
-  }
+    @Post()
+    createPost(@Body() createPostDto: CreatePostDto) {
+        return this.postsService.createPost(createPostDto);
+    }
 }

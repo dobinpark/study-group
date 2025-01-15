@@ -1,20 +1,24 @@
 import { Controller, Post, Body } from '@nestjs/common';
 import { AuthService } from '../service/auth.service';
-import { SignUpDto } from '../dto/sign-up.dto';
-import { SignInDto } from '../dto/sign-in.dto';
 import { AuthCredentialsDto } from '../dto/auth-credentials.dto';
+import { LoginDto } from '../dto/login.dto';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) { }
+    constructor(private readonly authService: AuthService) { }
 
-  @Post('/signup')
-  signUp(@Body() authCredentialsDto: AuthCredentialsDto) {
-    return this.authService.signUp(authCredentialsDto);
-  }
+    @Post('/signup')
+    signUp(@Body() authCredentialsDto: AuthCredentialsDto) {
+        return this.authService.signUp(authCredentialsDto);
+    }
 
-  @Post('/signin')
-  signIn(@Body() authCredentialsDto: AuthCredentialsDto) {
-    return this.authService.signIn(authCredentialsDto);
-  }
+    @Post('/login')
+    login(@Body() loginDto: LoginDto) {
+        return this.authService.logIn(loginDto);
+    }
+
+    @Post('/refresh')
+    refreshToken(@Body() { refreshToken }: { refreshToken: string }) {
+        return this.authService.refreshAccessToken(refreshToken);
+    }
 }

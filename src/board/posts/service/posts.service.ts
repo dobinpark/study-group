@@ -5,21 +5,21 @@ import { CreatePostDto } from '../dto/create-post.dto';
 
 @Injectable()
 export class PostsService {
-  constructor(
-    @InjectRepository(PostRepository)
-    private postRepository: PostRepository,
-  ) { }
+    constructor(
+        @InjectRepository(PostRepository)
+        private postRepository: PostRepository,
+    ) { }
 
-  async getPost(id: string) {
-    const post = await this.postRepository.findOne({ where: { id } });
-    if (!post) {
-      throw new NotFoundException('게시글을 찾을 수 없습니다.');
+    async getPost(id: string) {
+        const post = await this.postRepository.findOne({ where: { id } });
+        if (!post) {
+            throw new NotFoundException('게시글을 찾을 수 없습니다.');
+        }
+        return post;
     }
-    return post;
-  }
 
-  async createPost(createPostDto: CreatePostDto) {
-    const post = this.postRepository.create(createPostDto);
-    return this.postRepository.save(post);
-  }
+    async createPost(createPostDto: CreatePostDto) {
+        const post = this.postRepository.create(createPostDto);
+        return this.postRepository.save(post);
+    }
 }

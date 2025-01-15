@@ -1,15 +1,8 @@
 {
-  "singleQuote": true,
-  "trailingComma": "all",
-  "endOfLine": "lf",
-  "tabWidth": 2,
-  "useTabs": false,
-  "overrides": [
-    {
-      "files": "*.ts",
-      "options": {
-        "tabWidth": 2
-      }
-    }
-  ]
+    "singleQuote": true,
+    "trailingComma": "all",
+    "endOfLine": "lf",
+    "tabWidth": 4,
+    "useTabs": false,
+    "overrides": [{ "files": "*.ts", "options": { "tabWidth": 4 } }]
 }

@@ -1,44 +1,39 @@
 import {
-  Controller,
-  Get,
-  Put,
-  Post,
-  UseGuards,
-  Body,
-  UseInterceptors,
-  UploadedFile,
+    Controller,
+    Get,
+    Put,
+    Post,
+    UseGuards,
+    Body,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
-import { GetUser } from '../../auth/get-user.decorator';
 import { UsersService } from '../service/users.service';
+import { UpdateUserDto } from '../dto/update-user.dto';
+import { GetUser } from '../../auth/get-user.decorator';
 import { User } from '../entities/user.entity';
-import { UpdateProfileDto } from '../dto/update-profile.dto';
+import { FindPasswordDto } from '../dto/find-password.dto';
 
 @Controller('users')
-@UseGuards(JwtAuthGuard)
 export class UsersController {
-  constructor(private readonly usersService: UsersService) { }
+    constructor(private readonly usersService: UsersService) { }
 
-  @Get('profile')
-  getProfile(@GetUser() user: User) {
-    return this.usersService.getProfile(user.id);
-  }
+    @UseGuards(JwtAuthGuard)
+    @Get('/profile')
+    getProfile(@GetUser() user: User) {
+        return this.usersService.getUserProfile(user.username);
+    }
 
-  @Put('profile')
-  updateProfile(
-    @GetUser() user: User,
-    @Body() updateProfileDto: UpdateProfileDto,
-  ) {
-    return this.usersService.updateProfile(user.id, updateProfileDto);
-  }
+    @UseGuards(JwtAuthGuard)
+    @Put('/profile')
+    updateProfile(
+        @GetUser() user: User,
+        @Body() updateUserDto: UpdateUserDto
+    ) {
+        return this.usersService.updateUserProfile(user.username, updateUserDto);
+    }
 
-  @Post('avatar')
-  @UseInterceptors(FileInterceptor('avatar'))
-  uploadAvatar(
-    @GetUser() user: User,
-    @UploadedFile() file: Express.Multer.File,
-  ) {
-    return this.usersService.uploadAvatar(user.id, file);
-  }
+    @Post('find-password')
+    async findPassword(@Body() findPasswordDto: FindPasswordDto) {
+        return this.usersService.findPassword(findPasswordDto);
+    }
 }
