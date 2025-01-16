@@ -4,6 +4,10 @@
         <div class="home">
             <h1 class="main-title">함공과 함께라면<br>공부도 즐거움이 됩니다.</h1>
             <h2 class="sub-title">함께 공부하는 공간, 함공</h2>
+            <button class="create-study-btn">
+                스터디 그룹 생성
+                <span class="btn-arrow">→</span>
+            </button>
         </div>
     </div>
 </template>
@@ -73,6 +77,46 @@
     }
 }
 
+.create-study-btn {
+    margin-top: 3rem;
+    padding: 1rem 2.5rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #fff;
+    background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
+    position: relative;
+    overflow: hidden;
+    font-family: 'Pretendard', 'Arial', sans-serif;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.create-study-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(74, 144, 226, 0.4);
+    background: linear-gradient(135deg, #357ABD 0%, #2868A6 100%);
+}
+
+.create-study-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 10px rgba(74, 144, 226, 0.3);
+}
+
+.btn-arrow {
+    display: inline-block;
+    transition: transform 0.3s ease;
+}
+
+.create-study-btn:hover .btn-arrow {
+    transform: translateX(5px);
+}
+
 @media (max-width: 768px) {
     .home {
         width: 90%;
@@ -84,6 +128,11 @@
     
     .sub-title {
         font-size: 1.5rem;
+    }
+
+    .create-study-btn {
+        font-size: 1rem;
+        padding: 0.8rem 2rem;
     }
 }
 </style>

@@ -19,7 +19,7 @@
 							<button @click="logout" class="logout-button">로그아웃</button>
 						</template>
 						<template v-else>
-							<span class="login-text">로그인하세요.</span>
+							<span class="login-text" v-if="!isMobile">로그인하세요.</span>
 							<router-link to="/login">
 								<img src="@/assets/images/man.png" alt="로그인" class="login-icon" />
 							</router-link>
@@ -780,6 +780,7 @@ onMounted(() => {
 	margin: 0 auto;
 	background-color: #87CEEB;
 	border-radius: 8px;
+	height: calc(75px - 1px);
 }
 
 .nav-container {
@@ -791,6 +792,8 @@ onMounted(() => {
 
 .nav-items {
 	width: 100%;
+	display: flex;
+	justify-content: center;
 }
 
 .main-menu {
@@ -807,8 +810,11 @@ onMounted(() => {
 	font-weight: bold;
 	font-size: 20px;
 	cursor: pointer;
-	padding: 15px 20px;
+	padding: 5px 60px;
 	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }
 
 .menu-item:hover {
@@ -823,20 +829,33 @@ onMounted(() => {
 	background-color: #fff;
 	box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 	border-radius: 4px;
-	min-width: 200px;
+	min-width: 150px;
 	z-index: 1000;
 }
 
 .menu-item:hover > .sub-menu {
-	display: block;
+	display: flex;
+	flex-direction: column;
+}
+
+.menu-item:hover > .sub-menu:has(.sub-menu-item:nth-child(10)) {
+	flex-direction: row;
+	flex-wrap: wrap;
+	width: 300px;
+}
+
+.sub-menu:has(.sub-menu-item:nth-child(10)) .sub-menu-item {
+	width: 50%;
+	box-sizing: border-box;
 }
 
 .sub-menu-item {
 	color: #333;
-	padding: 12px 20px;
+	padding: 12px 10px;
 	font-size: 16px;
 	position: relative;
 	border-bottom: 1px solid #eee;
+	white-space: nowrap;
 }
 
 .sub-menu-item:hover {
@@ -851,57 +870,43 @@ onMounted(() => {
 	background-color: #fff;
 	box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 	border-radius: 4px;
-	min-width: 600px;
-	display: flex;
+	min-width: 250px;
+	display: none;
 	opacity: 0;
 	visibility: hidden;
 	transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
 .sub-menu-item:hover > .sub-sub-menu {
+	display: flex;
 	opacity: 1;
 	visibility: visible;
+	z-index: 1001;
 }
 
 .sub-sub-menu-column {
-	min-width: 200px;
+	min-width: 40px;
+	width: 130px;
 	border-right: 1px solid #eee;
 	display: flex;
 	flex-direction: column;
 }
 
-.sub-sub-menu-column:last-child {
-	border-right: none;
+.sub-sub-menu-column:has(li:nth-child(10)) {
+	max-height: 400px;
+	overflow: hidden;
+}
+
+.sub-sub-menu-column:has(li:nth-child(10)) ~ .sub-sub-menu-column {
+	border-left: 1px solid #eee;
 }
 
 .sub-sub-menu-column li {
 	color: #333;
-	padding: 12px 20px;
+	padding: 8px 15px;
 	font-size: 14px;
 	border-bottom: 1px solid #eee;
-}
-
-.sub-sub-menu-column li:hover {
-	background-color: #f8f9fa;
-	color: #4A90E2;
-}
-
-.sub-sub-menu-column li:last-child {
-	border-bottom: none;
-}
-
-.sub-menu,
-.sub-sub-menu {
-	opacity: 0;
-	visibility: hidden;
-	transition: all 0.3s ease;
-}
-
-.menu-item:hover > .sub-menu,
-.sub-menu-item:hover > .sub-sub-menu {
-	opacity: 1;
-	visibility: visible;
-	display: block;
+	white-space: nowrap;
 }
 
 .auth-container {
@@ -975,5 +980,23 @@ onMounted(() => {
 	background-color: #f3f4f6;
 	padding: 2px 6px;
 	border-radius: 10px;
+}
+
+@media (max-width: 768px) {
+	.title {
+		font-size: 40px;
+	}
+
+	.logo {
+		width: 80px;
+	}
+
+	.login-text {
+		display: none;
+	}
+
+	.menu-item {
+		font-size: 14px;
+	}
 }
 </style>
