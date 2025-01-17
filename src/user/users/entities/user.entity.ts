@@ -7,12 +7,13 @@ import {
     OneToMany,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
-import { Post } from '@/src/board/posts/entities/post.entity';
+import { Post } from '../../../community/entities/post.entity';
+import { StudyGroup } from '../../../study/entities/study-group.entity';
 
 @Entity()
 export class User {
-    @PrimaryGeneratedColumn('uuid')
-    id!: string;
+    @PrimaryGeneratedColumn()
+    id!: number;
 
     @Column()
     username!: string;
@@ -39,5 +40,9 @@ export class User {
     @OneToMany(() => Post, (post) => post.author)
     posts!: Post[];
 
-    refreshTokens!: any;
+    @OneToMany(() => StudyGroup, studyGroup => studyGroup.creator)
+    studyGroups!: StudyGroup[];
+
+    @Column('json', { nullable: true })
+    refreshTokens?: { token: string; expiresAt: Date }[];
 }

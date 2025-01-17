@@ -4,13 +4,29 @@
         <div class="home">
             <h1 class="main-title">함공과 함께라면<br>공부도 즐거움이 됩니다.</h1>
             <h2 class="sub-title">함께 공부하는 공간, 함공</h2>
-            <button class="create-study-btn">
+            <button class="create-study-btn" @click="handleCreateStudy">
                 스터디 그룹 생성
                 <span class="btn-arrow">→</span>
             </button>
         </div>
     </div>
 </template>
+
+<script setup>
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
+
+const handleCreateStudy = () => {
+    const isAuthenticated = !!localStorage.getItem('accessToken');
+    if (!isAuthenticated) {
+        alert('로그인이 필요한 서비스입니다.');
+        router.push('/login');
+        return;
+    }
+    router.push('/create-study');
+};
+</script>
 
 <style scoped>
 .home-container {

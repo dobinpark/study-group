@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 import { AuthModule } from './user/auth/auth.module';
 import { UsersModule } from './user/users/users.module';
-import { PostsModule } from './board/posts/posts.module';
+import { StudyModule } from './study/study.module';
 import { config } from 'dotenv';
 
 config(); // .env 파일의 환경 변수를 로드합니다.
@@ -29,9 +30,10 @@ if (!process.env.DB_PORT) {
             entities: [__dirname + '/**/*.entity{.ts,.js}'],
             synchronize: true,
         }),
+        ScheduleModule.forRoot(),
         AuthModule,
         UsersModule,
-        PostsModule,
+        StudyModule,
     ],
 })
 export class AppModule { }

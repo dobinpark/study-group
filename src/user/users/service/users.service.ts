@@ -6,6 +6,8 @@ import { User } from '../entities/user.entity';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import * as bcrypt from 'bcrypt';
 import { FindPasswordDto } from '../dto/find-password.dto';
+import { Repository } from 'typeorm';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
 export class UsersService {
@@ -13,6 +15,8 @@ export class UsersService {
     constructor(
         @InjectRepository(UserRepository)
         private userRepository: UserRepository,
+        @InjectRepository(User)
+        private usersRepository: Repository<User>,
     ) { }
 
     async getUserProfile(username: string): Promise<Partial<User>> {
@@ -88,5 +92,59 @@ export class UsersService {
 
         // 임시 비밀번호 반환
         return { password: tempPassword };
+    }
+
+    async addRefreshToken(userId: number, token: string): Promise<void> {
+        const user = await this.usersRepository.findOne({ where: { id: userId } });
+        if (!user) {
+            throw new NotFoundException('사용자를 찾을 수 없습니다.');
+        }
+
+        const expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + 7); // 7일 후 만료
+
+        if (!user.refreshTokens) {
+            user.refreshTokens = [];
+        }
+
+        user.refreshTokens.push({ token, expiresAt });
+        await this.usersRepository.save(user);
+    }
+
+    async removeRefreshToken(userId: number, token: string): Promise<void> {
+        const user = await this.usersRepository.findOne({ where: { id: userId } });
+        if (!user || !user.refreshTokens) return;
+
+        user.refreshTokens = user.refreshTokens.filter(t => t.token !== token);
+        await this.usersRepository.save(user);
+    }
+
+    async validateRefreshToken(userId: number, token: string): Promise<boolean> {
+        const user = await this.usersRepository.findOne({ where: { id: userId } });
+        if (!user || !user.refreshTokens) return false;
+
+        const tokenData = user.refreshTokens.find(t => t.token === token);
+        if (!tokenData) return false;
+
+        return new Date() < new Date(tokenData.expiresAt);
+    }
+
+    @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+    async cleanupExpiredTokens(): Promise<void> {
+        const users = await this.usersRepository.find();
+        const now = new Date();
+
+        for (const user of users) {
+            if (!user.refreshTokens) continue;
+
+            const validTokens = user.refreshTokens.filter(
+                token => new Date(token.expiresAt) > now
+            );
+
+            if (validTokens.length !== user.refreshTokens.length) {
+                user.refreshTokens = validTokens;
+                await this.usersRepository.save(user);
+            }
+        }
     }
 }

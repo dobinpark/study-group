@@ -510,61 +510,79 @@
 							</ul>
 						</li>
 						<li class="menu-item">
-							분야별
+							학습자별
 							<ul class="sub-menu">
 								<li class="sub-menu-item category">
 									<div class="category-name">
-										취미
+										중등
 										<span class="category-count">(0)</span>
 									</div>
 									<div class="sub-sub-menu">
 										<ul class="sub-sub-menu-column">
-											<li>독서</li>
-											<li>그림 그리기</li>
-											<li>요리</li>
-											<li>공예</li>
+											<li>1학년</li>
+											<li>2학년</li>
+											<li>3학년</li>
 										</ul>
 									</div>
 								</li>
 								<li class="sub-menu-item category">
 									<div class="category-name">
-										스포츠
+										고등
 										<span class="category-count">(0)</span>
 									</div>
 									<div class="sub-sub-menu">
 										<ul class="sub-sub-menu-column">
-											<li>축구</li>
-											<li>농구</li>
-											<li>배드민턴</li>
-											<li>수영</li>
+											<li>1학년</li>
+											<li>2학년</li>
+											<li>3학년</li>
 										</ul>
 									</div>
 								</li>
 								<li class="sub-menu-item category">
 									<div class="category-name">
-										여행
+										대학생/청년
 										<span class="category-count">(0)</span>
 									</div>
 									<div class="sub-sub-menu">
 										<ul class="sub-sub-menu-column">
-											<li>국내 여행</li>
-											<li>해외 여행</li>
-											<li>배낭 여행</li>
-											<li>럭셔리 여행</li>
+											<li>대학생</li>
+											<li>청년</li>
 										</ul>
 									</div>
 								</li>
 								<li class="sub-menu-item category">
 									<div class="category-name">
-										음악
+										취업준비생/수험
 										<span class="category-count">(0)</span>
 									</div>
 									<div class="sub-sub-menu">
 										<ul class="sub-sub-menu-column">
-											<li>악기 연주</li>
-											<li>노래</li>
-											<li>음악 감상</li>
-											<li>작곡</li>
+											<li>취업 준비생</li>
+											<li>수험생</li>
+										</ul>
+									</div>
+								</li>
+								<li class="sub-menu-item category">
+									<div class="category-name">
+										경력/이직
+										<span class="category-count">(0)</span>
+									</div>
+									<div class="sub-sub-menu">
+										<ul class="sub-sub-menu-column">
+											<li>경력</li>
+											<li>이직</li>
+										</ul>
+									</div>
+								</li>
+								<li class="sub-menu-item category">
+									<div class="category-name">
+										취미/자기계발
+										<span class="category-count">(0)</span>
+									</div>
+									<div class="sub-sub-menu">
+										<ul class="sub-sub-menu-column">
+											<li>취미</li>
+											<li>자기계발</li>
 										</ul>
 									</div>
 								</li>
@@ -584,11 +602,34 @@
 										어문학
 										<span class="category-count">(0)</span>
 									</div>
+									<div class="sub-sub-menu">
+										<ul class="sub-sub-menu-column">
+											<li>국어국문학과</li>
+											<li>영어영문학과</li>
+											<li>독일어문학과</li>
+											<li>프랑스어문학과</li>
+											<li>중어중문학과</li>
+											<li>일본어학과</li>
+											<li>러시아어문학과</li>
+											<li>기타언어학과</li>
+										</ul>
+									</div>
 								</li>
 								<li class="sub-menu-item category">
 									<div class="category-name">
 										인문과학
 										<span class="category-count">(0)</span>
+									</div>
+									<div class="sub-sub-menu">
+										<ul class="sub-sub-menu-column">
+											<li>철학과</li>
+											<li>역사학과</li>
+											<li>심리학과</li>
+											<li>사회학과</li>
+											<li>인류학과</li>
+											<li>문헌정보학과</li>
+											<li>문화인류학과</li>
+										</ul>
 									</div>
 								</li>
 								<li class="sub-menu-item category">
@@ -596,11 +637,33 @@
 										사회과학
 										<span class="category-count">(0)</span>
 									</div>
+									<div class="sub-sub-menu">
+										<ul class="sub-sub-menu-column">
+											<li>정치외교학과</li>
+											<li>경제학과</li>
+											<li>사회복지학과</li>
+											<li>행정학과</li>
+											<li>국제관계학과</li>
+											<li>도시공학과</li>
+											<li>지역개발학과</li>
+										</ul>
+									</div>
 								</li>
 								<li class="sub-menu-item category">
 									<div class="category-name">
 										자연과학
 										<span class="category-count">(0)</span>
+									</div>
+									<div class="sub-sub-menu">
+										<ul class="sub-sub-menu-column">
+											<li>물리학과</li>
+											<li>화학과</li>
+											<li>생물학과</li>
+											<li>지구과학과</li>
+											<li>수학과</li>
+											<li>통계학과</li>
+											<li>환경과학과</li>
+										</ul>
 									</div>
 								</li>
 								<li class="sub-menu-item category">
@@ -608,11 +671,33 @@
 										공학
 										<span class="category-count">(0)</span>
 									</div>
+									<div class="sub-sub-menu">
+										<ul class="sub-sub-menu-column">
+											<li>기계공학과</li>
+											<li>전기전자공학과</li>
+											<li>컴퓨터공학과</li>
+											<li>화학공학과</li>
+											<li>토목공학과</li>
+											<li>건축공학과</li>
+											<li>산업공학과</li>
+											<li>항공우주공학과</li>
+										</ul>
+									</div>
 								</li>
 								<li class="sub-menu-item category">
 									<div class="category-name">
 										법학
 										<span class="category-count">(0)</span>
+									</div>
+									<div class="sub-sub-menu">
+										<ul class="sub-sub-menu-column">
+											<li>법학과</li>
+											<li>국제법학과</li>
+											<li>형사법학과</li>
+											<li>민사법학과</li>
+											<li>행정법학과</li>
+											<li>상법학과</li>
+										</ul>
 									</div>
 								</li>
 								<li class="sub-menu-item category">
@@ -620,11 +705,31 @@
 										사범학
 										<span class="category-count">(0)</span>
 									</div>
+									<div class="sub-sub-menu">
+										<ul class="sub-sub-menu-column">
+											<li>초등교육과</li>
+											<li>유아교육과</li>
+											<li>중등교육과</li>
+											<li>특수교육과</li>
+											<li>교육학과</li>
+											<li>교육행정학과</li>
+										</ul>
+									</div>
 								</li>
 								<li class="sub-menu-item category">
 									<div class="category-name">
 										상경
 										<span class="category-count">(0)</span>
+									</div>
+									<div class="sub-sub-menu">
+										<ul class="sub-sub-menu-column">
+											<li>경영학과</li>
+											<li>회계학과</li>
+											<li>마케팅학과</li>
+											<li>금융학과</li>
+											<li>무역학과</li>
+											<li>경제학과</li>
+										</ul>
 									</div>
 								</li>
 								<li class="sub-menu-item category">
@@ -632,11 +737,30 @@
 										생활과학
 										<span class="category-count">(0)</span>
 									</div>
+									<div class="sub-sub-menu">
+										<ul class="sub-sub-menu-column">
+											<li>가정관리학과</li>
+											<li>식품영양학과</li>
+											<li>의류학과</li>
+											<li>주거환경학과</li>
+											<li>아동학과</li>
+										</ul>
+									</div>
 								</li>
 								<li class="sub-menu-item category">
 									<div class="category-name">
 										예/체능학
 										<span class="category-count">(0)</span>
+									</div>
+									<div class="sub-sub-menu">
+										<ul class="sub-sub-menu-column">
+											<li>미술학과</li>
+											<li>음악학과</li>
+											<li>체육학과</li>
+											<li>무용학과</li>
+											<li>디자인학과</li>
+											<li>영화학과</li>
+										</ul>
 									</div>
 								</li>
 								<li class="sub-menu-item category">
@@ -644,16 +768,49 @@
 										의/약학
 										<span class="category-count">(0)</span>
 									</div>
+									<div class="sub-sub-menu">
+										<ul class="sub-sub-menu-column">
+											<li>의학과</li>
+											<li>간호학과</li>
+											<li>약학과</li>
+											<li>치의학과</li>
+											<li>한의학과</li>
+											<li>보건학과</li>
+										</ul>
+									</div>
 								</li>
 								<li class="sub-menu-item category">
 									<div class="category-name">
 										농/수산/해양학
 										<span class="category-count">(0)</span>
 									</div>
+									<div class="sub-sub-menu">
+										<ul class="sub-sub-menu-column">
+											<li>농업경제학과</li>
+											<li>식물학과</li>
+											<li>동물학과</li>
+											<li>수산학과</li>
+											<li>해양학과</li>
+											<li>농업생명과학과</li>
+										</ul>
+									</div>
 								</li>
 							</ul>
 						</li>
-						<li class="menu-item">커뮤니티</li>
+						<li class="menu-item">
+							커뮤니티
+							<ul class="sub-menu">
+								<li class="sub-menu-item" @click="$router.push('/community/free')">
+									자유게시판
+								</li>
+								<li class="sub-menu-item" @click="$router.push('/community/question')">
+									질문게시판
+								</li>
+								<li class="sub-menu-item" @click="$router.push('/community/suggestion')">
+									건의게시판
+								</li>
+							</ul>
+						</li>
 						<li class="menu-item">고객센터</li>
 					</ul>
 				</nav>
@@ -827,18 +984,18 @@ onMounted(() => {
 	top: 100%;
 	left: 0;
 	background-color: #fff;
-	box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 	border-radius: 4px;
 	min-width: 150px;
 	z-index: 1000;
 }
 
-.menu-item:hover > .sub-menu {
+.menu-item:hover>.sub-menu {
 	display: flex;
 	flex-direction: column;
 }
 
-.menu-item:hover > .sub-menu:has(.sub-menu-item:nth-child(10)) {
+.menu-item:hover>.sub-menu:has(.sub-menu-item:nth-child(10)) {
 	flex-direction: row;
 	flex-wrap: wrap;
 	width: 300px;
@@ -868,7 +1025,7 @@ onMounted(() => {
 	left: 100%;
 	top: 0;
 	background-color: #fff;
-	box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 	border-radius: 4px;
 	min-width: 250px;
 	display: none;
@@ -877,7 +1034,7 @@ onMounted(() => {
 	transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
-.sub-menu-item:hover > .sub-sub-menu {
+.sub-menu-item:hover>.sub-sub-menu {
 	display: flex;
 	opacity: 1;
 	visibility: visible;
@@ -897,7 +1054,7 @@ onMounted(() => {
 	overflow: hidden;
 }
 
-.sub-sub-menu-column:has(li:nth-child(10)) ~ .sub-sub-menu-column {
+.sub-sub-menu-column:has(li:nth-child(10))~.sub-sub-menu-column {
 	border-left: 1px solid #eee;
 }
 

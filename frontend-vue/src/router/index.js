@@ -3,6 +3,7 @@ import Home from '../views/Home.vue';
 import Login from '../views/Login.vue';
 import Signup from '../views/Signup.vue';
 import Profile from '../views/Profile.vue';
+import CreateStudyGroup from '../views/CreateStudyGroup.vue';
 
 const routes = [
     {
@@ -28,6 +29,12 @@ const routes = [
         path: '/profile',
         name: 'Profile',
         component: Profile,
+        meta: { requiresAuth: true }
+    },
+    {
+        path: '/create-study',
+        name: 'CreateStudyGroup',
+        component: CreateStudyGroup,
         meta: { requiresAuth: true }
     }
 ];
