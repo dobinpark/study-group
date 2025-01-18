@@ -5,9 +5,24 @@ import {
     CallHandler,
 } from '@nestjs/common';
 import { CacheInterceptor } from '@nestjs/cache-manager';
-import { CACHE_KEYS } from '../../board/posts/cache/constants/cache-keys.constants';
-import { CacheKeyError } from '../../board/posts/cache/errors/cache.errors';
 import { Observable } from 'rxjs';
+
+// 캐시 키 상수 정의
+const CACHE_KEYS = {
+    getPostsSearch: (q: string, page?: number, limit?: number) => 
+        `posts:search:${q}:${page || 1}:${limit || 10}`,
+    getPostDetail: (id: string) => `posts:detail:${id}`,
+    getPostsList: (page?: number, limit?: number) => 
+        `posts:list:${page || 1}:${limit || 10}`,
+};
+
+// 캐시 관련 에러 클래스 정의
+class CacheKeyError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = 'CacheKeyError';
+    }
+}
 
 @Injectable()
 export class CustomCacheInterceptor extends CacheInterceptor {

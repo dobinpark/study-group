@@ -20,7 +20,10 @@ export class AuthService {
     ) { }
 
     async signUp(authCredentialsDto: AuthCredentialsDto): Promise<User> {
-        return this.userRepository.createUser(authCredentialsDto);
+        const user = await this.userRepository.createUser(authCredentialsDto);
+        // 회원가입 후 자동 로그인 처리
+        await this.createAndSaveRefreshToken(user);
+        return user;
     }
 
     async logIn(loginDto: LoginDto): Promise<{ accessToken: string; refreshToken: string }> {
@@ -38,12 +41,12 @@ export class AuthService {
 
         const payload = { username };
         const accessToken = this.jwtService.sign(payload);
-        const refreshToken = await this.createRefreshToken(user);
+        const refreshToken = await this.createAndSaveRefreshToken(user);
 
         return { accessToken, refreshToken };
     }
 
-    private async createRefreshToken(user: User): Promise<string> {
+    private async createAndSaveRefreshToken(user: User): Promise<string> {
         const refreshToken = new RefreshToken();
         refreshToken.user = user;
         refreshToken.token = this.jwtService.sign(
@@ -52,7 +55,16 @@ export class AuthService {
         );
         refreshToken.expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7일 후
 
+        // RefreshToken 테이블에 저장
         await this.refreshTokenRepository.save(refreshToken);
+
+        // User 테이블의 refresh_token 업데이트
+        user.refreshTokens = [{
+            token: refreshToken.token,
+            expiresAt: refreshToken.expiresAt
+        }];
+        await this.userRepository.save(user);
+
         return refreshToken.token;
     }
 
@@ -66,6 +78,16 @@ export class AuthService {
 
             if (!token || token.expiresAt < new Date()) {
                 throw new UnauthorizedException('유효하지 않은 리프레시 토큰입니다.');
+            }
+
+            // User 테이블의 refresh_token과 비교
+            if (!token.user.refreshTokens?.length) {
+                throw new UnauthorizedException('리프레시 토큰이 존재하지 않습니다.');
+            }
+
+            const userRefreshToken = token.user.refreshTokens[0].token;
+            if (userRefreshToken !== refreshToken) {
+                throw new UnauthorizedException('리프레시 토큰이 일치하지 않습니다.');
             }
 
             const accessToken = this.jwtService.sign({ username: token.user.username });
