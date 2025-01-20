@@ -11,6 +11,11 @@ import { RefreshToken } from '../entities/refresh-token.entity';
 
 @Injectable()
 export class AuthService {
+    // User 테이블의 refresh_token 업데이트
+    logout // User 테이블의 refresh_token 업데이트
+        (user: User) {
+            throw new Error('Method not implemented.');
+    }
     constructor(
         @InjectRepository(UserRepository)
         private userRepository: UserRepository,

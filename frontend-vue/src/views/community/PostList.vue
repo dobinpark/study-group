@@ -1,7 +1,7 @@
 <template>
     <div class="post-list-container">
         <h2 class="board-title">{{ categoryTitle }}</h2>
-        
+
         <!-- 게시글 목록 -->
         <div class="post-list">
             <table>
@@ -31,12 +31,7 @@
         <!-- 검색 및 글쓰기 영역 -->
         <div class="action-bar">
             <div class="search-box">
-                <input 
-                    type="text" 
-                    v-model="searchQuery" 
-                    placeholder="검색어를 입력하세요"
-                    @keyup.enter="search"
-                >
+                <input type="text" v-model="searchQuery" placeholder="검색어를 입력하세요" @keyup.enter="search">
                 <button @click="search" class="search-button">검색</button>
             </div>
             <button @click="createPost" class="write-button">글쓰기</button>
@@ -44,26 +39,17 @@
 
         <!-- 페이지네이션 -->
         <div class="pagination">
-            <button 
-                :disabled="currentPage === 1" 
-                @click="changePage(currentPage - 1)"
-            >&lt;</button>
+            <button :disabled="currentPage === 1" @click="changePage(currentPage - 1)">&lt;</button>
             <span v-for="page in totalPages" :key="page">
-                <button 
-                    :class="{ active: page === currentPage }"
-                    @click="changePage(page)"
-                >{{ page }}</button>
+                <button :class="{ active: page === currentPage }" @click="changePage(page)">{{ page }}</button>
             </span>
-            <button 
-                :disabled="currentPage === totalPages" 
-                @click="changePage(currentPage + 1)"
-            >&gt;</button>
+            <button :disabled="currentPage === totalPages" @click="changePage(currentPage + 1)">&gt;</button>
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 import { PostCategory, PostCategoryKorean } from '../../types/post';
@@ -160,7 +146,8 @@ watch(() => route.params.category, () => {
     margin-bottom: 2rem;
 }
 
-.post-list th, .post-list td {
+.post-list th,
+.post-list td {
     padding: 1rem;
     text-align: center;
     border-bottom: 1px solid #eee;
@@ -198,7 +185,8 @@ watch(() => route.params.category, () => {
     width: 300px;
 }
 
-.search-button, .write-button {
+.search-button,
+.write-button {
     padding: 0.5rem 1rem;
     border: none;
     border-radius: 4px;
@@ -247,4 +235,4 @@ watch(() => route.params.category, () => {
     background-color: #f8f9fa;
     cursor: not-allowed;
 }
-</style> 
+</style>

@@ -1,5 +1,6 @@
 import PostList from '../views/community/PostList.vue';
 import CreatePost from '../views/community/CreatePost.vue';
+import StudyGroupList from '@/views/study/StudyGroupList.vue';
 
 const routes = [
     {
@@ -14,5 +15,10 @@ const routes = [
         component: CreatePost,
         props: true,
         meta: { requiresAuth: true }
+    },
+    {
+        path: '/study-groups',
+        name: 'StudyGroupList',
+        component: StudyGroupList
     }
-]; 
+];

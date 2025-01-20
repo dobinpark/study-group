@@ -5,23 +5,11 @@
             <form @submit.prevent="handleSubmit" class="modal-form">
                 <div class="form-group">
                     <label for="username">아이디</label>
-                    <input
-                        type="text"
-                        id="username"
-                        v-model="username"
-                        required
-                        placeholder="아이디를 입력하세요"
-                    />
+                    <input type="text" id="username" v-model="username" required placeholder="아이디를 입력하세요" />
                 </div>
                 <div class="form-group">
                     <label for="email">이메일</label>
-                    <input
-                        type="email"
-                        id="email"
-                        v-model="email"
-                        required
-                        placeholder="이메일을 입력하세요"
-                    />
+                    <input type="email" id="email" v-model="email" required placeholder="이메일을 입력하세요" />
                 </div>
                 <div class="button-group">
                     <button type="submit" class="submit-button">확인</button>
@@ -51,7 +39,7 @@ const handleSubmit = async () => {
             username: username.value,
             email: email.value
         });
-        
+
         alert(`임시 비밀번호가 발급되었습니다: ${response.data.password}\n로그인 후 반드시 비밀번호를 변경해주세요.`);
         close();
     } catch (error) {
@@ -137,7 +125,8 @@ input:focus {
     margin-top: 1.5rem;
 }
 
-.submit-button, .cancel-button {
+.submit-button,
+.cancel-button {
     flex: 1;
     padding: 0.75rem;
     border: none;
@@ -165,4 +154,4 @@ input:focus {
 .cancel-button:hover {
     background-color: #cbd5e0;
 }
-</style> 
+</style>

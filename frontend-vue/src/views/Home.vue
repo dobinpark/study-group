@@ -76,6 +76,7 @@ const handleCreateStudy = () => {
         opacity: 0;
         transform: translateY(-30px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -87,6 +88,7 @@ const handleCreateStudy = () => {
         opacity: 0;
         transform: translateY(30px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -137,11 +139,11 @@ const handleCreateStudy = () => {
     .home {
         width: 90%;
     }
-    
+
     .main-title {
         font-size: 2.5rem;
     }
-    
+
     .sub-title {
         font-size: 1.5rem;
     }

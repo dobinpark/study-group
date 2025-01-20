@@ -1,29 +1,19 @@
 <template>
     <div class="create-post-container">
         <h2 class="page-title">{{ categoryTitle }} 글쓰기</h2>
-        
+
         <div class="form-container">
             <div class="form-group">
                 <label for="title">제목</label>
-                <input 
-                    type="text" 
-                    id="title" 
-                    v-model="title" 
-                    placeholder="제목을 입력하세요"
-                    :class="{ 'error': errors.title }"
-                >
+                <input type="text" id="title" v-model="title" placeholder="제목을 입력하세요"
+                    :class="{ 'error': errors.title }">
                 <span class="error-message" v-if="errors.title">{{ errors.title }}</span>
             </div>
 
             <div class="form-group">
                 <label for="content">내용</label>
-                <textarea 
-                    id="content" 
-                    v-model="content" 
-                    placeholder="내용을 입력하세요"
-                    rows="15"
-                    :class="{ 'error': errors.content }"
-                ></textarea>
+                <textarea id="content" v-model="content" placeholder="내용을 입력하세요" rows="15"
+                    :class="{ 'error': errors.content }"></textarea>
                 <span class="error-message" v-if="errors.content">{{ errors.content }}</span>
             </div>
 
@@ -201,4 +191,4 @@ const cancel = () => {
 .submit-button:hover {
     background-color: #357ABD;
 }
-</style> 
+</style>

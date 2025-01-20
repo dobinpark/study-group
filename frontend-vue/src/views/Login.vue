@@ -6,23 +6,11 @@
             <form @submit.prevent="handleSubmit" class="login-form">
                 <div class="form-group">
                     <label for="username">아이디</label>
-                    <input
-                        type="text"
-                        id="username"
-                        v-model="username"
-                        required
-                        placeholder="아이디를 입력하세요"
-                    />
+                    <input type="text" id="username" v-model="username" required placeholder="아이디를 입력하세요" />
                 </div>
                 <div class="form-group">
                     <label for="password">비밀번호</label>
-                    <input
-                        type="password"
-                        id="password"
-                        v-model="password"
-                        required
-                        placeholder="비밀번호를 입력하세요"
-                    />
+                    <input type="password" id="password" v-model="password" required placeholder="비밀번호를 입력하세요" />
                 </div>
                 <button type="submit" class="login-button">로그인</button>
                 <div class="signup-link">
@@ -54,7 +42,7 @@ const handleSubmit = async () => {
             username: username.value,
             password: password.value,
         });
-        
+
         localStorage.setItem('accessToken', response.data.accessToken);
         localStorage.setItem('refreshToken', response.data.refreshToken);
         router.push('/home');
@@ -185,7 +173,7 @@ input:focus {
         width: 90%;
         padding: 2rem;
     }
-    
+
     .login-title {
         font-size: 2rem;
     }

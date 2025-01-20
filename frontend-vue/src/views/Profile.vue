@@ -26,8 +26,7 @@
                                         <div class="sm:col-span-3">
                                             <label class="block text-sm font-medium leading-6 text-gray-900">닉네임</label>
                                             <div class="mt-2">
-                                                <input type="text" v-model="profile.nickname"
-                                                    class="block w-full rounded-md border-0 py-1.5
+                                                <input type="text" v-model="profile.nickname" class="block w-full rounded-md border-0 py-1.5
                                                     text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300
                                                     placeholder:text-gray-400" />
                                             </div>
@@ -36,18 +35,17 @@
                                         <div class="sm:col-span-4">
                                             <label class="block text-sm font-medium leading-6 text-gray-900">이메일</label>
                                             <div class="mt-2">
-                                                <input type="email" v-model="profile.email"
-                                                    class="block w-full rounded-md border-0 py-1.5
+                                                <input type="email" v-model="profile.email" class="block w-full rounded-md border-0 py-1.5
                                                     text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300
                                                     placeholder:text-gray-400" />
                                             </div>
                                         </div>
 
                                         <div class="sm:col-span-3">
-                                            <label class="block text-sm font-medium leading-6 text-gray-900">전화번호</label>
+                                            <label
+                                                class="block text-sm font-medium leading-6 text-gray-900">전화번호</label>
                                             <div class="mt-2">
-                                                <input type="tel" v-model="profile.phoneNumber"
-                                                    class="block w-full rounded-md border-0 py-1.5
+                                                <input type="tel" v-model="profile.phoneNumber" class="block w-full rounded-md border-0 py-1.5
                                                     text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300
                                                     placeholder:text-gray-400" />
                                             </div>
@@ -60,22 +58,20 @@
                                     <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
                                         <div class="sm:col-span-3">
                                             <label class="block text-sm font-medium leading-6 text-gray-900">
-																							현재 비밀번호
-																						</label>
+                                                현재 비밀번호
+                                            </label>
                                             <div class="mt-2">
-                                                <input type="password" v-model="passwordChange.currentPassword"
-                                                    class="block w-full rounded-md border-0 py-1.5
+                                                <input type="password" v-model="passwordChange.currentPassword" class="block w-full rounded-md border-0 py-1.5
                                                     text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300" />
                                             </div>
                                         </div>
 
                                         <div class="sm:col-span-3">
                                             <label class="block text-sm font-medium leading-6 text-gray-900">
-																							새 비밀번호
-																						</label>
+                                                새 비밀번호
+                                            </label>
                                             <div class="mt-2">
-                                                <input type="password" v-model="passwordChange.newPassword"
-                                                    class="block w-full rounded-md border-0 py-1.5
+                                                <input type="password" v-model="passwordChange.newPassword" class="block w-full rounded-md border-0 py-1.5
                                                     text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300" />
                                             </div>
                                         </div>
@@ -168,4 +164,4 @@ const updateProfile = async () => {
 onMounted(() => {
     getProfile();
 });
-</script> 
+</script>

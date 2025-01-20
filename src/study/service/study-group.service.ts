@@ -102,4 +102,34 @@ export class StudyGroupService {
 
         return await queryBuilder.getCount();
     }
+
+    async getStudyGroupCountsByRegion(): Promise<Record<string, Record<string, number>>> {
+        const studyGroups = await this.studyGroupRepository
+            .createQueryBuilder('studyGroup')
+            .select(['studyGroup.subCategory', 'studyGroup.detailCategory'])
+            .where('studyGroup.mainCategory = :category', { category: '지역별' })
+            .getMany();
+
+        const counts: Record<string, Record<string, number>> = {};
+
+        studyGroups.forEach(group => {
+            if (!counts[group.subCategory]) {
+                counts[group.subCategory] = {};
+            }
+            
+            if (!counts[group.subCategory][group.detailCategory]) {
+                counts[group.subCategory][group.detailCategory] = 0;
+            }
+            
+            counts[group.subCategory][group.detailCategory]++;
+            
+            // '전체' 카운트 업데이트
+            if (!counts[group.subCategory]['전체']) {
+                counts[group.subCategory]['전체'] = 0;
+            }
+            counts[group.subCategory]['전체']++;
+        });
+
+        return counts;
+    }
 }

@@ -3,8 +3,10 @@
 @tailwind utilities;
 
 @media (max-width: 768px) {
+
 	/* 추가적인 모바일 스타일 조정 */
 	.nav-items {
-		font-size: 14px; /* 네비게이션 바의 텍스트 크기 조정 */
+		font-size: 14px;
+		/* 네비게이션 바의 텍스트 크기 조정 */
 	}
 }

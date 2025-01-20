@@ -1,4 +1,5 @@
 import { Controller, Post, Body, UseGuards, Put, Param, Delete, Get, Query } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { StudyGroupService } from '../service/study-group.service';
 import { CreateStudyGroupDto } from '../dto/create-study-group.dto';
 import { UpdateStudyGroupDto } from '../dto/update-study-group.dto';
@@ -6,12 +7,16 @@ import { JwtAuthGuard } from '../../user/auth/jwt-auth.guard';
 import { GetUser } from '../../user/auth/get-user.decorator';
 import { User } from '../../user/users/entities/user.entity';
 
+@ApiTags('스터디 그룹')
 @Controller('study-groups')
 export class StudyGroupController {
     constructor(private readonly studyGroupService: StudyGroupService) {}
 
     @Post()
     @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
+    @ApiOperation({ summary: '스터디 그룹 생성' })
+    @ApiResponse({ status: 201, description: '스터디 그룹이 생성되었습니다.' })
     async createStudyGroup(
         @Body() createStudyGroupDto: CreateStudyGroupDto,
         @GetUser() user: User
@@ -21,6 +26,9 @@ export class StudyGroupController {
 
     @Put(':id')
     @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
+    @ApiOperation({ summary: '스터디 그룹 수정' })
+    @ApiResponse({ status: 200, description: '스터디 그룹이 수정되었습니다.' })
     async updateStudyGroup(
         @Param('id') id: number,
         @Body() updateStudyGroupDto: UpdateStudyGroupDto,
@@ -31,6 +39,9 @@ export class StudyGroupController {
 
     @Delete(':id')
     @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
+    @ApiOperation({ summary: '스터디 그룹 삭제' })
+    @ApiResponse({ status: 200, description: '스터디 그룹이 삭제되었습니다.' })
     async deleteStudyGroup(
         @Param('id') id: number,
         @GetUser() user: User
@@ -40,6 +51,11 @@ export class StudyGroupController {
     }
 
     @Get()
+    @ApiOperation({ summary: '카테고리별 스터디 그룹 조회' })
+    @ApiQuery({ name: 'mainCategory', required: false })
+    @ApiQuery({ name: 'subCategory', required: false })
+    @ApiQuery({ name: 'detailCategory', required: false })
+    @ApiResponse({ status: 200, description: '스터디 그룹 목록을 반환합니다.' })
     async findByCategory(
         @Query('mainCategory') mainCategory?: string,
         @Query('subCategory') subCategory?: string,
@@ -49,6 +65,11 @@ export class StudyGroupController {
     }
 
     @Get('count')
+    @ApiOperation({ summary: '스터디 그룹 수 조회' })
+    @ApiQuery({ name: 'mainCategory', required: false })
+    @ApiQuery({ name: 'subCategory', required: false })
+    @ApiQuery({ name: 'detailCategory', required: false })
+    @ApiResponse({ status: 200, description: '스터디 그룹 수를 반환합니다.' })
     async getStudyGroupCount(
         @Query('mainCategory') mainCategory?: string,
         @Query('subCategory') subCategory?: string,
@@ -60,5 +81,12 @@ export class StudyGroupController {
             detailCategory
         );
         return { count };
+    }
+
+    @Get('counts/region')
+    @ApiOperation({ summary: '지역별 스터디 그룹 수 조회' })
+    @ApiResponse({ status: 200, description: '지역별 스터디 그룹 수를 반환합니다.' })
+    async getStudyGroupCountsByRegion() {
+        return this.studyGroupService.getStudyGroupCountsByRegion();
     }
 }
