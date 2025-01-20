@@ -1,6 +1,6 @@
 import { createApp } from 'vue'
 import App from './App.vue'
-import router from './router'
+import router from './router/index'
 import { BootstrapVue3 } from 'bootstrap-vue-3'
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue-3/dist/bootstrap-vue-3.css'
@@ -9,7 +9,7 @@ import axios from 'axios'
 
 // Axios 인스턴스 생성
 const axiosInstance = axios.create({
-	baseURL: 'http://localhost:3000', // NestJS API 서버 주소
+    baseURL: 'http://localhost:3000', // NestJS API 서버 주소
 })
 
 // Vue 애플리케이션 생성

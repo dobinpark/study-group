@@ -1,7 +1,7 @@
 <template>
     <div class="study-list-container">
         <div class="header">
-            <h2>{{ mainCategory }} > {{ subCategory }} > {{ detailCategory }}</h2>
+            <h2>{{ route.params.mainRegion }} {{ route.params.subRegion !== '전체' ? '> ' + route.params.subRegion : '' }}</h2>
             <router-link to="/create-study" class="create-btn">스터디 만들기</router-link>
         </div>
         
@@ -29,7 +29,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 
@@ -41,20 +41,31 @@ const mainCategory = ref(route.query.mainCategory || '');
 const subCategory = ref(route.query.subCategory || '');
 const detailCategory = ref(route.query.detailCategory || '');
 
-const fetchStudyGroups = async () => {
+const loadStudyGroups = async () => {
     try {
+        const mainRegion = route.params.mainRegion;
+        const subRegion = route.params.subRegion;
+
         const response = await axios.get('http://localhost:3000/study-groups', {
             params: {
-                mainCategory: mainCategory.value,
-                subCategory: subCategory.value,
-                detailCategory: detailCategory.value
+                mainRegion,
+                subRegion: subRegion === '전체' ? undefined : subRegion,
+                mainCategory: '지역별'  // 지역별 스터디 그룹만 필터링
             }
         });
         studyGroups.value = response.data;
     } catch (error) {
-        console.error('스터디 그룹 조회 실패:', error);
+        console.error('스터디 그룹 로딩 실패:', error);
     }
 };
+
+// 라우트 파라미터가 변경될 때마다 스터디 그룹 목록을 다시 로드
+watch(
+    () => route.params,
+    () => {
+        loadStudyGroups();
+    }
+);
 
 const goToDetail = (id: number) => {
     router.push(`/study-groups/${id}`);
@@ -65,7 +76,7 @@ const formatDate = (date: string) => {
 };
 
 onMounted(() => {
-    fetchStudyGroups();
+    loadStudyGroups();
 });
 </script>
 

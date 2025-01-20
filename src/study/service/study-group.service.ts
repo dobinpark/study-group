@@ -132,4 +132,27 @@ export class StudyGroupService {
 
         return counts;
     }
+
+    async findAll(params: {
+        mainRegion?: string;
+        subRegion?: string;
+        mainCategory?: string;
+    }) {
+        const query = this.studyGroupRepository.createQueryBuilder('studyGroup')
+            .leftJoinAndSelect('studyGroup.creator', 'creator');
+    
+        if (params.mainCategory === '지역별') {
+            query.where('studyGroup.mainCategory = :mainCategory', { mainCategory: params.mainCategory });
+            
+            if (params.mainRegion) {
+                query.andWhere('studyGroup.subCategory = :mainRegion', { mainRegion: params.mainRegion });
+                
+                if (params.subRegion && params.subRegion !== '전체') {
+                    query.andWhere('studyGroup.detailCategory = :subRegion', { subRegion: params.subRegion });
+                }
+            }
+        }
+    
+        return await query.getMany();
+    }
 }

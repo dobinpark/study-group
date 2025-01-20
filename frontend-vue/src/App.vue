@@ -1,17 +1,19 @@
 <template>
 	<div id="app">
 		<Header />
-		<router-view />
+		<router-view></router-view>
 	</div>
 </template>
 
-<script>
-import Header from './components/Header.vue'; // 헤더 컴포넌트 임포트
-
-export default {
-	name: 'App',
-	components: {
-		Header,
-	},
-};
+<script setup lang="ts">
+import Header from '@/components/Header.vue'
 </script>
+
+<style>
+#app {
+	font-family: Avenir, Helvetica, Arial, sans-serif;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	color: #2c3e50;
+}
+</style>

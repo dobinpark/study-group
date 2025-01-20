@@ -1,10 +1,17 @@
 module.exports = {
+  root: true,
+  env: {
+    node: true
+  },
   extends: [
     'plugin:vue/vue3-essential',
-    // 다른 설정...
+    '@vue/typescript'
   ],
   parserOptions: {
-    parser: '@babel/eslint-parser',
-    requireConfigFile: false, // 이 줄을 추가하여 설정 파일 요구를 피합니다.
+    parser: '@typescript-eslint/parser'
+  },
+  rules: {
+    'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
+    'no-debugger': process.env.NODE_ENV === 'production' ? 'warn' : 'off'
   }
 }
