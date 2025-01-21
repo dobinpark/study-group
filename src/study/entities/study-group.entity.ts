@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn, Index } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn, Index, ManyToMany, JoinTable } from 'typeorm';
 import { User } from '../../user/users/entities/user.entity';
 
 @Entity()
@@ -33,4 +33,11 @@ export class StudyGroup {
 
     @UpdateDateColumn()
     updatedAt!: Date;
+
+    @Column({ default: 10 })
+    maxMembers!: number;
+
+    @ManyToMany(() => User)
+    @JoinTable()
+    members!: User[];
 }

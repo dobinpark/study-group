@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Post } from '../entities/post.entity';
@@ -6,12 +6,15 @@ import { CreatePostDto } from '../dto/create-post.dto';
 import { UpdatePostDto } from '../dto/update-post.dto';
 import { User } from '../../user/users/entities/user.entity';
 import { PostCategory } from '../enum/post-category.enum';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 
 @Injectable()
 export class PostsService {
     constructor(
         @InjectRepository(Post)
         private postsRepository: Repository<Post>,
+        @Inject(CACHE_MANAGER) private cacheManager: Cache
     ) {}
 
     async createPost(createPostDto: CreatePostDto, author: User): Promise<Post> {
@@ -35,20 +38,35 @@ export class PostsService {
     }
 
     async findOne(id: number): Promise<Post> {
-        const post = await this.postsRepository.findOne({
-            where: { id },
-            relations: ['author']
-        });
+        // 1. 게시글 데이터 캐시 확인
+        const cacheKey = `post:${id}`;
+        let post = await this.cacheManager.get<Post | null>(cacheKey) || null;
 
         if (!post) {
-            throw new NotFoundException('게시글을 찾을 수 없습니다.');
+            post = await this.postsRepository.findOne({
+                where: { id },
+                relations: ['author']
+            });
+
+            if (!post) {
+                throw new NotFoundException('게시글을 찾을 수 없습니다.');
+            }
+
+            // 캐시에 저장 (10분)
+            await this.cacheManager.set(cacheKey, post, 600000);
         }
 
-        // 조회수 증가
-        post.views += 1;
-        await this.postsRepository.save(post);
+        // 2. 조회수는 Redis에서 별도로 관리
+        const viewsKey = `post:${id}:views`;
+        const views = await this.cacheManager.get<number>(viewsKey) || 0;
+        await this.cacheManager.set(viewsKey, views + 1);
 
-        return post;
+        // 3. 주기적으로 DB에 동기화 (별도의 스케줄러에서 처리)
+        if (views % 10 === 0) { // 10회 조회마다 DB 업데이트
+            await this.postsRepository.update(id, { views: views + 1 });
+        }
+
+        return { ...post, views: views + 1 };
     }
 
     async updatePost(id: number, updatePostDto: UpdatePostDto, user: User): Promise<Post> {

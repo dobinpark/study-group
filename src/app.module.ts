@@ -6,6 +6,8 @@ import { AuthModule } from './user/auth/auth.module';
 import { UsersModule } from './user/users/users.module';
 import { StudyModule } from './study/study.module';
 import { config } from 'dotenv';
+import { CacheModule } from '@nestjs/cache-manager';
+import { redisStore } from 'cache-manager-redis-store';
 
 config(); // .env 파일의 환경 변수를 로드합니다.
 
@@ -35,6 +37,13 @@ if (!process.env.DB_PORT) {
         AuthModule,
         UsersModule,
         StudyModule,
+        CacheModule.register({
+            isGlobal: true,
+            store: redisStore,
+            host: String(process.env.REDIS_HOST || 'localhost'),
+            port: parseInt(String(process.env.REDIS_PORT || '6379')),
+            ttl: 300, // 기본 캐시 유효시간 5분
+        }),
     ],
 })
 export class AppModule { }

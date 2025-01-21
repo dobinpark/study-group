@@ -48,6 +48,22 @@
                     rows="10"></textarea>
             </div>
 
+            <div class="form-group">
+                <label for="maxMembers">모집 인원</label>
+                <div class="max-members-input">
+                    <input
+                        type="number"
+                        id="maxMembers"
+                        v-model="maxMembers"
+                        min="2"
+                        max="100"
+                        required
+                    />
+                    <span class="unit">명</span>
+                </div>
+                <small class="form-text text-muted">최소 2명부터 최대 100명까지 설정 가능합니다.</small>
+            </div>
+
             <div class="button-group">
                 <button type="button" @click="handleCancel" class="cancel-button">취소</button>
                 <button type="submit" class="submit-button">생성하기</button>
@@ -70,6 +86,8 @@ const studyGroup = ref({
     detailCategory: '',
     content: ''
 });
+
+const maxMembers = ref(10); // 기본값 10명
 
 // 카테고리 데이터
 const categories = {
@@ -175,7 +193,14 @@ const handleSubCategoryChange = () => {
 const handleSubmit = async () => {
     try {
         const token = localStorage.getItem('accessToken');
-        await axios.post('http://localhost:3000/study-groups', studyGroup.value, {
+        await axios.post('http://localhost:3000/study-groups', {
+            name: studyGroup.value.name,
+            mainCategory: studyGroup.value.mainCategory,
+            subCategory: studyGroup.value.subCategory,
+            detailCategory: studyGroup.value.detailCategory,
+            content: studyGroup.value.content,
+            maxMembers: maxMembers.value
+        }, {
             headers: {
                 Authorization: `Bearer ${token}`
             }
@@ -183,7 +208,7 @@ const handleSubmit = async () => {
         alert('스터디 그룹이 생성되었습니다.');
         router.push('/');
     } catch (error) {
-        alert('스터디 그룹 생성에 실패했습니다.');
+        alert('스터디 그룹 생성에 실패했습니다: ' + error.response?.data?.message || error.message);
         console.error('Error:', error);
     }
 };
@@ -295,5 +320,25 @@ textarea {
 select:disabled {
     background-color: #f7fafc;
     cursor: not-allowed;
+}
+
+.max-members-input {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.max-members-input input {
+    width: 100px;
+}
+
+.unit {
+    color: #666;
+}
+
+.form-text {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-top: 0.25rem;
 }
 </style>

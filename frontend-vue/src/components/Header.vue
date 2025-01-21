@@ -100,7 +100,7 @@
 										</ul>
 									</div>
 								</li>
-								<li class="sub-menu-item region" @click="goToStudyList('인천', '전체')">
+								<li class="sub-menu-item region">
 									<div class="region-name">
 										인천
 									</div>
@@ -133,7 +133,7 @@
 										</ul>
 									</div>
 								</li>
-								<li class="sub-menu-item region" @click="goToStudyList('부산', '전체')">
+								<li class="sub-menu-item region">
 									<div class="region-name">
 										부산
 									</div>
@@ -178,7 +178,7 @@
 										</ul>
 									</div>
 								</li>
-								<li class="sub-menu-item region" @click="goToStudyList('대구', '전체')">
+								<li class="sub-menu-item region">
 									<div class="region-name">
 										대구
 									</div>
@@ -207,7 +207,7 @@
 										</ul>
 									</div>
 								</li>
-								<li class="sub-menu-item region" @click="goToStudyList('광주', '전체')">
+								<li class="sub-menu-item region">
 									<div class="region-name">
 										광주
 									</div>
@@ -228,7 +228,7 @@
 										</ul>
 									</div>
 								</li>
-								<li class="sub-menu-item region" @click="goToStudyList('대전', '전체')">
+								<li class="sub-menu-item region">
 									<div class="region-name">
 										대전
 									</div>
@@ -249,7 +249,7 @@
 										</ul>
 									</div>
 								</li>
-								<li class="sub-menu-item region" @click="goToStudyList('울산', '전체')">
+								<li class="sub-menu-item region">
 									<div class="region-name">
 										울산
 									</div>
@@ -270,7 +270,7 @@
 										</ul>
 									</div>
 								</li>
-								<li class="sub-menu-item region" @click="goToStudyList('경기', '전체')">
+								<li class="sub-menu-item region">
 									<div class="region-name">
 										경기
 									</div>
@@ -390,7 +390,7 @@
 										</ul>
 									</div>
 								</li>
-								<li class="sub-menu-item region" @click="goToStudyList('세종', '전체')">
+								<li class="sub-menu-item region">
 									<div class="region-name">
 										세종
 									</div>
@@ -401,7 +401,7 @@
 										</ul>
 									</div>
 								</li>
-								<li class="sub-menu-item region" @click="goToStudyList('충남', '전체')">
+								<li class="sub-menu-item region">
 									<div class="region-name">
 										충남
 									</div>
@@ -448,7 +448,7 @@
 										</ul>
 									</div>
 								</li>
-								<li class="sub-menu-item region" @click="goToStudyList('충북', '전체')">
+								<li class="sub-menu-item region">
 									<div class="region-name">
 										충북
 									</div>
@@ -493,7 +493,7 @@
 										</ul>
 									</div>
 								</li>
-								<li class="sub-menu-item region" @click="goToStudyList('경남', '전체')">
+								<li class="sub-menu-item region">
 									<div class="region-name">
 										경남
 									</div>
@@ -559,7 +559,7 @@
 										</ul>
 									</div>
 								</li>
-								<li class="sub-menu-item region" @click="goToStudyList('경북', '전체')">
+								<li class="sub-menu-item region">
 									<div class="region-name">
 										경북
 									</div>
@@ -623,7 +623,7 @@
 										</ul>
 									</div>
 								</li>
-								<li class="sub-menu-item region" @click="goToStudyList('전남', '전체')">
+								<li class="sub-menu-item region">
 									<div class="region-name">
 										전남
 									</div>
@@ -682,7 +682,7 @@
 										</ul>
 									</div>
 								</li>
-								<li class="sub-menu-item region" @click="goToStudyList('전북', '전체')">
+								<li class="sub-menu-item region">
 									<div class="region-name">
 										전북
 									</div>
@@ -721,7 +721,7 @@
 										</ul>
 									</div>
 								</li>
-								<li class="sub-menu-item region" @click="goToStudyList('강원', '전체')">
+								<li class="sub-menu-item region">
 									<div class="region-name">
 										강원
 									</div>
@@ -770,7 +770,7 @@
 										</ul>
 									</div>
 								</li>
-								<li class="sub-menu-item region" @click="goToStudyList('제주', '전체')">
+								<li class="sub-menu-item region">
 									<div class="region-name">
 										제주
 									</div>
@@ -970,6 +970,7 @@
 import { ref, onMounted, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import axios from 'axios';
+import { AxiosError } from 'axios';
 
 type RegionCounts = {
 	[key: string]: {
@@ -1006,9 +1007,9 @@ const checkLoginStatus = async () => {
 			});
 			isLoggedIn.value = true;
 			userNickname.value = response.data.nickname;
-		} catch (error) {
+		} catch (error: unknown) {
 			console.error('프로필 조회 실패:', error);
-			if (error.response?.status === 401) {
+			if (error instanceof AxiosError && error.response?.status === 401) {
 				logout();
 			}
 		}
@@ -1211,6 +1212,7 @@ onMounted(() => {
 	opacity: 0;
 	visibility: hidden;
 	transition: opacity 0.3s ease, visibility 0.3s ease;
+	pointer-events: auto;
 }
 
 .sub-menu-item:hover>.sub-sub-menu {
@@ -1294,13 +1296,14 @@ onMounted(() => {
 	justify-content: space-between;
 	align-items: center;
 	cursor: default;
-	/* 중분류 클릭 비활성화 */
 }
 
 .region-name {
 	display: flex;
 	align-items: center;
 	gap: 8px;
+	user-select: none;  /* 텍스트 선택 방지 */
+	pointer-events: none;  /* 중분류 이름 영역만 클릭 비활성화 */
 }
 
 .region-count {
@@ -1363,5 +1366,11 @@ onMounted(() => {
 
 .menu-link:hover {
 	color: #1a365d;
+}
+
+/* 소분류 항목은 클릭 가능하도록 설정 */
+.sub-sub-menu li {
+	cursor: pointer;
+	pointer-events: auto;
 }
 </style>

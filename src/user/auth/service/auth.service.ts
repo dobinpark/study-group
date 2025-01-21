@@ -8,20 +8,19 @@ import * as bcrypt from 'bcrypt';
 import { User } from '../../users/entities/user.entity';
 import { RefreshTokenRepository } from '../repository/refresh-token.repository';
 import { RefreshToken } from '../entities/refresh-token.entity';
+import { Inject } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 
 @Injectable()
 export class AuthService {
-    // User 테이블의 refresh_token 업데이트
-    logout // User 테이블의 refresh_token 업데이트
-        (user: User) {
-            throw new Error('Method not implemented.');
-    }
     constructor(
         @InjectRepository(UserRepository)
         private userRepository: UserRepository,
         @InjectRepository(RefreshTokenRepository)
         private refreshTokenRepository: RefreshTokenRepository,
         private jwtService: JwtService,
+        @Inject(CACHE_MANAGER) private cacheManager: Cache
     ) { }
 
     async signUp(authCredentialsDto: AuthCredentialsDto): Promise<User> {
@@ -73,32 +72,21 @@ export class AuthService {
         return refreshToken.token;
     }
 
-    async refreshAccessToken(refreshToken: string): Promise<{ accessToken: string }> {
-        try {
-            const payload = this.jwtService.verify(refreshToken);
-            const token = await this.refreshTokenRepository.findOne({
-                where: { token: refreshToken },
-                relations: ['user']
-            });
+    async refreshAccessToken(refreshToken: string): Promise<string> {
+        const tokenKey = `refresh_token:${refreshToken}`;
+        const cachedToken = await this.cacheManager.get(tokenKey);
 
-            if (!token || token.expiresAt < new Date()) {
-                throw new UnauthorizedException('유효하지 않은 리프레시 토큰입니다.');
-            }
-
-            // User 테이블의 refresh_token과 비교
-            if (!token.user.refreshTokens?.length) {
-                throw new UnauthorizedException('리프레시 토큰이 존재하지 않습니다.');
-            }
-
-            const userRefreshToken = token.user.refreshTokens[0].token;
-            if (userRefreshToken !== refreshToken) {
-                throw new UnauthorizedException('리프레시 토큰이 일치하지 않습니다.');
-            }
-
-            const accessToken = this.jwtService.sign({ username: token.user.username });
-            return { accessToken };
-        } catch (error) {
-            throw new UnauthorizedException('유효하지 않은 리프레시 토큰입니다.');
+        if (!cachedToken) {
+            throw new UnauthorizedException('Invalid refresh token');
         }
+
+        const newAccessToken = this.jwtService.sign({ /* payload */ });
+        return newAccessToken;
+    }
+
+    async logout(user: User): Promise<void> {
+        const tokenKey = `user:${user.id}:token`;
+        // 로그아웃 시 토큰을 블랙리스트에 추가
+        await this.cacheManager.set(tokenKey, 'blacklisted', 86400000); // 24시간 유지
     }
 }

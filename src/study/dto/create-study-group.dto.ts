@@ -1,23 +1,28 @@
-import { IsString, IsNotEmpty } from 'class-validator';
+import { IsNotEmpty, IsString, IsNumber, Min, Max } from 'class-validator';
 
 export class CreateStudyGroupDto {
+    @IsNotEmpty()
     @IsString()
-    @IsNotEmpty({ message: '스터디 그룹 이름은 필수입니다.' })
     name!: string;
 
+    @IsNotEmpty()
     @IsString()
-    @IsNotEmpty({ message: '대분류는 필수입니다.' })
     mainCategory!: string;
 
+    @IsNotEmpty()
     @IsString()
-    @IsNotEmpty({ message: '중분류는 필수입니다.' })
     subCategory!: string;
 
+    @IsNotEmpty()
     @IsString()
-    @IsNotEmpty({ message: '소분류는 필수입니다.' })
     detailCategory!: string;
 
+    @IsNotEmpty()
     @IsString()
-    @IsNotEmpty({ message: '스터디 그룹 내용은 필수입니다.' })
     content!: string;
+
+    @IsNumber()
+    @Min(2)
+    @Max(100)
+    maxMembers!: number;
 }

@@ -18,7 +18,11 @@
     },
     "lib": ["es2021"],
     "types": ["node", "multer"],
-    "jsx": "preserve"
+    "jsx": "preserve",
+    "typeRoots": [
+      "./node_modules/@types",
+      "./types"
+    ]
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]

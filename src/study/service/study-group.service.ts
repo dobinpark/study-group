@@ -1,22 +1,26 @@
-import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { StudyGroup } from '../entities/study-group.entity';
 import { CreateStudyGroupDto } from '../dto/create-study-group.dto';
 import { UpdateStudyGroupDto } from '../dto/update-study-group.dto';
 import { User } from '../../user/users/entities/user.entity';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 
 @Injectable()
 export class StudyGroupService {
     constructor(
         @InjectRepository(StudyGroup)
         private studyGroupRepository: Repository<StudyGroup>,
+        @Inject(CACHE_MANAGER) private cacheManager: Cache
     ) {}
 
-    async createStudyGroup(createStudyGroupDto: CreateStudyGroupDto, creator: User): Promise<StudyGroup> {
+    async createStudyGroup(createStudyGroupDto: CreateStudyGroupDto, user: User): Promise<StudyGroup> {
         const studyGroup = this.studyGroupRepository.create({
             ...createStudyGroupDto,
-            creator
+            creator: user,
+            members: [user]
         });
 
         return await this.studyGroupRepository.save(studyGroup);
@@ -66,12 +70,22 @@ export class StudyGroupService {
         subCategory?: string,
         detailCategory?: string
     ): Promise<StudyGroup[]> {
+        const cacheKey = `study_groups:${mainCategory}:${subCategory}:${detailCategory}`;
+        
+        // 캐시 확인
+        const cachedData = await this.cacheManager.get<StudyGroup[]>(cacheKey);
+        if (cachedData) {
+            return cachedData;
+        }
+
+        // DB 조회
         const queryBuilder = this.studyGroupRepository.createQueryBuilder('studyGroup')
             .leftJoinAndSelect('studyGroup.creator', 'creator')
-            .orderBy('studyGroup.createdAt', 'DESC');
+            .orderBy('studyGroup.createdAt', 'DESC')
+            .where('1 = 1');  // 기본 조건
 
         if (mainCategory) {
-            queryBuilder.andWhere('studyGroup.mainCategory = :mainCategory', { mainCategory });
+            queryBuilder.andWhere('studyGroup.mainCategory = :mainCategory', { mainCategory: '지역별' });
         }
         if (subCategory) {
             queryBuilder.andWhere('studyGroup.subCategory = :subCategory', { subCategory });
@@ -80,7 +94,18 @@ export class StudyGroupService {
             queryBuilder.andWhere('studyGroup.detailCategory = :detailCategory', { detailCategory });
         }
 
-        return await queryBuilder.getMany();
+        const results = await queryBuilder.getMany();
+        
+        // 캐시 저장 (5분)
+        await this.cacheManager.set(cacheKey, results, 300000);
+        
+        return results;
+    }
+
+    // 캐시 무효화 처리
+    async invalidateCache(mainCategory?: string, subCategory?: string, detailCategory?: string) {
+        const cacheKey = `study_groups:${mainCategory}:${subCategory}:${detailCategory}`;
+        await this.cacheManager.del(cacheKey);
     }
 
     async getStudyGroupCount(
@@ -154,5 +179,40 @@ export class StudyGroupService {
         }
     
         return await query.getMany();
+    }
+
+    async joinStudyGroup(studyGroupId: number, user: User): Promise<StudyGroup> {
+        const studyGroup = await this.studyGroupRepository.findOne({
+            where: { id: studyGroupId },
+            relations: ['members']
+        });
+
+        if (!studyGroup) {
+            throw new NotFoundException('스터디 그룹을 찾을 수 없습니다.');
+        }
+
+        if (studyGroup.members.length >= studyGroup.maxMembers) {
+            throw new BadRequestException('스터디 그룹이 가득 찼습니다.');
+        }
+
+        if (studyGroup.members.some(member => member.id === user.id)) {
+            throw new BadRequestException('이미 참여중인 스터디 그룹입니다.');
+        }
+
+        studyGroup.members.push(user);
+        return await this.studyGroupRepository.save(studyGroup);
+    }
+
+    async getStudyGroupDetails(id: number): Promise<StudyGroup> {
+        const studyGroup = await this.studyGroupRepository.findOne({
+            where: { id },
+            relations: ['creator', 'members']
+        });
+
+        if (!studyGroup) {
+            throw new NotFoundException('스터디 그룹을 찾을 수 없습니다.');
+        }
+
+        return studyGroup;
     }
 }

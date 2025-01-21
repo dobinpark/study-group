@@ -12,6 +12,7 @@
                         <th>번호</th>
                         <th>스터디명</th>
                         <th>작성자</th>
+                        <th>참여 인원</th>
                         <th>생성일</th>
                     </tr>
                 </thead>
@@ -20,6 +21,7 @@
                         <td>{{ study.id }}</td>
                         <td>{{ study.name }}</td>
                         <td>{{ study.creator.username }}</td>
+                        <td>{{ study.members?.length || 0 }}/{{ study.maxMembers }}</td>
                         <td>{{ formatDate(study.createdAt) }}</td>
                     </tr>
                 </tbody>
@@ -33,9 +35,20 @@ import { ref, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 
+interface StudyGroup {
+    id: number;
+    name: string;
+    creator: {
+        username: string;
+    };
+    createdAt: string;
+    members?: any[];
+    maxMembers: number;
+}
+
 const route = useRoute();
 const router = useRouter();
-const studyGroups = ref([]);
+const studyGroups = ref<StudyGroup[]>([]);
 
 const mainCategory = ref(route.query.mainCategory || '');
 const subCategory = ref(route.query.subCategory || '');
@@ -48,9 +61,9 @@ const loadStudyGroups = async () => {
 
         const response = await axios.get('http://localhost:3000/study-groups', {
             params: {
-                mainRegion,
-                subRegion: subRegion === '전체' ? undefined : subRegion,
-                mainCategory: '지역별'  // 지역별 스터디 그룹만 필터링
+                mainCategory: '지역별',
+                subCategory: mainRegion,
+                detailCategory: subRegion === '전체' ? undefined : subRegion
             }
         });
         studyGroups.value = response.data;

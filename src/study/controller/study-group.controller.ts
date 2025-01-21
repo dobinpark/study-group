@@ -89,4 +89,20 @@ export class StudyGroupController {
     async getStudyGroupCountsByRegion() {
         return this.studyGroupService.getStudyGroupCountsByRegion();
     }
+
+    @Post(':id/join')
+    @UseGuards(JwtAuthGuard)
+    @ApiOperation({ summary: '스터디 그룹 참여' })
+    async joinStudyGroup(
+        @Param('id') id: number,
+        @GetUser() user: User
+    ) {
+        return this.studyGroupService.joinStudyGroup(id, user);
+    }
+
+    @Get(':id')
+    @ApiOperation({ summary: '스터디 그룹 상세 조회' })
+    async getStudyGroupDetails(@Param('id') id: number) {
+        return this.studyGroupService.getStudyGroupDetails(id);
+    }
 }
