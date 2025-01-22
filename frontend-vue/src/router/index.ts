@@ -1,12 +1,13 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 import PostList from '../views/community/PostList.vue';
 import CreatePost from '../views/community/CreatePost.vue';
-import StudyGroupList from '@/views/study/StudyGroupList.vue';
+import StudyGroupList from '../views/study/StudyGroupList.vue';
 import Home from '../views/Home.vue';
 import Login from '../views/Login.vue';
 import Signup from '../views/Signup.vue';
 import Profile from '../views/Profile.vue';
-import CreateStudyGroup from '../views/CreateStudyGroup.vue';
+import CreateStudyGroup from '../views/study/CreateStudyGroup.vue';
+import StudyGroupDetail from '../views/study/StudyGroupDetail.vue';
 
 const routes: Array<RouteRecordRaw> = [
     {
@@ -63,6 +64,22 @@ const routes: Array<RouteRecordRaw> = [
         name: 'StudyGroupListByRegion',
         component: StudyGroupList,
         props: true
+    },
+    {
+        path: '/study-groups/:id',
+        name: 'StudyGroupDetail',
+        component: () => import('../views/study/StudyGroupDetail.vue')
+    },
+    {
+        path: '/study-groups/:id/edit',
+        name: 'EditStudyGroup',
+        component: () => import('../views/study/EditStudyGroup.vue')
+    },
+    {
+        path: '/my-studies',
+        name: 'MyStudies',
+        component: () => import('../views/study/MyStudies.vue'),
+        meta: { requiresAuth: true }
     }
 ];
 

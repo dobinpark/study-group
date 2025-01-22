@@ -7,7 +7,7 @@ import { UsersModule } from './user/users/users.module';
 import { StudyModule } from './study/study.module';
 import { config } from 'dotenv';
 import { CacheModule } from '@nestjs/cache-manager';
-import { redisStore } from 'cache-manager-redis-store';
+import * as redisStore from 'cache-manager-redis-store';
 
 config(); // .env 파일의 환경 변수를 로드합니다.
 
@@ -27,7 +27,7 @@ if (!process.env.DB_PORT) {
             type: 'mysql',
             host: process.env.DB_HOST,
             port: parseInt(process.env.DB_PORT),
-            username: process.env.DB_USER,
+            username: process.env.DB_USERNAME,
             password: process.env.DB_PASSWORD,
             database: process.env.DB_NAME,
             entities: [__dirname + '/**/*.entity{.ts,.js}'],

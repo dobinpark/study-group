@@ -44,8 +44,20 @@ export class StudyGroupService {
             throw new UnauthorizedException('스터디 그룹을 수정할 권한이 없습니다.');
         }
 
+        // 기존 카테고리 정보 저장
+        const oldMainCategory = studyGroup.mainCategory;
+        const oldSubCategory = studyGroup.subCategory;
+        const oldDetailCategory = studyGroup.detailCategory;
+
         Object.assign(studyGroup, updateStudyGroupDto);
-        return await this.studyGroupRepository.save(studyGroup);
+        const updatedStudyGroup = await this.studyGroupRepository.save(studyGroup);
+
+        // 기존 카테고리의 캐시 무효화
+        await this.invalidateCache(oldMainCategory, oldSubCategory, oldDetailCategory);
+        // 새로운 카테고리의 캐시 무효화
+        await this.invalidateCache(studyGroup.mainCategory, studyGroup.subCategory, studyGroup.detailCategory);
+
+        return updatedStudyGroup;
     }
 
     async deleteStudyGroup(id: number, user: User): Promise<void> {
@@ -81,16 +93,22 @@ export class StudyGroupService {
         // DB 조회
         const queryBuilder = this.studyGroupRepository.createQueryBuilder('studyGroup')
             .leftJoinAndSelect('studyGroup.creator', 'creator')
+            .leftJoinAndSelect('studyGroup.members', 'members')
             .orderBy('studyGroup.createdAt', 'DESC')
             .where('1 = 1');  // 기본 조건
 
         if (mainCategory) {
-            queryBuilder.andWhere('studyGroup.mainCategory = :mainCategory', { mainCategory: '지역별' });
+            queryBuilder.andWhere('studyGroup.mainCategory = :mainCategory', { mainCategory });
         }
-        if (subCategory) {
+        
+        if (subCategory && subCategory !== '전체') {
             queryBuilder.andWhere('studyGroup.subCategory = :subCategory', { subCategory });
+        } else if (subCategory === '전체' && mainCategory) {
+            // mainCategory가 있고 subCategory가 '전체'인 경우, 해당 mainCategory의 모든 스터디 그룹을 조회
+            queryBuilder.andWhere('studyGroup.mainCategory = :mainCategory', { mainCategory });
         }
-        if (detailCategory) {
+        
+        if (detailCategory && detailCategory !== '전체') {
             queryBuilder.andWhere('studyGroup.detailCategory = :detailCategory', { detailCategory });
         }
 
@@ -214,5 +232,52 @@ export class StudyGroupService {
         }
 
         return studyGroup;
+    }
+
+    async findOne(id: number): Promise<StudyGroup> {
+        const studyGroup = await this.studyGroupRepository.findOne({
+            where: { id },
+            relations: ['creator', 'members']
+        });
+
+        if (!studyGroup) {
+            throw new NotFoundException('스터디 그룹을 찾을 수 없습니다.');
+        }
+
+        return studyGroup;
+    }
+
+    async getMyStudyGroups(user: User): Promise<{ created: StudyGroup[], joined: StudyGroup[] }> {
+        try {
+            if (!user || !user.id) {
+                throw new UnauthorizedException('유효한 사용자 정보가 없습니다.');
+            }
+
+            // 내가 생성한 스터디
+            const created = await this.studyGroupRepository.find({
+                where: { creator: { id: user.id } },
+                relations: ['creator', 'members'],
+                order: { createdAt: 'DESC' }
+            });
+
+            // 내가 참여한 스터디 (생성한 스터디 제외)
+            const joined = await this.studyGroupRepository
+                .createQueryBuilder('studyGroup')
+                .leftJoinAndSelect('studyGroup.creator', 'creator')
+                .leftJoinAndSelect('studyGroup.members', 'members')
+                .innerJoin('studyGroup.members', 'member', 'member.id = :userId', { userId: user.id })
+                .where('creator.id != :userId', { userId: user.id })
+                .orderBy('studyGroup.createdAt', 'DESC')
+                .getMany();
+
+            console.log('사용자 ID:', user.id);
+            console.log('생성한 스터디:', created);
+            console.log('참여한 스터디:', joined);
+
+            return { created, joined };
+        } catch (error) {
+            console.error('내 스터디 조회 중 오류 발생:', error);
+            throw error;
+        }
     }
 }

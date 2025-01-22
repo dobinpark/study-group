@@ -54,10 +54,26 @@ import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 import { PostCategory, PostCategoryKorean } from '../../types/post';
 
+interface Author {
+    id: number;
+    nickname: string;
+}
+
+interface Post {
+    id: number;
+    title: string;
+    content: string;
+    author: Author;
+    views: number;
+    likes: number;
+    createdAt: string;
+    category: PostCategory;
+}
+
 const route = useRoute();
 const router = useRouter();
 
-const posts = ref([]);
+const posts = ref<Post[]>([]);
 const currentPage = ref(1);
 const totalPages = ref(1);
 const searchQuery = ref('');

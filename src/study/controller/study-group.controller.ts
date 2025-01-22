@@ -64,6 +64,15 @@ export class StudyGroupController {
         return this.studyGroupService.findByCategory(mainCategory, subCategory, detailCategory);
     }
 
+    @Get('my-studies')
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
+    @ApiOperation({ summary: '내 스터디 목록 조회' })
+    @ApiResponse({ status: 200, description: '내가 생성하거나 참여한 스터디 그룹 목록을 반환합니다.' })
+    async getMyStudyGroups(@GetUser() user: User) {
+        return this.studyGroupService.getMyStudyGroups(user);
+    }
+
     @Get('count')
     @ApiOperation({ summary: '스터디 그룹 수 조회' })
     @ApiQuery({ name: 'mainCategory', required: false })
@@ -102,7 +111,8 @@ export class StudyGroupController {
 
     @Get(':id')
     @ApiOperation({ summary: '스터디 그룹 상세 조회' })
-    async getStudyGroupDetails(@Param('id') id: number) {
-        return this.studyGroupService.getStudyGroupDetails(id);
+    @ApiResponse({ status: 200, description: '스터디 그룹 상세 정보를 반환합니다.' })
+    async findOne(@Param('id') id: number) {
+        return this.studyGroupService.findOne(id);
     }
 }

@@ -1,40 +1,31 @@
 <template>
-    <div class="create-study-container">
-        <h1 class="title">스터디 그룹 생성</h1>
+    <div class="edit-study-container">
+        <h1 class="title">스터디 그룹 수정</h1>
         <form @submit.prevent="handleSubmit" class="study-form">
             <div class="form-group">
                 <label for="name">스터디 그룹 이름</label>
-                <input type="text" id="name" v-model="studyGroup.name" required placeholder="스터디 그룹 이름을 입력하세요" />
+                <input type="text" id="name" v-model="studyGroup.name" required class="form-input" />
             </div>
 
-            <div class="categories">
-                <div class="form-group">
-                    <label for="mainCategory">대분류</label>
-                    <select id="mainCategory" v-model="studyGroup.mainCategory" required
-                        @change="handleMainCategoryChange">
-                        <option value="">선택하세요</option>
-                        <option v-for="category in mainCategories" :key="category" :value="category">
-                            {{ category }}
-                        </option>
+            <div class="form-group">
+                <label>카테고리</label>
+                <div class="category-selects">
+                    <select v-model="studyGroup.mainCategory" required class="form-select">
+                        <option value="">대분류 선택</option>
+                        <option value="지역별">지역별</option>
+                        <option value="학습자별">학습자별</option>
+                        <option value="전공별">전공별</option>
                     </select>
-                </div>
 
-                <div class="form-group">
-                    <label for="subCategory">중분류</label>
-                    <select id="subCategory" v-model="studyGroup.subCategory" required @change="handleSubCategoryChange"
-                        :disabled="!studyGroup.mainCategory">
-                        <option value="">선택하세요</option>
+                    <select v-model="studyGroup.subCategory" required class="form-select">
+                        <option value="">중분류 선택</option>
                         <option v-for="category in subCategories" :key="category" :value="category">
                             {{ category }}
                         </option>
                     </select>
-                </div>
 
-                <div class="form-group">
-                    <label for="detailCategory">소분류</label>
-                    <select id="detailCategory" v-model="studyGroup.detailCategory" required
-                        :disabled="!studyGroup.subCategory">
-                        <option value="">선택하세요</option>
+                    <select v-model="studyGroup.detailCategory" required class="form-select">
+                        <option value="">소분류 선택</option>
                         <option v-for="category in detailCategories" :key="category" :value="category">
                             {{ category }}
                         </option>
@@ -43,54 +34,57 @@
             </div>
 
             <div class="form-group">
-                <label for="content">스터디 그룹 내용</label>
-                <textarea id="content" v-model="studyGroup.content" required placeholder="스터디 그룹에 대한 설명을 입력하세요"
-                    rows="10"></textarea>
+                <label for="content">스터디 그룹 설명</label>
+                <textarea id="content" v-model="studyGroup.content" required class="form-textarea" rows="6"></textarea>
             </div>
 
             <div class="form-group">
                 <label for="maxMembers">모집 인원</label>
-                <div class="max-members-input">
-                    <input
-                        type="number"
-                        id="maxMembers"
-                        v-model="maxMembers"
-                        min="2"
-                        max="100"
-                        required
-                    />
-                    <span class="unit">명</span>
-                </div>
-                <small class="form-text text-muted">최소 2명부터 최대 100명까지 설정 가능합니다.</small>
+                <input type="number" id="maxMembers" v-model="studyGroup.maxMembers" required min="2" max="100" class="form-input" />
+                <small class="form-help">2명에서 100명까지 설정 가능합니다.</small>
             </div>
 
-            <div class="button-group">
-                <button type="button" @click="handleCancel" class="cancel-button">취소</button>
-                <button type="submit" class="submit-button">생성하기</button>
+            <div class="form-actions">
+                <button type="button" @click="goBack" class="btn-cancel">취소</button>
+                <button type="submit" class="btn-submit">수정하기</button>
             </div>
         </form>
     </div>
 </template>
 
-<script setup>
-import { ref, computed } from 'vue';
-import { useRouter } from 'vue-router';
+<script setup lang="ts">
+import { ref, computed, onMounted } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import axios from 'axios';
 
 const router = useRouter();
+const route = useRoute();
 
-const studyGroup = ref({
+interface StudyGroup {
+    name: string;
+    mainCategory: string;
+    subCategory: string;
+    detailCategory: string;
+    content: string;
+    maxMembers: number;
+}
+
+const studyGroup = ref<StudyGroup>({
     name: '',
     mainCategory: '',
     subCategory: '',
     detailCategory: '',
-    content: ''
+    content: '',
+    maxMembers: 2
 });
 
-const maxMembers = ref(10); // 기본값 10명
+interface CategoryData {
+    [key: string]: {
+        [key: string]: string[];
+    };
+}
 
-// 카테고리 데이터
-const categories = {
+const categoryData: CategoryData = {
     '지역별': {
         '서울': ['강남구', '강동구', '강북구', '강서구', '관악구', '광진구', '구로구',
             '금천구', '노원구', '도봉구', '동대문구', '동작구', '마포구', '서대문구',
@@ -141,12 +135,11 @@ const categories = {
         '제주': ['서귀포시', '제주시']
     },
     '학습자별': {
-        '중등': ['1학년', '2학년', '3학년'],
-        '고등': ['1학년', '2학년', '3학년'],
-        '대학/청년': ['대학생', '청년'],
-        '취업준비/수험': ['취업 준비생', '수험생'],
-        '경력/이직': ['경력', '이직'],
-        '취미/자기계발': ['취미', '자기계발']
+        '학생': ['초등학생', '중학생', '고등학생', '대학생', '대학원생'],
+        '취업준비생': ['공무원', '공기업', '사기업', '창업'],
+        '직장인': ['사원', '대리', '과장', '차장', '부장', '임원'],
+        '주부': ['전업주부', '워킹맘'],
+        '기타': ['프리랜서', '자영업자', '은퇴자', '기타']
     },
     '전공별': {
         '어문학': ['국어국문학', '영어영문학', '독일어문학', '프랑스어문학', '중국어문학',
@@ -166,179 +159,172 @@ const categories = {
         '예/체능학': ['미술학', '음악학', '체육학', '무용학', '디자인학', '영화학'],
         '의/약학': ['의학', '간호학', '약학', '치의학', '한의학', '보건학'],
         '농/수산/해양학': ['농업경제학', '식물학', '동물학', '수산학', '해양학', '농업생명과학']
+    },
+    '분야별': {
+        '취미': ['독서', '음악', '미술', '스포츠', '요리', '여행', '사진', '게임'],
+        '자기계발': ['어학', '자격증', '면접', '창업', '투자'],
+        '기타': ['친목', '동아리']
     }
 };
 
-const mainCategories = Object.keys(categories);
-
 const subCategories = computed(() => {
     if (!studyGroup.value.mainCategory) return [];
-    return Object.keys(categories[studyGroup.value.mainCategory]);
+    return Object.keys(categoryData[studyGroup.value.mainCategory as keyof typeof categoryData] || {});
 });
 
 const detailCategories = computed(() => {
     if (!studyGroup.value.mainCategory || !studyGroup.value.subCategory) return [];
-    return categories[studyGroup.value.mainCategory][studyGroup.value.subCategory];
+    return categoryData[studyGroup.value.mainCategory as keyof typeof categoryData]?.[studyGroup.value.subCategory] || [];
 });
 
-const handleMainCategoryChange = () => {
-    studyGroup.value.subCategory = '';
-    studyGroup.value.detailCategory = '';
-};
-
-const handleSubCategoryChange = () => {
-    studyGroup.value.detailCategory = '';
+const loadStudyGroup = async () => {
+    try {
+        const response = await axios.get(`http://localhost:3000/study-groups/${route.params.id}`);
+        const { name, mainCategory, subCategory, detailCategory, content, maxMembers } = response.data;
+        studyGroup.value = { name, mainCategory, subCategory, detailCategory, content, maxMembers };
+    } catch (error) {
+        console.error('스터디 그룹 정보 로딩 실패:', error);
+        alert('스터디 그룹 정보를 불러오는데 실패했습니다.');
+        router.push('/study-groups');
+    }
 };
 
 const handleSubmit = async () => {
     try {
-        const token = localStorage.getItem('accessToken');
-        await axios.post('http://localhost:3000/study-groups', {
-            name: studyGroup.value.name,
-            mainCategory: studyGroup.value.mainCategory,
-            subCategory: studyGroup.value.subCategory,
-            detailCategory: studyGroup.value.detailCategory,
-            content: studyGroup.value.content,
-            maxMembers: maxMembers.value
-        }, {
+        const token = window.localStorage.getItem('accessToken');
+        if (!token) {
+            alert('로그인이 필요합니다.');
+            router.push('/login');
+            return;
+        }
+
+        const updateData = {
+            ...studyGroup.value,
+            maxMembers: Number(studyGroup.value.maxMembers)
+        };
+
+        await axios.put(`http://localhost:3000/study-groups/${route.params.id}`, updateData, {
             headers: {
                 Authorization: `Bearer ${token}`
             }
         });
-        alert('스터디 그룹이 생성되었습니다.');
-        router.push('/');
-    } catch (error) {
-        alert('스터디 그룹 생성에 실패했습니다: ' + error.response?.data?.message || error.message);
-        console.error('Error:', error);
+
+        alert('스터디 그룹이 수정되었습니다.');
+        router.push(`/study-groups/${route.params.id}`);
+    } catch (error: any) {
+        alert(error.response?.data?.message || '스터디 그룹 수정에 실패했습니다.');
     }
 };
 
-const handleCancel = () => {
-    router.go(-1);
+const goBack = () => {
+    router.back();
 };
+
+onMounted(() => {
+    loadStudyGroup();
+});
 </script>
 
 <style scoped>
-.create-study-container {
+.edit-study-container {
     max-width: 800px;
     margin: 2rem auto;
-    padding: 2rem;
-    background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 0 1rem;
 }
 
 .title {
     font-size: 2rem;
     color: #2d3748;
-    margin-bottom: 2rem;
     text-align: center;
+    margin-bottom: 2rem;
 }
 
 .study-form {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
+    margin-bottom: 1.5rem;
 }
 
-.categories {
+.form-group label {
+    display: block;
+    font-size: 1rem;
+    color: #4a5568;
+    margin-bottom: 0.5rem;
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 1rem;
+    color: #2d3748;
+}
+
+.form-textarea {
+    resize: vertical;
+    min-height: 120px;
+}
+
+.category-selects {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 1rem;
 }
 
-label {
+.form-help {
+    display: block;
+    margin-top: 0.5rem;
+    color: #718096;
     font-size: 0.875rem;
-    font-weight: 500;
-    color: #4a5568;
 }
 
-input,
-select,
-textarea {
-    padding: 0.75rem;
-    border: 1px solid #e2e8f0;
-    border-radius: 4px;
-    font-size: 0.875rem;
-    transition: border-color 0.2s;
-}
-
-input:focus,
-select:focus,
-textarea:focus {
-    outline: none;
-    border-color: #4A90E2;
-}
-
-textarea {
-    resize: vertical;
-    min-height: 150px;
-}
-
-.button-group {
+.form-actions {
     display: flex;
+    justify-content: flex-end;
     gap: 1rem;
-    margin-top: 1rem;
+    margin-top: 2rem;
 }
 
-.submit-button,
-.cancel-button {
-    flex: 1;
-    padding: 0.75rem;
-    border: none;
-    border-radius: 4px;
-    font-size: 0.875rem;
-    font-weight: 500;
+.btn-cancel,
+.btn-submit {
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    font-size: 1rem;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: all 0.2s;
 }
 
-.submit-button {
-    background-color: #4A90E2;
-    color: white;
-}
-
-.submit-button:hover {
-    background-color: #357abd;
-}
-
-.cancel-button {
-    background-color: #e2e8f0;
+.btn-cancel {
+    background: #e2e8f0;
     color: #4a5568;
+    border: none;
 }
 
-.cancel-button:hover {
-    background-color: #cbd5e0;
+.btn-submit {
+    background: #4A90E2;
+    color: white;
+    border: none;
 }
 
-select:disabled {
-    background-color: #f7fafc;
-    cursor: not-allowed;
+.btn-cancel:hover {
+    background: #cbd5e0;
 }
 
-.max-members-input {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+.btn-submit:hover {
+    background: #357ABD;
 }
 
-.max-members-input input {
-    width: 100px;
+@media (max-width: 640px) {
+    .category-selects {
+        grid-template-columns: 1fr;
+    }
 }
-
-.unit {
-    color: #666;
-}
-
-.form-text {
-    font-size: 0.875rem;
-    color: #6c757d;
-    margin-top: 0.25rem;
-}
-</style>
+</style> 
