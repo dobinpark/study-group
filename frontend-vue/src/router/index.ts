@@ -43,7 +43,7 @@ const routes: Array<RouteRecordRaw> = [
     },
     {
         path: '/community/:category',
-        name: 'CommunityBoard',
+        name: 'PostList',
         component: PostList,
         props: true
     },

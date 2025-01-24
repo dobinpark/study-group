@@ -1230,7 +1230,7 @@
 							</ul>
 						</li>
 						<li class="menu-item">
-							커뮤니티
+							<span>커뮤니티</span>
 							<ul class="sub-menu">
 								<li class="sub-menu-item" @click="$router.push('/community/free')">
 									자유게시판
@@ -1238,7 +1238,7 @@
 								<li class="sub-menu-item" @click="$router.push('/community/question')">
 									질문게시판
 								</li>
-								<li class="sub-menu-item" @click="$router.push('/community/question')">
+							<li class="sub-menu-item" @click="$router.push('/community/suggestion')">
 									건의게시판
 								</li>
 							</ul>
@@ -1449,7 +1449,7 @@ export default {
 .nav-wrapper {
 	width: 70%;
 	margin: 0 auto;
-	background-color: #87CEEB;
+	background-color: #4A90E2;
 	border-radius: 8px;
 	height: calc(75px - 1px);
 }

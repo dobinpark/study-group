@@ -15,6 +15,7 @@ export interface Post {
     title: string;
     content: string;
     category: PostCategory;
+    authorId: number;
     author: {
         id: number;
         nickname: string;

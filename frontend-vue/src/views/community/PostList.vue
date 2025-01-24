@@ -86,16 +86,18 @@ const categoryTitle = computed(() => {
 
 const loadPosts = async () => {
     try {
-        const response = await axios.get(`http://localhost:3000/posts`, {
+        const response = await axios.get(`http://localhost:3000/posts/category/${route.params.category}`, {
             params: {
-                category: route.params.category,
                 page: currentPage.value,
                 limit: itemsPerPage,
                 search: searchQuery.value
             }
         });
-        posts.value = response.data.items;
-        totalPages.value = Math.ceil(response.data.total / itemsPerPage);
+        
+        if (response.data) {
+            posts.value = response.data.items || [];
+            totalPages.value = Math.ceil((response.data.total || 0) / itemsPerPage);
+        }
     } catch (error) {
         console.error('게시글 로딩 실패:', error);
     }

@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AuthModule } from './user/auth/auth.module';
@@ -8,6 +8,7 @@ import { StudyModule } from './study/study.module';
 import { config } from 'dotenv';
 import { CacheModule } from '@nestjs/cache-manager';
 import * as redisStore from 'cache-manager-redis-store';
+import { PostsModule } from './posts/posts.module';
 
 config(); // .env 파일의 환경 변수를 로드합니다.
 
@@ -21,17 +22,20 @@ if (!process.env.DB_PORT) {
     imports: [
         ConfigModule.forRoot({
             isGlobal: true,
-            envFilePath: '.env'
         }),
-        TypeOrmModule.forRoot({
-            type: 'mysql',
-            host: process.env.DB_HOST,
-            port: parseInt(process.env.DB_PORT),
-            username: process.env.DB_USERNAME,
-            password: process.env.DB_PASSWORD,
-            database: process.env.DB_NAME,
-            entities: [__dirname + '/**/*.entity{.ts,.js}'],
-            synchronize: true,
+        TypeOrmModule.forRootAsync({
+            imports: [ConfigModule],
+            useFactory: (configService: ConfigService) => ({
+                type: 'mysql',
+                host: configService.get('DB_HOST'),
+                port: configService.get('DB_PORT'),
+                username: configService.get('DB_USER'),
+                password: configService.get('DB_PASSWORD'),
+                database: configService.get('DB_NAME'),
+                entities: [__dirname + '/**/*.entity{.ts,.js}'],
+                synchronize: true, // 개발 환경에서만 true로 설정
+            }),
+            inject: [ConfigService],
         }),
         ScheduleModule.forRoot(),
         AuthModule,
@@ -44,6 +48,7 @@ if (!process.env.DB_PORT) {
             port: parseInt(String(process.env.REDIS_PORT || '6379')),
             ttl: 300, // 기본 캐시 유효시간 5분
         }),
+        PostsModule,
     ],
 })
 export class AppModule { }
