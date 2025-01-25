@@ -7,7 +7,7 @@ import { UsersModule } from './user/users/users.module';
 import { StudyModule } from './study/study.module';
 import { config } from 'dotenv';
 import { CacheModule } from '@nestjs/cache-manager';
-import * as redisStore from 'cache-manager-redis-store';
+import { redisStore } from 'cache-manager-redis-store';
 import { PostsModule } from './posts/posts.module';
 
 config(); // .env 파일의 환경 변수를 로드합니다.
