@@ -1,49 +1,53 @@
 <template>
     <div class="post-list-container">
         <h2 class="board-title">{{ categoryTitle }}</h2>
-
-        <!-- 게시글 목록 -->
-        <div class="post-list">
-            <table>
-                <thead>
-                    <tr>
-                        <th>번호</th>
-                        <th>제목</th>
-                        <th>작성자</th>
-                        <th>작성일</th>
-                        <th>조회수</th>
-                        <th>좋아요</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="(post, index) in posts" :key="post.id" @click="viewPost(post.id)">
-                        <td>{{ totalPosts - ((currentPage - 1) * itemsPerPage + index) }}</td>
-                        <td class="title">{{ post.title }}</td>
-                        <td>{{ post.author.nickname }}</td>
-                        <td>{{ formatDate(post.createdAt) }}</td>
-                        <td>{{ post.views }}</td>
-                        <td>{{ post.likes }}</td>
-                    </tr>
-                </tbody>
-            </table>
+        <div v-if="loading" class="loading">
+            로딩 중...
         </div>
-
-        <!-- 검색 및 글쓰기 영역 -->
-        <div class="action-bar">
-            <div class="search-box">
-                <input type="text" v-model="searchQuery" placeholder="검색어를 입력하세요" @keyup.enter="search">
-                <button @click="search" class="search-button">검색</button>
+        <div v-else>
+            <!-- 게시글 목록 -->
+            <div class="post-list">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>번호</th>
+                            <th>제목</th>
+                            <th>작성자</th>
+                            <th>작성일</th>
+                            <th>조회수</th>
+                            <th>좋아요</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(post, index) in posts" :key="post.id" @click="viewPost(post.id)">
+                            <td>{{ totalPosts - ((currentPage - 1) * itemsPerPage + index) }}</td>
+                            <td class="title">{{ post.title }}</td>
+                            <td>{{ post.author.nickname }}</td>
+                            <td>{{ formatDate(post.createdAt) }}</td>
+                            <td>{{ post.views }}</td>
+                            <td>{{ post.likes }}</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
-            <button @click="createPost" class="write-button">글쓰기</button>
-        </div>
 
-        <!-- 페이지네이션 -->
-        <div class="pagination">
-            <button :disabled="currentPage === 1" @click="changePage(currentPage - 1)">&lt;</button>
-            <span v-for="page in totalPages" :key="page">
-                <button :class="{ active: page === currentPage }" @click="changePage(page)">{{ page }}</button>
-            </span>
-            <button :disabled="currentPage === totalPages" @click="changePage(currentPage + 1)">&gt;</button>
+            <!-- 검색 및 글쓰기 영역 -->
+            <div class="action-bar">
+                <div class="search-box">
+                    <input type="text" v-model="searchQuery" placeholder="검색어를 입력하세요" @keyup.enter="search">
+                    <button @click="search" class="search-button">검색</button>
+                </div>
+                <button @click="createPost" class="write-button">글쓰기</button>
+            </div>
+
+            <!-- 페이지네이션 -->
+            <div class="pagination">
+                <button :disabled="currentPage === 1" @click="changePage(currentPage - 1)">&lt;</button>
+                <span v-for="page in totalPages" :key="page">
+                    <button :class="{ active: page === currentPage }" @click="changePage(page)">{{ page }}</button>
+                </span>
+                <button :disabled="currentPage === totalPages" @click="changePage(currentPage + 1)">&gt;</button>
+            </div>
         </div>
     </div>
 </template>
@@ -71,19 +75,25 @@ interface Post {
     displayId: number;
 }
 
+interface Props {
+    category?: string;
+}
+
+const props = defineProps<Props>();
 const route = useRoute();
 const router = useRouter();
-
 const posts = ref<Post[]>([]);
 const currentPage = ref(1);
 const totalPages = ref(1);
 const searchQuery = ref('');
 const itemsPerPage = 10;
 const totalPosts = ref(0);
+const loading = ref(true);
 
 const categoryTitle = computed(() => {
-    const category = route.params.category as string;
-    switch (category.toUpperCase()) {
+    const category = (route.query.category as string || props.category || 'FREE').toUpperCase();
+    
+    switch (category) {
         case 'FREE':
             return '자유게시판';
         case 'QUESTION':
@@ -97,7 +107,7 @@ const categoryTitle = computed(() => {
 
 const fetchPosts = async () => {
     try {
-        const category = route.params.category.toUpperCase();
+        const category = (route.query.category as string || props.category || 'FREE').toUpperCase();
         console.log('Fetching posts for category:', category);
         
         const response = await axios.get(`http://localhost:3000/posts/category/${category}`, {
@@ -115,6 +125,8 @@ const fetchPosts = async () => {
         }
     } catch (error) {
         console.error('게시글 조회 실패:', error);
+    } finally {
+        loading.value = false;
     }
 };
 
@@ -135,11 +147,11 @@ const createPost = () => {
         router.push('/login');
         return;
     }
-    router.push(`/community/${route.params.category}/create`);
+    router.push('/posts/create');
 };
 
 const viewPost = (id: number) => {
-    router.push(`/community/${route.params.category}/${id}`);
+    router.push(`/posts/${id}`);
 };
 
 const changePage = (page: number) => {
@@ -151,8 +163,8 @@ onMounted(() => {
     fetchPosts();
 });
 
-// route.params.category가 변경될 때마다 게시글 다시 가져오기
-watch(() => route.params.category, () => {
+// route.query.category가 변경될 때마다 게시글 다시 가져오기
+watch(() => route.query.category, () => {
     currentPage.value = 1;
     searchQuery.value = '';
     fetchPosts();

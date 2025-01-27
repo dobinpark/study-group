@@ -4,7 +4,7 @@
             <h1>내 스터디</h1>
         </div>
 
-        <div v-if="isLoading" class="loading">
+        <div v-if="loading" class="loading">
             <div class="loading-spinner"></div>
             로딩 중...
         </div>
@@ -119,45 +119,23 @@ interface StudyGroup {
 }
 
 const router = useRouter();
-const isLoading = ref(true);
 const createdStudies = ref<StudyGroup[]>([]);
 const joinedStudies = ref<StudyGroup[]>([]);
+const loading = ref(true);
 
-const loadMyStudies = async () => {
+const fetchMyStudies = async () => {
     try {
-        const token = window.localStorage.getItem('accessToken');
-        if (!token) {
-            console.error('토큰이 없습니다.');
-            router.push('/login');
-            return;
-        }
-        console.log('토큰 확인:', token);
-        
+        const token = localStorage.getItem('accessToken');
         const response = await axios.get('http://localhost:3000/study-groups/my-studies', {
-            headers: { 
-                Authorization: `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
+            headers: { Authorization: `Bearer ${token}` }
         });
-        console.log('서버 응답 데이터:', response.data);
         
-        createdStudies.value = response.data.created || [];
-        joinedStudies.value = response.data.joined || [];
-        
-        console.log('생성한 스터디:', createdStudies.value);
-        console.log('참여중인 스터디:', joinedStudies.value);
-    } catch (error: any) {
-        console.error('스터디 목록 로딩 실패:', error);
-        if (error.response) {
-            console.error('에러 응답:', error.response.data);
-            console.error('에러 상태:', error.response.status);
-            if (error.response.status === 401) {
-                window.localStorage.removeItem('accessToken');
-                router.push('/login');
-            }
-        }
+        createdStudies.value = response.data.created;
+        joinedStudies.value = response.data.joined;
+    } catch (error) {
+        console.error('내 스터디 조회 실패:', error);
     } finally {
-        isLoading.value = false;
+        loading.value = false;
     }
 };
 
@@ -176,7 +154,7 @@ const goToStudyDetail = (studyId: number) => {
 };
 
 onMounted(() => {
-    loadMyStudies();
+    fetchMyStudies();
 });
 </script>
 

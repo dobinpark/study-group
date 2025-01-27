@@ -39,32 +39,30 @@ const routes: Array<RouteRecordRaw> = [
         meta: { requiresAuth: true }
     },
     {
-        path: '/community/:category',
+        path: '/posts',
         name: 'PostList',
-        component: () => import('../views/community/PostList.vue'),
+        component: () => import('@/views/community/PostList.vue'),
         props: (route) => ({
-            category: typeof route.params.category === 'string' 
-                ? route.params.category.toUpperCase() 
-                : route.params.category
+            category: route.query.category?.toString()?.toUpperCase() || 'FREE'
         })
     },
     {
-        path: '/community/:category/create',
+        path: '/posts/create',
         name: 'CreatePost',
-        component: () => import('../views/community/CreatePost.vue'),
-        props: true,
+        component: () => import('@/views/community/CreatePost.vue'),
         meta: { requiresAuth: true }
     },
     {
-        path: '/community/:category/:id',
+        path: '/posts/:id',
         name: 'PostDetail',
-        component: () => import('../views/community/PostDetail.vue')
+        component: () => import('@/views/community/PostDetail.vue')
     },
     {
-        path: '/community/:category/:id/edit',
+        path: '/posts/:id/edit',
         name: 'EditPost',
-        component: () => import('../views/community/EditPost.vue'),
-        meta: { requiresAuth: true }
+        component: () => import('@/views/community/EditPost.vue'),
+        meta: { requiresAuth: true },
+        props: true
     },
     {
         path: '/study-groups',
@@ -90,7 +88,8 @@ const routes: Array<RouteRecordRaw> = [
     {
         path: '/study-groups/:id/edit',
         name: 'EditStudyGroup',
-        component: () => import('../views/study/EditStudyGroup.vue')
+        component: () => import('../views/study/EditStudyGroup.vue'),
+        meta: { requiresAuth: true }
     },
     {
         path: '/my-studies',

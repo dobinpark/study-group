@@ -19,7 +19,7 @@
                 </div>
 
                 <div class="button-group">
-                    <button class="btn btn-cancel" @click="cancel">
+                    <button class="btn btn-cancel" @click="goBack">
                         <i class="fas fa-times"></i> 취소
                     </button>
                     <button class="btn btn-submit" @click="submitEdit">
@@ -49,13 +49,21 @@ const errors = ref({
 const fetchPost = async () => {
     try {
         const response = await axios.get(`http://localhost:3000/posts/${route.params.id}`);
-        if (response.data) {
-            title.value = response.data.title;
-            content.value = response.data.content;
+        title.value = response.data.title;
+        content.value = response.data.content;
+        
+        if (response.data.category && !route.query.category) {
+            router.replace({
+                path: route.path,
+                query: { category: response.data.category }
+            });
         }
     } catch (error) {
         console.error('게시글 조회 실패:', error);
-        router.push(`/community/${route.params.category}`);
+        router.push({
+            path: '/posts',
+            query: { category: route.query.category }
+        });
     }
 };
 
@@ -84,30 +92,50 @@ const submitEdit = async () => {
 
     try {
         const token = localStorage.getItem('accessToken');
-        console.log('Updating post with token:', token);
-        console.log('Update data:', { title: title.value, content: content.value });
+        if (!token) {
+            alert('로그인이 필요합니다.');
+            router.push('/login');
+            return;
+        }
+
+        const updateData = {
+            title: title.value.trim(),
+            content: content.value.trim()
+        };
 
         const response = await axios.put(
             `http://localhost:3000/posts/${route.params.id}`,
+            updateData,
             {
-                title: title.value,
-                content: content.value
-            },
-            {
-                headers: { Authorization: `Bearer ${token}` }
+                headers: { 
+                    Authorization: `Bearer ${token}`
+                }
             }
         );
 
-        console.log('Update response:', response.data);
-        router.push(`/community/${route.params.category}/${route.params.id}`);
-    } catch (error) {
+        if (response.data) {
+            router.push({
+                path: `/posts/${route.params.id}`,
+                query: { category: route.query.category }
+            });
+        }
+    } catch (error: any) {
         console.error('게시글 수정 실패:', error.response?.data || error);
-        alert('게시글 수정에 실패했습니다.');
+        if (error.response?.status === 401) {
+            alert('권한이 없습니다.');
+            router.push('/login');
+        } else {
+            alert(error.response?.data?.message || '게시글 수정에 실패했습니다.');
+        }
     }
 };
 
-const cancel = () => {
-    router.push(`/community/${route.params.category}/${route.params.id}`);
+const goBack = () => {
+    // 취소 시에도 카테고리 정보 유지
+    router.push({
+        path: `/posts/${route.params.id}`,
+        query: { category: route.query.category }
+    });
 };
 
 onMounted(() => {

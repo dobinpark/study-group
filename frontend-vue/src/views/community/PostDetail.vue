@@ -1,7 +1,10 @@
 <template>
-    <div class="post-detail-container">
+    <div v-if="loading" class="loading">
+        로딩 중...
+    </div>
+    <div v-else-if="post" class="post-detail-container">
         <div class="post-header">
-            <div class="category-badge">{{ categoryTitle }}</div>
+            <div class="category-badge">{{ postType }}</div>
             <h2 class="post-title">{{ post.title }}</h2>
             <div class="post-meta">
                 <div class="post-info">
@@ -16,14 +19,9 @@
                     <span class="views">
                         <i class="fas fa-eye"></i> {{ post.views }}
                     </span>
-                    <button 
-                        class="like-button" 
-                        @click="toggleLike" 
-                        :class="{ 'liked': isLiked }"
-                        :disabled="!isLoggedIn"
-                        :title="!isLoggedIn ? '로그인이 필요합니다' : ''"
-                    >
-                        <i class="fas fa-heart"></i> 
+                    <button class="like-button" @click="toggleLike" :class="{ 'liked': isLiked }"
+                        :disabled="!isLoggedIn" :title="!isLoggedIn ? '로그인이 필요합니다' : ''">
+                        <i class="fas fa-heart"></i>
                         {{ post.likes }}
                     </button>
                 </div>
@@ -46,55 +44,81 @@
             </div>
         </div>
     </div>
+    <div v-else class="error">
+        게시글을 찾을 수 없습니다.
+    </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
-import { PostCategoryKorean } from '../../types/post';
+
+interface Post {
+    id: number;
+    title: string;
+    content: string;
+    author: {
+        id: number;
+        nickname: string;
+    };
+    createdAt: string;
+    views: number;
+    likes: number;
+}
 
 const route = useRoute();
 const router = useRouter();
-const post = ref<any>({});
+const post = ref<Post | null>(null);
+const loading = ref(true);
 const isAuthor = ref(false);
 const isLoggedIn = computed(() => {
     return !!localStorage.getItem('accessToken');
 });
 const isLiked = ref(false);
 
-const categoryTitle = computed(() => {
-    const category = route.params.category as string;
-    switch (category.toUpperCase()) {
+const postType = computed(() => {
+    const category = (route.query.category as string || 'FREE').toUpperCase();
+
+    switch (category) {
         case 'FREE':
-            return '자유게시판';
+            return '자유';
         case 'QUESTION':
-            return '질문게시판';
+            return '질문';
         case 'SUGGESTION':
-            return '건의게시판';
+            return '건의';
         default:
-            return '게시판';
+            return '게시글';
     }
 });
 
 const formattedContent = computed(() => {
-    return post.value.content?.replace(/\n/g, '<br>');
+    return post.value?.content?.replace(/\n/g, '<br>') || '';
 });
 
 const fetchPost = async () => {
     try {
+        loading.value = true;
         const response = await axios.get(`http://localhost:3000/posts/${route.params.id}`);
-        if (response.data) {
-            post.value = response.data;
-            const userId = localStorage.getItem('userId');
-            isAuthor.value = userId === String(post.value.author.id);
-            console.log('userId:', userId);
-            console.log('authorId:', post.value.author.id);
-            console.log('isAuthor:', isAuthor.value);
+        post.value = response.data;
+
+        if (response.data.category && !route.query.category) {
+            router.replace({
+                path: route.path,
+                query: { category: response.data.category }
+            });
         }
+
+        const userId = localStorage.getItem('userId');
+        isAuthor.value = userId === String(post.value?.author?.id);
     } catch (error) {
         console.error('게시글 조회 실패:', error);
-        router.push(`/community/${route.params.category}`);
+        router.push({
+            path: '/posts',
+            query: { category: route.query.category }
+        });
+    } finally {
+        loading.value = false;
     }
 };
 
@@ -103,11 +127,14 @@ const formatDate = (dateString: string) => {
 };
 
 const goBack = () => {
-    router.back();
+    router.push({
+        path: '/posts',
+        query: { category: route.query.category }
+    });
 };
 
 const editPost = () => {
-    router.push(`/community/${route.params.category}/${route.params.id}/edit`);
+    router.push(`/posts/${route.params.id}/edit`);
 };
 
 const deletePost = async () => {
@@ -118,7 +145,10 @@ const deletePost = async () => {
         await axios.delete(`http://localhost:3000/posts/${route.params.id}`, {
             headers: { Authorization: `Bearer ${token}` }
         });
-        router.push(`/community/${route.params.category}`);
+        router.push({
+            path: '/posts',
+            query: { category: route.query.category }
+        });
     } catch (error) {
         console.error('게시글 삭제 실패:', error);
     }
@@ -137,7 +167,7 @@ const toggleLike = async () => {
             {},
             { headers: { Authorization: `Bearer ${token}` } }
         );
-        
+
         isLiked.value = response.data.liked;
         post.value.likes += response.data.liked ? 1 : -1;
     } catch (error) {
@@ -157,7 +187,7 @@ onMounted(() => {
     padding: 2rem;
     background: white;
     border-radius: 12px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .post-header {
@@ -195,7 +225,9 @@ onMounted(() => {
     color: #666;
 }
 
-.author-name, .post-date, .views {
+.author-name,
+.post-date,
+.views {
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -266,7 +298,7 @@ onMounted(() => {
 
 .btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .btn-back {
@@ -295,30 +327,30 @@ onMounted(() => {
         flex-direction: column;
         gap: 1rem;
     }
-    
+
     .post-info {
         flex-direction: column;
         gap: 0.5rem;
     }
-    
+
     .post-stats {
         width: 100%;
         justify-content: center;
     }
-    
+
     .action-buttons {
         flex-direction: column;
         gap: 1rem;
     }
-    
+
     .author-actions {
         width: 100%;
         justify-content: space-between;
     }
-    
+
     .btn {
         width: 100%;
         justify-content: center;
     }
 }
-</style> 
+</style>

@@ -1050,14 +1050,20 @@
 						<li class="menu-item">
 							<span>커뮤니티</span>
 							<ul class="sub-menu">
-								<li class="sub-menu-item" @click="$router.push('/community/free')">
-									자유게시판
+								<li class="sub-menu-item">
+									<router-link :to="{ path: '/posts', query: { category: 'FREE' }}">
+										자유게시판
+									</router-link>
 								</li>
-								<li class="sub-menu-item" @click="$router.push('/community/question')">
-									질문게시판
+								<li class="sub-menu-item">
+									<router-link :to="{ path: '/posts', query: { category: 'QUESTION' }}">
+										질문게시판
+									</router-link>
 								</li>
-								<li class="sub-menu-item" @click="$router.push('/community/suggestion')">
-									건의게시판
+								<li class="sub-menu-item">
+									<router-link :to="{ path: '/posts', query: { category: 'SUGGESTION' }}">
+										건의게시판
+									</router-link>
 								</li>
 							</ul>
 						</li>
@@ -1073,19 +1079,22 @@
 
 <script lang="ts">
 import mitt from 'mitt';
+import { Category } from '../types/category';
 export const emitter = mitt();
 </script>
 
 <script setup lang="ts">
+
 import { ref, onMounted, watch, onUnmounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import axios, { AxiosError } from 'axios';
 import { useUserStore } from '../stores/user';
 import { storeToRefs } from 'pinia';
 
+// 최상단으로 이동
 declare global {
 	interface Window {
-		innerWidth: number;
+		readonly innerWidth: number;
 		addEventListener: typeof addEventListener;
 		localStorage: {
 			getItem(key: string): string | null;
@@ -1114,7 +1123,8 @@ const updateMobileStatus = () => {
 	isMobile.value = window.innerWidth <= 768;
 };
 
-onMounted(() => {
+onMounted(async () => {
+	await fetchCategories();
 	updateMobileStatus();
 	window.addEventListener('resize', updateMobileStatus);
 	checkLoginStatus();
@@ -1126,7 +1136,6 @@ onMounted(() => {
 	emitter.on('studyGroupDeleted', () => {
 		fetchStudyGroupCounts();
 	});
-	fetchCategories();
 	// 주기적으로 카테고리 정보 업데이트 (선택사항)
 	const updateInterval = setInterval(fetchCategories, 30000); // 30초마다 업데이트
 	onUnmounted(() => clearInterval(updateInterval));
@@ -1199,15 +1208,15 @@ const logout = () => {
 
 const fetchStudyGroupCounts = async () => {
 	try {
-		const response = await axios.get('http://localhost:3000/study-groups/counts/all');
-		regionCounts.value = response.data;
+		const response = await axios.get('http://localhost:3000/study-groups/categories');
+		categories.value = response.data;
 	} catch (error) {
-		console.error('스터디 그룹 수 조회 실패:', error);
+		console.error('카테고리 조회 실패:', error);
 	}
 };
 
-watch(() => route.path, () => {
-	checkLoginStatus();
+watch([() => route.path], async () => {
+	await fetchCategories();
 });
 
 // 컴포넌트 언마운트 시 이벤트 리스너 제거
@@ -1555,5 +1564,16 @@ const getCategoryCount = (mainCategory: string, subCategory: string, detailCateg
 
 .nav-link i {
 	margin-right: 5px;
+}
+
+.sub-menu-item a {
+	text-decoration: none;
+	color: inherit;
+	display: block;
+	padding: 8px 16px;
+}
+
+.sub-menu-item a:hover {
+	background-color: #f3f4f6;
 }
 </style>
