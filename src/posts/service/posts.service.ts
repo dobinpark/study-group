@@ -1,35 +1,99 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Like } from 'typeorm';
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { PostsRepository } from '../repository/posts.repository';
 import { Post } from '../entities/post.entity';
+import { CreatePostDto } from '../dto/create-post.dto';
+import { User } from '../../user/users/entities/user.entity';
+import { PostCategory } from '../enum/post-category.enum';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { UpdatePostDto } from '../dto/update-post.dto';
 
 @Injectable()
 export class PostsService {
     constructor(
+        private readonly postsRepository: PostsRepository,
         @InjectRepository(Post)
-        private postsRepository: Repository<Post>
+        private readonly postRepository: Repository<Post>,
+        @InjectRepository(User)
+        private readonly userRepository: Repository<User>
     ) {}
 
-    async findByCategory(category: string, options: { page: number; limit: number; search?: string }) {
-        const query = this.postsRepository.createQueryBuilder('post')
-            .leftJoinAndSelect('post.author', 'author')
-            .where('post.category = :category', { category });
+    async findByCategory(category: PostCategory, options: { page: number; limit: number; search?: string }) {
+        console.log('Service finding posts for category:', category);
+        return await this.postsRepository.findByCategory(category, options.page, options.limit, options.search);
+    }
 
-        if (options.search) {
-            query.andWhere('(post.title LIKE :search OR post.content LIKE :search)', {
-                search: `%${options.search}%`
-            });
+    async createPost(createPostDto: CreatePostDto, user: User): Promise<Post> {
+        const post = this.postRepository.create({
+            ...createPostDto,
+            category: createPostDto.category,
+            author: user
+        });
+        return await this.postRepository.save(post);
+    }
+
+    async findOne(id: number): Promise<Post> {
+        const post = await this.postRepository.findOne({
+            where: { id },
+            relations: ['author'],  // author 정보도 함께 가져오기
+        });
+
+        if (!post) {
+            throw new NotFoundException(`Post with ID ${id} not found`);
         }
 
-        const [items, total] = await query
-            .orderBy('post.createdAt', 'DESC')
-            .skip((options.page - 1) * options.limit)
-            .take(options.limit)
-            .getManyAndCount();
+        // 조회수 증가
+        post.views += 1;
+        await this.postRepository.save(post);
 
-        return {
-            items,
-            total
-        };
+        return post;
     }
-} 
+
+    async toggleLike(postId: number, userId: number): Promise<{ liked: boolean }> {
+        const post = await this.postRepository.findOne({
+            where: { id: postId },
+            relations: ['likedBy']
+        });
+
+        if (!post) {
+            throw new NotFoundException('게시글을 찾을 수 없습니다.');
+        }
+
+        const userLiked = post.likedBy.some(user => user.id === userId);
+        
+        if (userLiked) {
+            post.likedBy = post.likedBy.filter(user => user.id !== userId);
+            post.likes -= 1;
+        } else {
+            const user = await this.userRepository.findOne({ where: { id: userId } });
+            if (!user) {
+                throw new NotFoundException('사용자를 찾을 수 없습니다.');
+            }
+            post.likedBy.push(user);
+            post.likes += 1;
+        }
+
+        await this.postRepository.save(post);
+        return { liked: !userLiked };
+    }
+
+    async updatePost(id: number, updatePostDto: UpdatePostDto, user: User): Promise<Post> {
+        const post = await this.postRepository.findOne({
+            where: { id },
+            relations: ['author']
+        });
+
+        if (!post) {
+            throw new NotFoundException('게시글을 찾을 수 없습니다.');
+        }
+
+        if (post.author.id !== user.id) {
+            throw new UnauthorizedException('게시글을 수정할 권한이 없습니다.');
+        }
+
+        // Object.assign을 사용하여 업데이트
+        Object.assign(post, updatePostDto);
+
+        return await this.postRepository.save(post);
+    }
+}

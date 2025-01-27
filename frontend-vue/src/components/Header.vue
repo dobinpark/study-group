@@ -46,85 +46,61 @@
 									<div class="sub-sub-menu">
 										<ul class="sub-sub-menu-column">
 											<li @click="goToStudyList('서울', '전체')">전체 <span class="study-count">({{
-												regionCounts['서울']?.['전체'] || 0 }})</span></li>
-											<li @click="goToStudyList('서울', '강남구')">강남구 <span
-													class="study-count">({{
-														regionCounts['서울']?.['강남구'] || 0 }})</span></li>
-											<li @click="goToStudyList('서울', '강동구')">강동구 <span
-													class="study-count">({{
-														regionCounts['서울']?.['강동구'] || 0 }})</span></li>
-											<li @click="goToStudyList('서울', '강북구')">강북구 <span
-													class="study-count">({{
-														regionCounts['서울']?.['강북구'] || 0 }})</span></li>
-											<li @click="goToStudyList('서울', '강서구')">강서구 <span
-													class="study-count">({{
-														regionCounts['서울']?.['강서구'] || 0 }})</span></li>
-											<li @click="goToStudyList('서울', '관악구')">관악구 <span
-													class="study-count">({{
-														regionCounts['서울']?.['관악구'] || 0 }})</span></li>
-											<li @click="goToStudyList('서울', '광진구')">광진구 <span
-													class="study-count">({{
-														regionCounts['서울']?.['광진구'] || 0 }})</span></li>
-											<li @click="goToStudyList('서울', '구로구')">구로구 <span
-													class="study-count">({{
-														regionCounts['서울']?.['구로구'] || 0 }})</span></li>
-											<li @click="goToStudyList('서울', '금천구')">금천구 <span
-													class="study-count">({{
-														regionCounts['서울']?.['금천구'] || 0 }})</span></li>
-											<li @click="goToStudyList('서울', '노원구')">노원구 <span
-													class="study-count">({{
-														regionCounts['서울']?.['노원구'] || 0 }})</span></li>
+												getCategoryCount('지역별', '서울', '전체') }})</span></li>
+											<li @click="goToStudyList('서울', '강남구')">강남구 <span class="study-count">({{
+												getCategoryCount('지역별', '서울', '강남구') }})</span></li>
+											<li @click="goToStudyList('서울', '강동구')">강동구 <span class="study-count">({{
+												getCategoryCount('지역별', '서울', '강동구') }})</span></li>
+											<li @click="goToStudyList('서울', '강북구')">강북구 <span class="study-count">({{
+												getCategoryCount('지역별', '서울', '강북구') }})</span></li>
+											<li @click="goToStudyList('서울', '강서구')">강서구 <span class="study-count">({{
+												getCategoryCount('지역별', '서울', '강서구') }})</span></li>
+											<li @click="goToStudyList('서울', '관악구')">관악구 <span class="study-count">({{
+												getCategoryCount('지역별', '서울', '관악구') }})</span></li>
+											<li @click="goToStudyList('서울', '광진구')">광진구 <span class="study-count">({{
+												getCategoryCount('지역별', '서울', '광진구') }})</span></li>
+											<li @click="goToStudyList('서울', '구로구')">구로구 <span class="study-count">({{
+												getCategoryCount('지역별', '서울', '구로구') }})</span></li>
+											<li @click="goToStudyList('서울', '금천구')">금천구 <span class="study-count">({{
+												getCategoryCount('지역별', '서울', '금천구') }})</span></li>
+											<li @click="goToStudyList('서울', '노원구')">노원구 <span class="study-count">({{
+												getCategoryCount('지역별', '서울', '노원구') }})</span></li>
 										</ul>
 										<ul class="sub-sub-menu-column">
-											<li @click="goToStudyList('서울', '도봉구')">도봉구 <span
-													class="study-count">({{
-														regionCounts['서울']?.['도봉구'] || 0 }})</span></li>
-											<li @click="goToStudyList('서울', '동대문구')">동대문구 <span
-													class="study-count">({{
-														regionCounts['서울']?.['동대문구'] || 0 }})</span></li>
-											<li @click="goToStudyList('서울', '동작구')">동작구 <span
-													class="study-count">({{
-														regionCounts['서울']?.['동작구'] || 0 }})</span></li>
-											<li @click="goToStudyList('서울', '마포구')">마포구 <span
-													class="study-count">({{
-														regionCounts['서울']?.['마포구'] || 0 }})</span></li>
-											<li @click="goToStudyList('서울', '서대문구')">서대문구 <span
-													class="study-count">({{
-														regionCounts['서울']?.['서대문구'] || 0 }})</span></li>
-											<li @click="goToStudyList('서울', '서초구')">서초구 <span
-													class="study-count">({{
-														regionCounts['서울']?.['서초구'] || 0 }})</span></li>
-											<li @click="goToStudyList('서울', '성동구')">성동구 <span
-													class="study-count">({{
-														regionCounts['서울']?.['성동구'] || 0 }})</span></li>
-											<li @click="goToStudyList('서울', '성북구')">성북구 <span
-													class="study-count">({{
-														regionCounts['서울']?.['성북구'] || 0 }})</span></li>
-											<li @click="goToStudyList('서울', '송파구')">송파구 <span
-													class="study-count">({{
-														regionCounts['서울']?.['송파구'] || 0 }})</span></li>
-											<li @click="goToStudyList('서울', '양천구')">양천구 <span
-													class="study-count">({{
-														regionCounts['서울']?.['양천구'] || 0 }})</span></li>
+											<li @click="goToStudyList('서울', '도봉구')">도봉구 <span class="study-count">({{
+												getCategoryCount('지역별', '서울', '도봉구') }})</span></li>
+											<li @click="goToStudyList('서울', '동대문구')">동대문구 <span class="study-count">({{
+												getCategoryCount('지역별', '서울', '동대문구') }})</span></li>
+											<li @click="goToStudyList('서울', '동작구')">동작구 <span class="study-count">({{
+												getCategoryCount('지역별', '서울', '동작구') }})</span></li>
+											<li @click="goToStudyList('서울', '마포구')">마포구 <span class="study-count">({{
+												getCategoryCount('지역별', '서울', '마포구') }})</span></li>
+											<li @click="goToStudyList('서울', '서대문구')">서대문구 <span class="study-count">({{
+												getCategoryCount('지역별', '서울', '서대문구') }})</span></li>
+											<li @click="goToStudyList('서울', '서초구')">서초구 <span class="study-count">({{
+												getCategoryCount('지역별', '서울', '서초구') }})</span></li>
+											<li @click="goToStudyList('서울', '성동구')">성동구 <span class="study-count">({{
+												getCategoryCount('지역별', '서울', '성동구') }})</span></li>
+											<li @click="goToStudyList('서울', '성북구')">성북구 <span class="study-count">({{
+												getCategoryCount('지역별', '서울', '성북구') }})</span></li>
+											<li @click="goToStudyList('서울', '송파구')">송파구 <span class="study-count">({{
+												getCategoryCount('지역별', '서울', '송파구') }})</span></li>
+											<li @click="goToStudyList('서울', '양천구')">양천구 <span class="study-count">({{
+												getCategoryCount('지역별', '서울', '양천구') }})</span></li>
 										</ul>
 										<ul class="sub-sub-menu-column">
-											<li @click="goToStudyList('서울', '영등포구')">영등포구 <span
-													class="study-count">({{
-														regionCounts['서울']?.['영등포구'] || 0 }})</span></li>
-											<li @click="goToStudyList('서울', '용산구')">용산구 <span
-													class="study-count">({{
-														regionCounts['서울']?.['용산구'] || 0 }})</span></li>
-											<li @click="goToStudyList('서울', '은평구')">은평구 <span
-													class="study-count">({{
-														regionCounts['서울']?.['은평구'] || 0 }})</span></li>
-											<li @click="goToStudyList('서울', '종로구')">종로구 <span
-													class="study-count">({{
-														regionCounts['서울']?.['종로구'] || 0 }})</span></li>
+											<li @click="goToStudyList('서울', '영등포구')">영등포구 <span class="study-count">({{
+												getCategoryCount('지역별', '서울', '영등포구') }})</span></li>
+											<li @click="goToStudyList('서울', '용산구')">용산구 <span class="study-count">({{
+												getCategoryCount('지역별', '서울', '용산구') }})</span></li>
+											<li @click="goToStudyList('서울', '은평구')">은평구 <span class="study-count">({{
+												getCategoryCount('지역별', '서울', '은평구') }})</span></li>
+											<li @click="goToStudyList('서울', '종로구')">종로구 <span class="study-count">({{
+												getCategoryCount('지역별', '서울', '종로구') }})</span></li>
 											<li @click="goToStudyList('서울', '중구')">중구 <span class="study-count">({{
-												regionCounts['서울']?.['중구'] || 0 }})</span></li>
-											<li @click="goToStudyList('서울', '중랑구')">중랑구 <span
-													class="study-count">({{
-														regionCounts['서울']?.['중랑구'] || 0 }})</span></li>
+												getCategoryCount('지역별', '서울', '중구') }})</span></li>
+											<li @click="goToStudyList('서울', '중랑구')">중랑구 <span class="study-count">({{
+												getCategoryCount('지역별', '서울', '중랑구') }})</span></li>
 										</ul>
 									</div>
 								</li>
@@ -135,36 +111,29 @@
 									<div class="sub-sub-menu">
 										<ul class="sub-sub-menu-column">
 											<li @click="goToStudyList('인천', '전체')">전체 <span class="study-count">({{
-												regionCounts['인천']?.['전체'] || 0 }})</span></li>
-											<li @click="goToStudyList('인천', '강화군')">강화군 <span
-													class="study-count">({{
-														regionCounts['인천']?.['강화군'] || 0 }})</span></li>
-											<li @click="goToStudyList('인천', '계양구')">계양구 <span
-													class="study-count">({{
-														regionCounts['인천']?.['계양구'] || 0 }})</span></li>
-											<li @click="goToStudyList('인천', '남동구')">남동구 <span
-													class="study-count">({{
-														regionCounts['인천']?.['남동구'] || 0 }})</span></li>
+												getCategoryCount('지역별', '인천', '전체') }})</span></li>
+											<li @click="goToStudyList('인천', '강화군')">강화군 <span class="study-count">({{
+												getCategoryCount('지역별', '인천', '강화군') }})</span></li>
+											<li @click="goToStudyList('인천', '계양구')">계양구 <span class="study-count">({{
+												getCategoryCount('지역별', '인천', '계양구') }})</span></li>
+											<li @click="goToStudyList('인천', '남동구')">남동구 <span class="study-count">({{
+												getCategoryCount('지역별', '인천', '남동구') }})</span></li>
 											<li @click="goToStudyList('인천', '동구')">동구 <span class="study-count">({{
-												regionCounts['인천']?.['동구'] || 0 }})</span></li>
-											<li @click="goToStudyList('인천', '미추홀구')">미추홀구 <span
-													class="study-count">({{
-														regionCounts['인천']?.['미추홀구'] || 0 }})</span></li>
-											<li @click="goToStudyList('인천', '부평구')">부평구 <span
-													class="study-count">({{
-														regionCounts['인천']?.['부평구'] || 0 }})</span></li>
+												getCategoryCount('지역별', '인천', '동구') }})</span></li>
+											<li @click="goToStudyList('인천', '미추홀구')">미추홀구 <span class="study-count">({{
+												getCategoryCount('지역별', '인천', '미추홀구') }})</span></li>
+											<li @click="goToStudyList('인천', '부평구')">부평구 <span class="study-count">({{
+												getCategoryCount('지역별', '인천', '부평구') }})</span></li>
 											<li @click="goToStudyList('인천', '서구')">서구 <span class="study-count">({{
-												regionCounts['인천']?.['서구'] || 0 }})</span></li>
-											<li @click="goToStudyList('인천', '연수구')">연수구 <span
-													class="study-count">({{
-														regionCounts['인천']?.['연수구'] || 0 }})</span></li>
-											<li @click="goToStudyList('인천', '옹진군')">옹진군 <span
-													class="study-count">({{
-														regionCounts['인천']?.['옹진군'] || 0 }})</span></li>
+												getCategoryCount('지역별', '인천', '서구') }})</span></li>
+											<li @click="goToStudyList('인천', '연수구')">연수구 <span class="study-count">({{
+												getCategoryCount('지역별', '인천', '연수구') }})</span></li>
+											<li @click="goToStudyList('인천', '옹진군')">옹진군 <span class="study-count">({{
+												getCategoryCount('지역별', '인천', '옹진군') }})</span></li>
 										</ul>
 										<ul class="sub-sub-menu-column">
 											<li @click="goToStudyList('인천', '중구')">중구 <span class="study-count">({{
-												regionCounts['인천']?.['중구'] || 0 }})</span></li>
+												getCategoryCount('지역별', '인천', '중구') }})</span></li>
 										</ul>
 									</div>
 								</li>
@@ -175,52 +144,41 @@
 									<div class="sub-sub-menu">
 										<ul class="sub-sub-menu-column">
 											<li @click="goToStudyList('부산', '전체')">전체 <span class="study-count">({{
-												regionCounts['부산']?.['전체'] || 0 }})</span></li>
-											<li @click="goToStudyList('부산', '강서구')">강서구 <span
-													class="study-count">({{
-														regionCounts['부산']?.['강서구'] || 0 }})</span></li>
-											<li @click="goToStudyList('부산', '금정구')">금정구 <span
-													class="study-count">({{
-														regionCounts['부산']?.['금정구'] || 0 }})</span></li>
-											<li @click="goToStudyList('부산', '기장군')">기장군 <span
-													class="study-count">({{
-														regionCounts['부산']?.['기장군'] || 0 }})</span></li>
+												getCategoryCount('지역별', '부산', '전체') }})</span></li>
+											<li @click="goToStudyList('부산', '강서구')">강서구 <span class="study-count">({{
+												getCategoryCount('지역별', '부산', '강서구') }})</span></li>
+											<li @click="goToStudyList('부산', '금정구')">금정구 <span class="study-count">({{
+												getCategoryCount('지역별', '부산', '금정구') }})</span></li>
+											<li @click="goToStudyList('부산', '기장군')">기장군 <span class="study-count">({{
+												getCategoryCount('지역별', '부산', '기장군') }})</span></li>
 											<li @click="goToStudyList('부산', '남구')">남구 <span class="study-count">({{
-												regionCounts['부산']?.['남구'] || 0 }})</span></li>
+												getCategoryCount('지역별', '부산', '남구') }})</span></li>
 											<li @click="goToStudyList('부산', '동구')">동구 <span class="study-count">({{
-												regionCounts['부산']?.['동구'] || 0 }})</span></li>
-											<li @click="goToStudyList('부산', '동래구')">동래구 <span
-													class="study-count">({{
-														regionCounts['부산']?.['동래구'] || 0 }})</span></li>
-											<li @click="goToStudyList('부산', '부산진구')">부산진구 <span
-													class="study-count">({{
-														regionCounts['부산']?.['부산진구'] || 0 }})</span></li>
+												getCategoryCount('지역별', '부산', '동구') }})</span></li>
+											<li @click="goToStudyList('부산', '동래구')">동래구 <span class="study-count">({{
+												getCategoryCount('지역별', '부산', '동래구') }})</span></li>
+											<li @click="goToStudyList('부산', '부산진구')">부산진구 <span class="study-count">({{
+												getCategoryCount('지역별', '부산', '부산진구') }})</span></li>
 											<li @click="goToStudyList('부산', '북구')">북구 <span class="study-count">({{
-												regionCounts['부산']?.['북구'] || 0 }})</span></li>
-											<li @click="goToStudyList('부산', '사상구')">사상구 <span
-													class="study-count">({{
-														regionCounts['부산']?.['사상구'] || 0 }})</span></li>
+												getCategoryCount('지역별', '부산', '북구') }})</span></li>
+											<li @click="goToStudyList('부산', '사상구')">사상구 <span class="study-count">({{
+												getCategoryCount('지역별', '부산', '사상구') }})</span></li>
 										</ul>
 										<ul class="sub-sub-menu-column">
-											<li @click="goToStudyList('부산', '사하구')">사하구 <span
-													class="study-count">({{
-														regionCounts['부산']?.['사하구'] || 0 }})</span></li>
+											<li @click="goToStudyList('부산', '사하구')">사하구 <span class="study-count">({{
+												getCategoryCount('지역별', '부산', '사하구') }})</span></li>
 											<li @click="goToStudyList('부산', '서구')">서구 <span class="study-count">({{
-												regionCounts['부산']?.['서구'] || 0 }})</span></li>
-											<li @click="goToStudyList('부산', '수영구')">수영구 <span
-													class="study-count">({{
-														regionCounts['부산']?.['수영구'] || 0 }})</span></li>
-											<li @click="goToStudyList('부산', '연제구')">연제구 <span
-													class="study-count">({{
-														regionCounts['부산']?.['연제구'] || 0 }})</span></li>
-											<li @click="goToStudyList('부산', '영도구')">영도구 <span
-													class="study-count">({{
-														regionCounts['부산']?.['영도구'] || 0 }})</span></li>
+												getCategoryCount('지역별', '부산', '서구') }})</span></li>
+											<li @click="goToStudyList('부산', '수영구')">수영구 <span class="study-count">({{
+												getCategoryCount('지역별', '부산', '수영구') }})</span></li>
+											<li @click="goToStudyList('부산', '연제구')">연제구 <span class="study-count">({{
+												getCategoryCount('지역별', '부산', '연제구') }})</span></li>
+											<li @click="goToStudyList('부산', '영도구')">영도구 <span class="study-count">({{
+												getCategoryCount('지역별', '부산', '영도구') }})</span></li>
 											<li @click="goToStudyList('부산', '중구')">중구 <span class="study-count">({{
-												regionCounts['부산']?.['중구'] || 0 }})</span></li>
-											<li @click="goToStudyList('부산', '해운대구')">해운대구 <span
-													class="study-count">({{
-														regionCounts['부산']?.['해운대구'] || 0 }})</span></li>
+												getCategoryCount('지역별', '부산', '중구') }})</span></li>
+											<li @click="goToStudyList('부산', '해운대구')">해운대구 <span class="study-count">({{
+												getCategoryCount('지역별', '부산', '해운대구') }})</span></li>
 										</ul>
 									</div>
 								</li>
@@ -231,29 +189,25 @@
 									<div class="sub-sub-menu">
 										<ul class="sub-sub-menu-column">
 											<li @click="goToStudyList('대구', '전체')">전체 <span class="study-count">({{
-												regionCounts['대구']?.['전체'] || 0 }})</span></li>
-											<li @click="goToStudyList('대구', '군위군')">군위군 <span
-													class="study-count">({{
-														regionCounts['대구']?.['군위군'] || 0 }})</span></li>
+												getCategoryCount('지역별', '대구', '전체') }})</span></li>
+											<li @click="goToStudyList('대구', '군위군')">군위군 <span class="study-count">({{
+												getCategoryCount('지역별', '대구', '군위군') }})</span></li>
 											<li @click="goToStudyList('대구', '남구')">남구 <span class="study-count">({{
-												regionCounts['대구']?.['남구'] || 0 }})</span></li>
-											<li @click="goToStudyList('대구', '달서구')">달서구 <span
-													class="study-count">({{
-														regionCounts['대구']?.['달서구'] || 0 }})</span></li>
-											<li @click="goToStudyList('대구', '달성군')">달성군 <span
-													class="study-count">({{
-														regionCounts['대구']?.['달성군'] || 0 }})</span></li>
+												getCategoryCount('지역별', '대구', '남구') }})</span></li>
+											<li @click="goToStudyList('대구', '달서구')">달서구 <span class="study-count">({{
+												getCategoryCount('지역별', '대구', '달서구') }})</span></li>
+											<li @click="goToStudyList('대구', '달성군')">달성군 <span class="study-count">({{
+												getCategoryCount('지역별', '대구', '달성군') }})</span></li>
 											<li @click="goToStudyList('대구', '동구')">동구 <span class="study-count">({{
-												regionCounts['대구']?.['동구'] || 0 }})</span></li>
+												getCategoryCount('지역별', '대구', '동구') }})</span></li>
 											<li @click="goToStudyList('대구', '북구')">북구 <span class="study-count">({{
-												regionCounts['대구']?.['북구'] || 0 }})</span></li>
+												getCategoryCount('지역별', '대구', '북구') }})</span></li>
 											<li @click="goToStudyList('대구', '서구')">서구 <span class="study-count">({{
-												regionCounts['대구']?.['서구'] || 0 }})</span></li>
-											<li @click="goToStudyList('대구', '수성구')">수성구 <span
-													class="study-count">({{
-														regionCounts['대구']?.['수성구'] || 0 }})</span></li>
+												getCategoryCount('지역별', '대구', '서구') }})</span></li>
+											<li @click="goToStudyList('대구', '수성구')">수성구 <span class="study-count">({{
+												getCategoryCount('지역별', '대구', '수성구') }})</span></li>
 											<li @click="goToStudyList('대구', '중구')">중구 <span class="study-count">({{
-												regionCounts['대구']?.['중구'] || 0 }})</span></li>
+												getCategoryCount('지역별', '대구', '중구') }})</span></li>
 										</ul>
 									</div>
 								</li>
@@ -264,18 +218,17 @@
 									<div class="sub-sub-menu">
 										<ul class="sub-sub-menu-column">
 											<li @click="goToStudyList('광주', '전체')">전체 <span class="study-count">({{
-												regionCounts['광주']?.['전체'] || 0 }})</span></li>
-											<li @click="goToStudyList('광주', '광산구')">광산구 <span
-													class="study-count">({{
-														regionCounts['광주']?.['광산구'] || 0 }})</span></li>
+												getCategoryCount('지역별', '광주', '전체') }})</span></li>
+											<li @click="goToStudyList('광주', '광산구')">광산구 <span class="study-count">({{
+												getCategoryCount('지역별', '광주', '광산구') }})</span></li>
 											<li @click="goToStudyList('광주', '남구')">남구 <span class="study-count">({{
-												regionCounts['광주']?.['남구'] || 0 }})</span></li>
+												getCategoryCount('지역별', '광주', '남구') }})</span></li>
 											<li @click="goToStudyList('광주', '동구')">동구 <span class="study-count">({{
-												regionCounts['광주']?.['동구'] || 0 }})</span></li>
+												getCategoryCount('지역별', '광주', '동구') }})</span></li>
 											<li @click="goToStudyList('광주', '북구')">북구 <span class="study-count">({{
-												regionCounts['광주']?.['북구'] || 0 }})</span></li>
+												getCategoryCount('지역별', '광주', '북구') }})</span></li>
 											<li @click="goToStudyList('광주', '서구')">서구 <span class="study-count">({{
-												regionCounts['광주']?.['서구'] || 0 }})</span></li>
+												getCategoryCount('지역별', '광주', '서구') }})</span></li>
 										</ul>
 									</div>
 								</li>
@@ -286,19 +239,17 @@
 									<div class="sub-sub-menu">
 										<ul class="sub-sub-menu-column">
 											<li @click="goToStudyList('대전', '전체')">전체 <span class="study-count">({{
-												regionCounts['대전']?.['전체'] || 0 }})</span></li>
-											<li @click="goToStudyList('대전', '대덕구')">대덕구 <span
-													class="study-count">({{
-														regionCounts['대전']?.['대덕구'] || 0 }})</span></li>
+												getCategoryCount('지역별', '대전', '전체') }})</span></li>
+											<li @click="goToStudyList('대전', '대덕구')">대덕구 <span class="study-count">({{
+												getCategoryCount('지역별', '대전', '대덕구') }})</span></li>
 											<li @click="goToStudyList('대전', '동구')">동구 <span class="study-count">({{
-												regionCounts['대전']?.['동구'] || 0 }})</span></li>
+												getCategoryCount('지역별', '대전', '동구') }})</span></li>
 											<li @click="goToStudyList('대전', '서구')">서구 <span class="study-count">({{
-												regionCounts['대전']?.['서구'] || 0 }})</span></li>
-											<li @click="goToStudyList('대전', '유성구')">유성구 <span
-													class="study-count">({{
-														regionCounts['대전']?.['유성구'] || 0 }})</span></li>
+												getCategoryCount('지역별', '대전', '서구') }})</span></li>
+											<li @click="goToStudyList('대전', '유성구')">유성구 <span class="study-count">({{
+												getCategoryCount('지역별', '대전', '유성구') }})</span></li>
 											<li @click="goToStudyList('대전', '중구')">중구 <span class="study-count">({{
-												regionCounts['대전']?.['중구'] || 0 }})</span></li>
+												getCategoryCount('지역별', '대전', '중구') }})</span></li>
 										</ul>
 									</div>
 								</li>
@@ -309,18 +260,17 @@
 									<div class="sub-sub-menu">
 										<ul class="sub-sub-menu-column">
 											<li @click="goToStudyList('울산', '전체')">전체 <span class="study-count">({{
-												regionCounts['울산']?.['전체'] || 0 }})</span></li>
+												getCategoryCount('지역별', '울산', '전체') }})</span></li>
 											<li @click="goToStudyList('울산', '남구')">남구 <span class="study-count">({{
-												regionCounts['울산']?.['남구'] || 0 }})</span></li>
+												getCategoryCount('지역별', '울산', '남구') }})</span></li>
 											<li @click="goToStudyList('울산', '동구')">동구 <span class="study-count">({{
-												regionCounts['울산']?.['동구'] || 0 }})</span></li>
+												getCategoryCount('지역별', '울산', '동구') }})</span></li>
 											<li @click="goToStudyList('울산', '북구')">북구 <span class="study-count">({{
-												regionCounts['울산']?.['북구'] || 0 }})</span></li>
-											<li @click="goToStudyList('울산', '울주군')">울주군 <span
-													class="study-count">({{
-														regionCounts['울산']?.['울주군'] || 0 }})</span></li>
+												getCategoryCount('지역별', '울산', '북구') }})</span></li>
+											<li @click="goToStudyList('울산', '울주군')">울주군 <span class="study-count">({{
+												getCategoryCount('지역별', '울산', '울주군') }})</span></li>
 											<li @click="goToStudyList('울산', '중구')">중구 <span class="study-count">({{
-												regionCounts['울산']?.['중구'] || 0 }})</span></li>
+												getCategoryCount('지역별', '울산', '중구') }})</span></li>
 										</ul>
 									</div>
 								</li>
@@ -331,141 +281,116 @@
 									<div class="sub-sub-menu">
 										<ul class="sub-sub-menu-column">
 											<li @click="goToStudyList('경기', '전체')">전체 <span class="study-count">({{
-												regionCounts['경기']?.['전체'] || 0 }})</span></li>
-											<li @click="goToStudyList('경기', '가평군')">가평군 <span
-													class="study-count">({{
-														regionCounts['경기']?.['가평군'] || 0 }})</span></li>
+												getCategoryCount('지역별', '경기', '전체') }})</span></li>
+											<li @click="goToStudyList('경기', '가평군')">가평군 <span class="study-count">({{
+												getCategoryCount('지역별', '경기', '가평군') }})</span></li>
 											<li @click="goToStudyList('경기', '고양시 덕양구')">고양시 덕양구 <span
 													class="study-count">({{
-														regionCounts['경기']?.['고양시 덕양구'] || 0 }})</span></li>
+														getCategoryCount('지역별', '경기', '고양시 덕양구') }})</span></li>
 											<li @click="goToStudyList('경기', '고양시 일산동구')">고양시 일산동구 <span
 													class="study-count">({{
-														regionCounts['경기']?.['고양시 일산동구'] || 0 }})</span></li>
+														getCategoryCount('지역별', '경기', '고양시 일산동구') }})</span></li>
 											<li @click="goToStudyList('경기', '고양시 일산서구')">고양시 일산서구 <span
 													class="study-count">({{
-														regionCounts['경기']?.['고양시 일산서구'] || 0 }})</span></li>
-											<li @click="goToStudyList('경기', '과천시')">과천시 <span
-													class="study-count">({{
-														regionCounts['경기']?.['과천시'] || 0 }})</span></li>
-											<li @click="goToStudyList('경기', '광명시')">광명시 <span
-													class="study-count">({{
-														regionCounts['경기']?.['광명시'] || 0 }})</span></li>
-											<li @click="goToStudyList('경기', '광주시')">광주시 <span
-													class="study-count">({{
-														regionCounts['경기']?.['광주시'] || 0 }})</span></li>
-											<li @click="goToStudyList('경기', '구리시')">구리시 <span
-													class="study-count">({{
-														regionCounts['경기']?.['구리시'] || 0 }})</span></li>
-											<li @click="goToStudyList('경기', '군포시')">군포시 <span
-													class="study-count">({{
-														regionCounts['경기']?.['군포시'] || 0 }})</span></li>
+														getCategoryCount('지역별', '경기', '고양시 일산서구') }})</span></li>
+											<li @click="goToStudyList('경기', '과천시')">과천시 <span class="study-count">({{
+												getCategoryCount('지역별', '경기', '과천시') }})</span></li>
+											<li @click="goToStudyList('경기', '광명시')">광명시 <span class="study-count">({{
+												getCategoryCount('지역별', '경기', '광명시') }})</span></li>
+											<li @click="goToStudyList('경기', '광주시')">광주시 <span class="study-count">({{
+												getCategoryCount('지역별', '경기', '광주시') }})</span></li>
+											<li @click="goToStudyList('경기', '구리시')">구리시 <span class="study-count">({{
+												getCategoryCount('지역별', '경기', '구리시') }})</span></li>
+											<li @click="goToStudyList('경기', '군포시')">군포시 <span class="study-count">({{
+												getCategoryCount('지역별', '경기', '군포시') }})</span></li>
 										</ul>
 										<ul class="sub-sub-menu-column">
-											<li @click="goToStudyList('경기', '김포시')">김포시 <span
-													class="study-count">({{
-														regionCounts['경기']?.['김포시'] || 0 }})</span></li>
-											<li @click="goToStudyList('경기', '남양주시')">남양주시 <span
-													class="study-count">({{
-														regionCounts['경기']?.['남양주시'] || 0 }})</span></li>
-											<li @click="goToStudyList('경기', '동두천시')">동두천시 <span
-													class="study-count">({{
-														regionCounts['경기']?.['동두천시'] || 0 }})</span></li>
-											<li @click="goToStudyList('경기', '부천시')">부천시 <span
-													class="study-count">({{
-														regionCounts['경기']?.['부천시'] || 0 }})</span></li>
+											<li @click="goToStudyList('경기', '김포시')">김포시 <span class="study-count">({{
+												getCategoryCount('지역별', '경기', '김포시') }})</span></li>
+											<li @click="goToStudyList('경기', '남양주시')">남양주시 <span class="study-count">({{
+												getCategoryCount('지역별', '경기', '남양주시') }})</span></li>
+											<li @click="goToStudyList('경기', '동두천시')">동두천시 <span class="study-count">({{
+												getCategoryCount('지역별', '경기', '동두천시') }})</span></li>
+											<li @click="goToStudyList('경기', '부천시')">부천시 <span class="study-count">({{
+												getCategoryCount('지역별', '경기', '부천시') }})</span></li>
 											<li @click="goToStudyList('경기', '성남시 분당구')">성남시 분당구 <span
 													class="study-count">({{
-														regionCounts['경기']?.['성남시 분당구'] || 0 }})</span></li>
+														getCategoryCount('지역별', '경기', '성남시 분당구') }})</span></li>
 											<li @click="goToStudyList('경기', '성남시 수정구')">성남시 수정구 <span
 													class="study-count">({{
-														regionCounts['경기']?.['성남시 수정구'] || 0 }})</span></li>
+														getCategoryCount('지역별', '경기', '성남시 수정구') }})</span></li>
 											<li @click="goToStudyList('경기', '성남시 중원구')">성남시 중원구 <span
 													class="study-count">({{
-														regionCounts['경기']?.['성남시 중원구'] || 0 }})</span></li>
+														getCategoryCount('지역별', '경기', '성남시 중원구') }})</span></li>
 											<li @click="goToStudyList('경기', '수원시 권선구')">수원시 권선구 <span
 													class="study-count">({{
-														regionCounts['경기']?.['수원시 권선구'] || 0 }})</span></li>
+														getCategoryCount('지역별', '경기', '수원시 권선구') }})</span></li>
 											<li @click="goToStudyList('경기', '수원시 장안구')">수원시 장안구 <span
 													class="study-count">({{
-														regionCounts['경기']?.['수원시 장안구'] || 0 }})</span></li>
+														getCategoryCount('지역별', '경기', '수원시 장안구') }})</span></li>
 											<li @click="goToStudyList('경기', '수원시 팔달구')">수원시 팔달구 <span
 													class="study-count">({{
-														regionCounts['경기']?.['수원시 팔달구'] || 0 }})</span></li>
+														getCategoryCount('지역별', '경기', '수원시 팔달구') }})</span></li>
 										</ul>
 										<ul class="sub-sub-menu-column">
 											<li @click="goToStudyList('경기', '수원시 영통구')">수원시 영통구 <span
 													class="study-count">({{
-														regionCounts['경기']?.['수원시 영통구'] || 0 }})</span></li>
-											<li @click="goToStudyList('경기', '시흥시')">시흥시 <span
-													class="study-count">({{
-														regionCounts['경기']?.['시흥시'] || 0 }})</span></li>
+														getCategoryCount('지역별', '경기', '수원시 영통구') }})</span></li>
+											<li @click="goToStudyList('경기', '시흥시')">시흥시 <span class="study-count">({{
+												getCategoryCount('지역별', '경기', '시흥시') }})</span></li>
 											<li @click="goToStudyList('경기', '안산시 단원구')">안산시 단원구 <span
 													class="study-count">({{
-														regionCounts['경기']?.['안산시 단원구'] || 0 }})</span></li>
+														getCategoryCount('지역별', '경기', '안산시 단원구') }})</span></li>
 											<li @click="goToStudyList('경기', '안산시 상록구')">안산시 상록구 <span
 													class="study-count">({{
-														regionCounts['경기']?.['안산시 상록구'] || 0 }})</span></li>
-											<li @click="goToStudyList('경기', '안성시')">안성시 <span
-													class="study-count">({{
-														regionCounts['경기']?.['안성시'] || 0 }})</span></li>
+														getCategoryCount('지역별', '경기', '안산시 상록구') }})</span></li>
+											<li @click="goToStudyList('경기', '안성시')">안성시 <span class="study-count">({{
+												getCategoryCount('지역별', '경기', '안성시') }})</span></li>
 											<li @click="goToStudyList('경기', '안양시 동안구')">안양시 동안구 <span
 													class="study-count">({{
-														regionCounts['경기']?.['안양시 동안구'] || 0 }})</span></li>
+														getCategoryCount('지역별', '경기', '안양시 동안구') }})</span></li>
 											<li @click="goToStudyList('경기', '안양시 만안구')">안양시 만안구 <span
 													class="study-count">({{
-														regionCounts['경기']?.['안양시 만안구'] || 0 }})</span></li>
-											<li @click="goToStudyList('경기', '양주시')">양주시 <span
-													class="study-count">({{
-														regionCounts['경기']?.['양주시'] || 0 }})</span></li>
-											<li @click="goToStudyList('경기', '양평군')">양평군 <span
-													class="study-count">({{
-														regionCounts['경기']?.['양평군'] || 0 }})</span></li>
-											<li @click="goToStudyList('경기', '여주시')">여주시 <span
-													class="study-count">({{
-														regionCounts['경기']?.['여주시'] || 0 }})</span></li>
+														getCategoryCount('지역별', '경기', '안양시 만안구') }})</span></li>
+											<li @click="goToStudyList('경기', '양주시')">양주시 <span class="study-count">({{
+												getCategoryCount('지역별', '경기', '양주시') }})</span></li>
+											<li @click="goToStudyList('경기', '양평군')">양평군 <span class="study-count">({{
+												getCategoryCount('지역별', '경기', '양평군') }})</span></li>
+											<li @click="goToStudyList('경기', '여주시')">여주시 <span class="study-count">({{
+												getCategoryCount('지역별', '경기', '여주시') }})</span></li>
 										</ul>
 										<ul class="sub-sub-menu-column">
-											<li @click="goToStudyList('경기', '연천군')">연천군 <span
-													class="study-count">({{
-														regionCounts['경기']?.['연천군'] || 0 }})</span></li>
-											<li @click="goToStudyList('경기', '오산시')">오산시 <span
-													class="study-count">({{
-														regionCounts['경기']?.['오산시'] || 0 }})</span></li>
+											<li @click="goToStudyList('경기', '연천군')">연천군 <span class="study-count">({{
+												getCategoryCount('지역별', '경기', '연천군') }})</span></li>
+											<li @click="goToStudyList('경기', '오산시')">오산시 <span class="study-count">({{
+												getCategoryCount('지역별', '경기', '오산시') }})</span></li>
 											<li @click="goToStudyList('경기', '용인시 기흥구')">용인시 기흥구 <span
 													class="study-count">({{
-														regionCounts['경기']?.['용인시 기흥구'] || 0 }})</span></li>
+														getCategoryCount('지역별', '경기', '용인시 기흥구') }})</span></li>
 											<li @click="goToStudyList('경기', '용인시 수지구')">용인시 수지구 <span
 													class="study-count">({{
-														regionCounts['경기']?.['용인시 수지구'] || 0 }})</span></li>
+														getCategoryCount('지역별', '경기', '용인시 수지구') }})</span></li>
 											<li @click="goToStudyList('경기', '용인시 처인구')">용인시 처인구 <span
 													class="study-count">({{
-														regionCounts['경기']?.['용인시 처인구'] || 0 }})</span></li>
-											<li @click="goToStudyList('경기', '의왕시')">의왕시 <span
-													class="study-count">({{
-														regionCounts['경기']?.['의왕시'] || 0 }})</span></li>
-											<li @click="goToStudyList('경기', '의정부시')">의정부시 <span
-													class="study-count">({{
-														regionCounts['경기']?.['의정부시'] || 0 }})</span></li>
-											<li @click="goToStudyList('경기', '이천시')">이천시 <span
-													class="study-count">({{
-														regionCounts['경기']?.['이천시'] || 0 }})</span></li>
-											<li @click="goToStudyList('경기', '파주시')">파주시 <span
-													class="study-count">({{
-														regionCounts['경기']?.['파주시'] || 0 }})</span></li>
-											<li @click="goToStudyList('경기', '평택시')">평택시 <span
-													class="study-count">({{
-														regionCounts['경기']?.['평택시'] || 0 }})</span></li>
+														getCategoryCount('지역별', '경기', '용인시 처인구') }})</span></li>
+											<li @click="goToStudyList('경기', '의왕시')">의왕시 <span class="study-count">({{
+												getCategoryCount('지역별', '경기', '의왕시') }})</span></li>
+											<li @click="goToStudyList('경기', '의정부시')">의정부시 <span class="study-count">({{
+												getCategoryCount('지역별', '경기', '의정부시') }})</span></li>
+											<li @click="goToStudyList('경기', '이천시')">이천시 <span class="study-count">({{
+												getCategoryCount('지역별', '경기', '이천시') }})</span></li>
+											<li @click="goToStudyList('경기', '파주시')">파주시 <span class="study-count">({{
+												getCategoryCount('지역별', '경기', '파주시') }})</span></li>
+											<li @click="goToStudyList('경기', '평택시')">평택시 <span class="study-count">({{
+												getCategoryCount('지역별', '경기', '평택시') }})</span></li>
 										</ul>
 										<ul class="sub-sub-menu-column">
-											<li @click="goToStudyList('경기', '포천시')">포천시 <span
-													class="study-count">({{
-														regionCounts['경기']?.['포천시'] || 0 }})</span></li>
-											<li @click="goToStudyList('경기', '하남시')">하남시 <span
-													class="study-count">({{
-														regionCounts['경기']?.['하남시'] || 0 }})</span></li>
-											<li @click="goToStudyList('경기', '화성시')">화성시 <span
-													class="study-count">({{
-														regionCounts['경기']?.['화성시'] || 0 }})</span></li>
+											<li @click="goToStudyList('경기', '포천시')">포천시 <span class="study-count">({{
+												getCategoryCount('지역별', '경기', '포천시') }})</span></li>
+											<li @click="goToStudyList('경기', '하남시')">하남시 <span class="study-count">({{
+												getCategoryCount('지역별', '경기', '하남시') }})</span></li>
+											<li @click="goToStudyList('경기', '화성시')">화성시 <span class="study-count">({{
+												getCategoryCount('지역별', '경기', '화성시') }})</span></li>
 										</ul>
 									</div>
 								</li>
@@ -476,7 +401,7 @@
 									<div class="sub-sub-menu">
 										<ul class="sub-sub-menu-column">
 											<li @click="goToStudyList('세종', '전체')">전체 <span class="study-count">({{
-												regionCounts['세종']?.['전체'] || 0 }})</span></li>
+												getCategoryCount('지역별', '세종', '전체') }})</span></li>
 										</ul>
 									</div>
 								</li>
@@ -487,57 +412,43 @@
 									<div class="sub-sub-menu">
 										<ul class="sub-sub-menu-column">
 											<li @click="goToStudyList('충남', '전체')">전체 <span class="study-count">({{
-												regionCounts['충남']?.['전체'] || 0 }})</span></li>
-											<li @click="goToStudyList('충남', '공주시')">공주시 <span
-													class="study-count">({{
-														regionCounts['충남']?.['공주시'] || 0 }})</span></li>
-											<li @click="goToStudyList('충남', '금산군')">금산군 <span
-													class="study-count">({{
-														regionCounts['충남']?.['금산군'] || 0 }})</span></li>
-											<li @click="goToStudyList('충남', '논산시')">논산시 <span
-													class="study-count">({{
-														regionCounts['충남']?.['논산시'] || 0 }})</span></li>
-											<li @click="goToStudyList('충남', '당진시')">당진시 <span
-													class="study-count">({{
-														regionCounts['충남']?.['당진시'] || 0 }})</span></li>
-											<li @click="goToStudyList('충남', '보령시')">보령시 <span
-													class="study-count">({{
-														regionCounts['충남']?.['보령시'] || 0 }})</span></li>
-											<li @click="goToStudyList('충남', '부여군')">부여군 <span
-													class="study-count">({{
-														regionCounts['충남']?.['부여군'] || 0 }})</span></li>
-											<li @click="goToStudyList('충남', '서산시')">서산시 <span
-													class="study-count">({{
-														regionCounts['충남']?.['서산시'] || 0 }})</span></li>
-											<li @click="goToStudyList('충남', '서천군')">서천군 <span
-													class="study-count">({{
-														regionCounts['충남']?.['서천군'] || 0 }})</span></li>
-											<li @click="goToStudyList('충남', '아산시')">아산시 <span
-													class="study-count">({{
-														regionCounts['충남']?.['아산시'] || 0 }})</span></li>
+												getCategoryCount('지역별', '충남', '전체') }})</span></li>
+											<li @click="goToStudyList('충남', '공주시')">공주시 <span class="study-count">({{
+												getCategoryCount('지역별', '충남', '공주시') }})</span></li>
+											<li @click="goToStudyList('충남', '금산군')">금산군 <span class="study-count">({{
+												getCategoryCount('지역별', '충남', '금산군') }})</span></li>
+											<li @click="goToStudyList('충남', '논산시')">논산시 <span class="study-count">({{
+												getCategoryCount('지역별', '충남', '논산시') }})</span></li>
+											<li @click="goToStudyList('충남', '당진시')">당진시 <span class="study-count">({{
+												getCategoryCount('지역별', '충남', '당진시') }})</span></li>
+											<li @click="goToStudyList('충남', '보령시')">보령시 <span class="study-count">({{
+												getCategoryCount('지역별', '충남', '보령시') }})</span></li>
+											<li @click="goToStudyList('충남', '부여군')">부여군 <span class="study-count">({{
+												getCategoryCount('지역별', '충남', '부여군') }})</span></li>
+											<li @click="goToStudyList('충남', '서산시')">서산시 <span class="study-count">({{
+												getCategoryCount('지역별', '충남', '서산시') }})</span></li>
+											<li @click="goToStudyList('충남', '서천군')">서천군 <span class="study-count">({{
+												getCategoryCount('지역별', '충남', '서천군') }})</span></li>
+											<li @click="goToStudyList('충남', '아산시')">아산시 <span class="study-count">({{
+												getCategoryCount('지역별', '충남', '아산시') }})</span></li>
 										</ul>
 										<ul class="sub-sub-menu-column">
-											<li @click="goToStudyList('충남', '예산군')">예산군 <span
-													class="study-count">({{
-														regionCounts['충남']?.['예산군'] || 0 }})</span></li>
+											<li @click="goToStudyList('충남', '예산군')">예산군 <span class="study-count">({{
+												getCategoryCount('지역별', '충남', '예산군') }})</span></li>
 											<li @click="goToStudyList('충남', '천안시 동남구')">천안시 동남구 <span
 													class="study-count">({{
-														regionCounts['충남']?.['천안시 동남구'] || 0 }})</span></li>
+														getCategoryCount('지역별', '충남', '천안시 동남구') }})</span></li>
 											<li @click="goToStudyList('충남', '천안시 서북구')">천안시 서북구 <span
 													class="study-count">({{
-														regionCounts['충남']?.['천안시 서북구'] || 0 }})</span></li>
-											<li @click="goToStudyList('충남', '청양군')">청양군 <span
-													class="study-count">({{
-														regionCounts['충남']?.['청양군'] || 0 }})</span></li>
-											<li @click="goToStudyList('충남', '태안군')">태안군 <span
-													class="study-count">({{
-														regionCounts['충남']?.['태안군'] || 0 }})</span></li>
-											<li @click="goToStudyList('충남', '홍성군')">홍성군 <span
-													class="study-count">({{
-														regionCounts['충남']?.['홍성군'] || 0 }})</span></li>
-											<li @click="goToStudyList('충남', '계룡시')">계룡시 <span
-													class="study-count">({{
-														regionCounts['충남']?.['계룡시'] || 0 }})</span></li>
+														getCategoryCount('지역별', '충남', '천안시 서북구') }})</span></li>
+											<li @click="goToStudyList('충남', '청양군')">청양군 <span class="study-count">({{
+												getCategoryCount('지역별', '충남', '청양군') }})</span></li>
+											<li @click="goToStudyList('충남', '태안군')">태안군 <span class="study-count">({{
+												getCategoryCount('지역별', '충남', '태안군') }})</span></li>
+											<li @click="goToStudyList('충남', '홍성군')">홍성군 <span class="study-count">({{
+												getCategoryCount('지역별', '충남', '홍성군') }})</span></li>
+											<li @click="goToStudyList('충남', '계룡시')">계룡시 <span class="study-count">({{
+												getCategoryCount('지역별', '충남', '계룡시') }})</span></li>
 										</ul>
 									</div>
 								</li>
@@ -548,51 +459,41 @@
 									<div class="sub-sub-menu">
 										<ul class="sub-sub-menu-column">
 											<li @click="goToStudyList('충북', '전체')">전체 <span class="study-count">({{
-												regionCounts['충북']?.['전체'] || 0 }})</span></li>
-											<li @click="goToStudyList('충북', '괴산군')">괴산군 <span
-													class="study-count">({{
-														regionCounts['충북']?.['괴산군'] || 0 }})</span></li>
-											<li @click="goToStudyList('충북', '단양군')">단양군 <span
-													class="study-count">({{
-														regionCounts['충북']?.['단양군'] || 0 }})</span></li>
-											<li @click="goToStudyList('충북', '보은군')">보은군 <span
-													class="study-count">({{
-														regionCounts['충북']?.['보은군'] || 0 }})</span></li>
-											<li @click="goToStudyList('충북', '영동군')">영동군 <span
-													class="study-count">({{
-														regionCounts['충북']?.['영동군'] || 0 }})</span></li>
-											<li @click="goToStudyList('충북', '옥천군')">옥천군 <span
-													class="study-count">({{
-														regionCounts['충북']?.['옥천군'] || 0 }})</span></li>
-											<li @click="goToStudyList('충북', '음성군')">음성군 <span
-													class="study-count">({{
-														regionCounts['충북']?.['음성군'] || 0 }})</span></li>
-											<li @click="goToStudyList('충북', '제천시')">제천시 <span
-													class="study-count">({{
-														regionCounts['충북']?.['제천시'] || 0 }})</span></li>
-											<li @click="goToStudyList('충북', '진천군')">진천군 <span
-													class="study-count">({{
-														regionCounts['충북']?.['진천군'] || 0 }})</span></li>
+												getCategoryCount('지역별', '충북', '전체') }})</span></li>
+											<li @click="goToStudyList('충북', '괴산군')">괴산군 <span class="study-count">({{
+												getCategoryCount('지역별', '충북', '괴산군') }})</span></li>
+											<li @click="goToStudyList('충북', '단양군')">단양군 <span class="study-count">({{
+												getCategoryCount('지역별', '충북', '단양군') }})</span></li>
+											<li @click="goToStudyList('충북', '보은군')">보은군 <span class="study-count">({{
+												getCategoryCount('지역별', '충북', '보은군') }})</span></li>
+											<li @click="goToStudyList('충북', '영동군')">영동군 <span class="study-count">({{
+												getCategoryCount('지역별', '충북', '영동군') }})</span></li>
+											<li @click="goToStudyList('충북', '옥천군')">옥천군 <span class="study-count">({{
+												getCategoryCount('지역별', '충북', '옥천군') }})</span></li>
+											<li @click="goToStudyList('충북', '음성군')">음성군 <span class="study-count">({{
+												getCategoryCount('지역별', '충북', '음성군') }})</span></li>
+											<li @click="goToStudyList('충북', '제천시')">제천시 <span class="study-count">({{
+												getCategoryCount('지역별', '충북', '제천시') }})</span></li>
+											<li @click="goToStudyList('충북', '진천군')">진천군 <span class="study-count">({{
+												getCategoryCount('지역별', '충북', '진천군') }})</span></li>
 											<li @click="goToStudyList('충북', '청주시 청원구')">청주시 청원구 <span
 													class="study-count">({{
-														regionCounts['충북']?.['청주시 청원구'] || 0 }})</span></li>
+														getCategoryCount('지역별', '충북', '청주시 청원구') }})</span></li>
 										</ul>
 										<ul class="sub-sub-menu-column">
 											<li @click="goToStudyList('충북', '청주시 상당구')">청주시 상당구 <span
 													class="study-count">({{
-														regionCounts['충북']?.['청주시 상당구'] || 0 }})</span></li>
+														getCategoryCount('지역별', '충북', '청주시 상당구') }})</span></li>
 											<li @click="goToStudyList('충북', '청주시 서원구')">청주시 서원구 <span
 													class="study-count">({{
-														regionCounts['충북']?.['청주시 서원구'] || 0 }})</span></li>
+														getCategoryCount('지역별', '충북', '청주시 서원구') }})</span></li>
 											<li @click="goToStudyList('충북', '청주시 흥덕구')">청주시 흥덕구 <span
 													class="study-count">({{
-														regionCounts['충북']?.['청주시 흥덕구'] || 0 }})</span></li>
-											<li @click="goToStudyList('충북', '충주시')">충주시 <span
-													class="study-count">({{
-														regionCounts['충북']?.['충주시'] || 0 }})</span></li>
-											<li @click="goToStudyList('충북', '증평군')">증평군 <span
-													class="study-count">({{
-														regionCounts['충북']?.['증평군'] || 0 }})</span></li>
+														getCategoryCount('지역별', '충북', '청주시 흥덕구') }})</span></li>
+											<li @click="goToStudyList('충북', '충주시')">충주시 <span class="study-count">({{
+												getCategoryCount('지역별', '충북', '충주시') }})</span></li>
+											<li @click="goToStudyList('충북', '증평군')">증평군 <span class="study-count">({{
+												getCategoryCount('지역별', '충북', '증평군') }})</span></li>
 										</ul>
 									</div>
 								</li>
@@ -602,80 +503,63 @@
 									</div>
 									<div class="sub-sub-menu">
 										<ul class="sub-sub-menu-column">
-											<li @click="goToStudyList('경남', '전체')">전체 <span class="study-count">({{
-												regionCounts['경남']?.['전체'] || 0 }})</span></li>
-											<li @click="goToStudyList('경남', '거제시')">거제시 <span
-													class="study-count">({{
-														regionCounts['경남']?.['거제시'] || 0 }})</span></li>
-											<li @click="goToStudyList('경남', '거창군')">거창군 <span
-													class="study-count">({{
-														regionCounts['경남']?.['거창군'] || 0 }})</span></li>
-											<li @click="goToStudyList('경남', '고성군')">고성군 <span
-													class="study-count">({{
-														regionCounts['경남']?.['고성군'] || 0 }})</span></li>
-											<li @click="goToStudyList('경남', '김해시')">김해시 <span
-													class="study-count">({{
-														regionCounts['경남']?.['김해시'] || 0 }})</span></li>
-											<li @click="goToStudyList('경남', '남해군')">남해군 <span
-													class="study-count">({{
-														regionCounts['경남']?.['남해군'] || 0 }})</span></li>
-											<li @click="goToStudyList('경남', '밀양시')">밀양시 <span
-													class="study-count">({{
-														regionCounts['경남']?.['밀양시'] || 0 }})</span></li>
-											<li @click="goToStudyList('경남', '사천시')">사천시 <span
-													class="study-count">({{
-														regionCounts['경남']?.['사천시'] || 0 }})</span></li>
-											<li @click="goToStudyList('경남', '산청군')">산청군 <span
-													class="study-count">({{
-														regionCounts['경남']?.['산청군'] || 0 }})</span></li>
-											<li @click="goToStudyList('경남', '양산시')">양산시 <span
-													class="study-count">({{
-														regionCounts['경남']?.['양산시'] || 0 }})</span></li>
+											<li @click="goToStudyList('경남', '전체')">전체<span class="study-count">({{
+												getCategoryCount('지역별', '경남', '전체') }})</span></li>
+											<li @click="goToStudyList('경남', '거제시')">거제시 <span class="study-count">({{
+												getCategoryCount('지역별', '경남', '거제시') }})</span></li>
+											<li @click="goToStudyList('경남', '거창군')">거창군 <span class="study-count">({{
+												getCategoryCount('지역별', '경남', '거창군') }})</span></li>
+											<li @click="goToStudyList('경남', '고성군')">고성군 <span class="study-count">({{
+												getCategoryCount('지역별', '경남', '고성군') }})</span></li>
+											<li @click="goToStudyList('경남', '김해시')">김해시 <span class="study-count">({{
+												getCategoryCount('지역별', '경남', '김해시') }})</span></li>
+											<li @click="goToStudyList('경남', '남해군')">남해군 <span class="study-count">({{
+												getCategoryCount('지역별', '경남', '남해군') }})</span></li>
+											<li @click="goToStudyList('경남', '밀양시')">밀양시 <span class="study-count">({{
+												getCategoryCount('지역별', '경남', '밀양시') }})</span></li>
+											<li @click="goToStudyList('경남', '사천시')">사천시 <span class="study-count">({{
+												getCategoryCount('지역별', '경남', '사천시') }})</span></li>
+											<li @click="goToStudyList('경남', '산청군')">산청군 <span class="study-count">({{
+												getCategoryCount('지역별', '경남', '산청군') }})</span></li>
+											<li @click="goToStudyList('경남', '양산시')">양산시 <span class="study-count">({{
+												getCategoryCount('지역별', '경남', '양산시') }})</span></li>
 										</ul>
 										<ul class="sub-sub-menu-column">
-											<li @click="goToStudyList('경남', '의령군')">의령군 <span
-													class="study-count">({{
-														regionCounts['경남']?.['의령군'] || 0 }})</span></li>
-											<li @click="goToStudyList('경남', '진주시')">진주시 <span
-													class="study-count">({{
-														regionCounts['경남']?.['진주시'] || 0 }})</span></li>
-											<li @click="goToStudyList('경남', '창녕군')">창녕군 <span
-													class="study-count">({{
-														regionCounts['경남']?.['창녕군'] || 0 }})</span></li>
+											<li @click="goToStudyList('경남', '의령군')">의령군 <span class="study-count">({{
+												getCategoryCount('지역별', '경남', '의령군') }})</span></li>
+											<li @click="goToStudyList('경남', '진주시')">진주시 <span class="study-count">({{
+												getCategoryCount('지역별', '경남', '진주시') }})</span></li>
+											<li @click="goToStudyList('경남', '창녕군')">창녕군 <span class="study-count">({{
+												getCategoryCount('지역별', '경남', '창녕군') }})</span></li>
 											<li @click="goToStudyList('경남', '창원시 마산합포구')">창원시 마산합포구 <span
-													class="study-count">({{ regionCounts['경남']?.['창원시 마산합포구'] || 0
-													}})</span>
+													class="study-count">({{
+														getCategoryCount('지역별', '경남', '창원시 마산합포구') }})</span>
 											</li>
 											<li @click="goToStudyList('경남', '창원시 마산회원구')">창원시 마산회원구 <span
-													class="study-count">({{ regionCounts['경남']?.['창원시 마산회원구'] || 0
-													}})</span>
+													class="study-count">({{
+														getCategoryCount('지역별', '경남', '창원시 마산회원구') }})</span>
 											</li>
 											<li @click="goToStudyList('경남', '창원시 성산구')">창원시 성산구 <span
 													class="study-count">({{
-														regionCounts['경남']?.['창원시 성산구'] || 0 }})</span></li>
+														getCategoryCount('지역별', '경남', '창원시 성산구') }})</span></li>
 											<li @click="goToStudyList('경남', '창원시 의창구')">창원시 의창구 <span
 													class="study-count">({{
-														regionCounts['경남']?.['창원시 의창구'] || 0 }})</span></li>
+														getCategoryCount('지역별', '경남', '창원시 의창구') }})</span></li>
 											<li @click="goToStudyList('경남', '창원시 진해구')">창원시 진해구 <span
 													class="study-count">({{
-														regionCounts['경남']?.['창원시 진해구'] || 0 }})</span></li>
-											<li @click="goToStudyList('경남', '통영시')">통영시 <span
-													class="study-count">({{
-														regionCounts['경남']?.['통영시'] || 0 }})</span></li>
-											<li @click="goToStudyList('경남', '하동군')">하동군 <span
-													class="study-count">({{
-														regionCounts['경남']?.['하동군'] || 0 }})</span></li>
+														getCategoryCount('지역별', '경남', '창원시 진해구') }})</span></li>
+											<li @click="goToStudyList('경남', '통영시')">통영시 <span class="study-count">({{
+												getCategoryCount('지역별', '경남', '통영시') }})</span></li>
+											<li @click="goToStudyList('경남', '하동군')">하동군 <span class="study-count">({{
+												getCategoryCount('지역별', '경남', '하동군') }})</span></li>
 										</ul>
 										<ul class="sub-sub-menu-column">
-											<li @click="goToStudyList('경남', '함안군')">함안군 <span
-													class="study-count">({{
-														regionCounts['경남']?.['함안군'] || 0 }})</span></li>
-											<li @click="goToStudyList('경남', '함양군')">함양군 <span
-													class="study-count">({{
-														regionCounts['경남']?.['함양군'] || 0 }})</span></li>
-											<li @click="goToStudyList('경남', '합천군')">합천군 <span
-													class="study-count">({{
-														regionCounts['경남']?.['합천군'] || 0 }})</span></li>
+											<li @click="goToStudyList('경남', '함안군')">함안군 <span class="study-count">({{
+												getCategoryCount('지역별', '경남', '함안군') }})</span></li>
+											<li @click="goToStudyList('경남', '함양군')">함양군 <span class="study-count">({{
+												getCategoryCount('지역별', '경남', '함양군') }})</span></li>
+											<li @click="goToStudyList('경남', '합천군')">합천군 <span class="study-count">({{
+												getCategoryCount('지역별', '경남', '합천군') }})</span></li>
 										</ul>
 									</div>
 								</li>
@@ -686,81 +570,60 @@
 									<div class="sub-sub-menu">
 										<ul class="sub-sub-menu-column">
 											<li @click="goToStudyList('경북', '전체')">전체 <span class="study-count">({{
-												regionCounts['경북']?.['전체'] || 0 }})</span></li>
-											<li @click="goToStudyList('경북', '경산시')">경산시 <span
-													class="study-count">({{
-														regionCounts['경북']?.['경산시'] || 0 }})</span></li>
-											<li @click="goToStudyList('경북', '경주시')">경주시 <span
-													class="study-count">({{
-														regionCounts['경북']?.['경주시'] || 0 }})</span></li>
-											<li @click="goToStudyList('경북', '고령군')">고령군 <span
-													class="study-count">({{
-														regionCounts['경북']?.['고령군'] || 0 }})</span></li>
-											<li @click="goToStudyList('경북', '구미시')">구미시 <span
-													class="study-count">({{
-														regionCounts['경북']?.['구미시'] || 0 }})</span></li>
-											<li @click="goToStudyList('경북', '김천시')">김천시 <span
-													class="study-count">({{
-														regionCounts['경북']?.['김천시'] || 0 }})</span></li>
-											<li @click="goToStudyList('경북', '문경시')">문경시 <span
-													class="study-count">({{
-														regionCounts['경북']?.['문경시'] || 0 }})</span></li>
-											<li @click="goToStudyList('경북', '봉화군')">봉화군 <span
-													class="study-count">({{
-														regionCounts['경북']?.['봉화군'] || 0 }})</span></li>
-											<li @click="goToStudyList('경북', '상주시')">상주시 <span
-													class="study-count">({{
-														regionCounts['경북']?.['상주시'] || 0 }})</span></li>
-											<li @click="goToStudyList('경북', '성주군')">성주군 <span
-													class="study-count">({{
-														regionCounts['경북']?.['성주군'] || 0 }})</span></li>
+												getCategoryCount('지역별', '경북', '전체') }})</span></li>
+											<li @click="goToStudyList('경북', '경산시')">경산시 <span class="study-count">({{
+												getCategoryCount('지역별', '경북', '경산시') }})</span></li>
+											<li @click="goToStudyList('경북', '경주시')">경주시 <span class="study-count">({{
+												getCategoryCount('지역별', '경북', '경주시') }})</span></li>
+											<li @click="goToStudyList('경북', '고령군')">고령군 <span class="study-count">({{
+												getCategoryCount('지역별', '경북', '고령군') }})</span></li>
+											<li @click="goToStudyList('경북', '구미시')">구미시 <span class="study-count">({{
+												getCategoryCount('지역별', '경북', '구미시') }})</span></li>
+											<li @click="goToStudyList('경북', '김천시')">김천시 <span class="study-count">({{
+												getCategoryCount('지역별', '경북', '김천시') }})</span></li>
+											<li @click="goToStudyList('경북', '문경시')">문경시 <span class="study-count">({{
+												getCategoryCount('지역별', '경북', '문경시') }})</span></li>
+											<li @click="goToStudyList('경북', '봉화군')">봉화군 <span class="study-count">({{
+												getCategoryCount('지역별', '경북', '봉화군') }})</span></li>
+											<li @click="goToStudyList('경북', '상주시')">상주시 <span class="study-count">({{
+												getCategoryCount('지역별', '경북', '상주시') }})</span></li>
+											<li @click="goToStudyList('경북', '성주군')">성주군 <span class="study-count">({{
+												getCategoryCount('지역별', '경북', '성주군') }})</span></li>
 										</ul>
 										<ul class="sub-sub-menu-column">
-											<li @click="goToStudyList('경북', '안동시')">안동시 <span
-													class="study-count">({{
-														regionCounts['경북']?.['안동시'] || 0 }})</span></li>
-											<li @click="goToStudyList('경북', '영덕군')">영덕군 <span
-													class="study-count">({{
-														regionCounts['경북']?.['영덕군'] || 0 }})</span></li>
-											<li @click="goToStudyList('경북', '영양군')">영양군 <span
-													class="study-count">({{
-														regionCounts['경북']?.['영양군'] || 0 }})</span></li>
-											<li @click="goToStudyList('경북', '영주시')">영주시 <span
-													class="study-count">({{
-														regionCounts['경북']?.['영주시'] || 0 }})</span></li>
-											<li @click="goToStudyList('경북', '영천시')">영천시 <span
-													class="study-count">({{
-														regionCounts['경북']?.['영천시'] || 0 }})</span></li>
-											<li @click="goToStudyList('경북', '예천군')">예천군 <span
-													class="study-count">({{
-														regionCounts['경북']?.['예천군'] || 0 }})</span></li>
-											<li @click="goToStudyList('경북', '을릉군')">을릉군 <span
-													class="study-count">({{
-														regionCounts['경북']?.['을릉군'] || 0 }})</span></li>
-											<li @click="goToStudyList('경북', '울진군')">울진군 <span
-													class="study-count">({{
-														regionCounts['경북']?.['울진군'] || 0 }})</span></li>
-											<li @click="goToStudyList('경북', '의성군')">의성군 <span
-													class="study-count">({{
-														regionCounts['경북']?.['의성군'] || 0 }})</span></li>
-											<li @click="goToStudyList('경북', '청도군')">청도군 <span
-													class="study-count">({{
-														regionCounts['경북']?.['청도군'] || 0 }})</span>
+											<li @click="goToStudyList('경북', '안동시')">안동시 <span class="study-count">({{
+												getCategoryCount('지역별', '경북', '안동시') }})</span></li>
+											<li @click="goToStudyList('경북', '영덕군')">영덕군 <span class="study-count">({{
+												getCategoryCount('지역별', '경북', '영덕군') }})</span></li>
+											<li @click="goToStudyList('경북', '영양군')">영양군 <span class="study-count">({{
+												getCategoryCount('지역별', '경북', '영양군') }})</span></li>
+											<li @click="goToStudyList('경북', '영주시')">영주시 <span class="study-count">({{
+												getCategoryCount('지역별', '경북', '영주시') }})</span></li>
+											<li @click="goToStudyList('경북', '영천시')">영천시 <span class="study-count">({{
+												getCategoryCount('지역별', '경북', '영천시') }})</span></li>
+											<li @click="goToStudyList('경북', '예천군')">예천군 <span class="study-count">({{
+												getCategoryCount('지역별', '경북', '예천군') }})</span></li>
+											<li @click="goToStudyList('경북', '을릉군')">을릉군 <span class="study-count">({{
+												getCategoryCount('지역별', '경북', '을릉군') }})</span></li>
+											<li @click="goToStudyList('경북', '울진군')">울진군 <span class="study-count">({{
+												getCategoryCount('지역별', '경북', '울진군') }})</span></li>
+											<li @click="goToStudyList('경북', '의성군')">의성군 <span class="study-count">({{
+												getCategoryCount('지역별', '경북', '의성군') }})</span></li>
+											<li @click="goToStudyList('경북', '청도군')">청도군 <span class="study-count">({{
+												getCategoryCount('지역별', '경북', '청도군') }})</span>
 											</li>
 										</ul>
 										<ul class="sub-sub-menu-column">
-											<li @click="goToStudyList('경북', '청송군')">청송군 <span
-													class="study-count">({{
-														regionCounts['경북']?.['청송군'] || 0 }})</span></li>
-											<li @click="goToStudyList('경북', '칠곡군')">칠곡군 <span
-													class="study-count">({{
-														regionCounts['경북']?.['칠곡군'] || 0 }})</span></li>
+											<li @click="goToStudyList('경북', '청송군')">청송군 <span class="study-count">({{
+												getCategoryCount('지역별', '경북', '청송군') }})</span></li>
+											<li @click="goToStudyList('경북', '칠곡군')">칠곡군 <span class="study-count">({{
+												getCategoryCount('지역별', '경북', '칠곡군') }})</span></li>
 											<li @click="goToStudyList('경북', '포항시 남구')">포항시 남구 <span
 													class="study-count">({{
-														regionCounts['경북']?.['포항시 남구'] || 0 }})</span></li>
+														getCategoryCount('지역별', '경북', '포항시 남구') }})</span></li>
 											<li @click="goToStudyList('경북', '포항시 북구')">포항시 북구 <span
 													class="study-count">({{
-														regionCounts['경북']?.['포항시 북구'] || 0 }})</span></li>
+														getCategoryCount('지역별', '경북', '포항시 북구') }})</span></li>
 										</ul>
 									</div>
 								</li>
@@ -771,77 +634,55 @@
 									<div class="sub-sub-menu">
 										<ul class="sub-sub-menu-column">
 											<li @click="goToStudyList('전남', '전체')">전체 <span class="study-count">({{
-												regionCounts['전남']?.['전체'] || 0 }})</span></li>
-											<li @click="goToStudyList('전남', '강진군')">강진군 <span
-													class="study-count">({{
-														regionCounts['전남']?.['강진군'] || 0 }})</span></li>
-											<li @click="goToStudyList('전남', '고흥군')">고흥군 <span
-													class="study-count">({{
-														regionCounts['전남']?.['고흥군'] || 0 }})</span></li>
-											<li @click="goToStudyList('전남', '곡성군')">곡성군 <span
-													class="study-count">({{
-														regionCounts['전남']?.['곡성군'] || 0 }})</span></li>
-											<li @click="goToStudyList('전남', '광양시')">광양시 <span
-													class="study-count">({{
-														regionCounts['전남']?.['광양시'] || 0 }})</span></li>
-											<li @click="goToStudyList('전남', '구례군')">구례군 <span
-													class="study-count">({{
-														regionCounts['전남']?.['구례군'] || 0 }})</span></li>
-											<li @click="goToStudyList('전남', '나주시')">나주시 <span
-													class="study-count">({{
-														regionCounts['전남']?.['나주시'] || 0 }})</span></li>
-											<li @click="goToStudyList('전남', '담양군')">담양군 <span
-													class="study-count">({{
-														regionCounts['전남']?.['담양군'] || 0 }})</span></li>
-											<li @click="goToStudyList('전남', '목포시')">목포시 <span
-													class="study-count">({{
-														regionCounts['전남']?.['목포시'] || 0 }})</span></li>
-											<li @click="goToStudyList('전남', '무안군')">무안군 <span
-													class="study-count">({{
-														regionCounts['전남']?.['무안군'] || 0 }})</span></li>
+												getCategoryCount('지역별', '전남', '전체') }})</span></li>
+											<li @click="goToStudyList('전남', '강진군')">강진군 <span class="study-count">({{
+												getCategoryCount('지역별', '전남', '강진군') }})</span></li>
+											<li @click="goToStudyList('전남', '고흥군')">고흥군 <span class="study-count">({{
+												getCategoryCount('지역별', '전남', '고흥군') }})</span></li>
+											<li @click="goToStudyList('전남', '곡성군')">곡성군 <span class="study-count">({{
+												getCategoryCount('지역별', '전남', '곡성군') }})</span></li>
+											<li @click="goToStudyList('전남', '광양시')">광양시 <span class="study-count">({{
+												getCategoryCount('지역별', '전남', '광양시') }})</span></li>
+											<li @click="goToStudyList('전남', '구례군')">구례군 <span class="study-count">({{
+												getCategoryCount('지역별', '전남', '구례군') }})</span></li>
+											<li @click="goToStudyList('전남', '나주시')">나주시 <span class="study-count">({{
+												getCategoryCount('지역별', '전남', '나주시') }})</span></li>
+											<li @click="goToStudyList('전남', '담양군')">담양군 <span class="study-count">({{
+												getCategoryCount('지역별', '전남', '담양군') }})</span></li>
+											<li @click="goToStudyList('전남', '목포시')">목포시 <span class="study-count">({{
+												getCategoryCount('지역별', '전남', '목포시') }})</span></li>
+											<li @click="goToStudyList('전남', '무안군')">무안군 <span class="study-count">({{
+												getCategoryCount('지역별', '전남', '무안군') }})</span></li>
 										</ul>
 										<ul class="sub-sub-menu-column">
-											<li @click="goToStudyList('전남', '보성군')">보성군 <span
-													class="study-count">({{
-														regionCounts['전남']?.['보성군'] || 0 }})</span></li>
-											<li @click="goToStudyList('전남', '순천시')">순천시 <span
-													class="study-count">({{
-														regionCounts['전남']?.['순천시'] || 0 }})</span></li>
-											<li @click="goToStudyList('전남', '신안군')">신안군 <span
-													class="study-count">({{
-														regionCounts['전남']?.['신안군'] || 0 }})</span></li>
-											<li @click="goToStudyList('전남', '여수시')">여수시 <span
-													class="study-count">({{
-														regionCounts['전남']?.['여수시'] || 0 }})</span></li>
-											<li @click="goToStudyList('전남', '영광군')">영광군 <span
-													class="study-count">({{
-														regionCounts['전남']?.['영광군'] || 0 }})</span></li>
-											<li @click="goToStudyList('전남', '영암군')">영암군 <span
-													class="study-count">({{
-														regionCounts['전남']?.['영암군'] || 0 }})</span></li>
-											<li @click="goToStudyList('전남', '완도군')">완도군 <span
-													class="study-count">({{
-														regionCounts['전남']?.['완도군'] || 0 }})</span></li>
-											<li @click="goToStudyList('전남', '장성군')">장성군 <span
-													class="study-count">({{
-														regionCounts['전남']?.['장성군'] || 0 }})</span></li>
-											<li @click="goToStudyList('전남', '장흥군')">장흥군 <span
-													class="study-count">({{
-														regionCounts['전남']?.['장흥군'] || 0 }})</span></li>
-											<li @click="goToStudyList('전남', '진도군')">진도군 <span
-													class="study-count">({{
-														regionCounts['전남']?.['진도군'] || 0 }})</span></li>
+											<li @click="goToStudyList('전남', '보성군')">보성군 <span class="study-count">({{
+												getCategoryCount('지역별', '전남', '보성군') }})</span></li>
+											<li @click="goToStudyList('전남', '순천시')">순천시 <span class="study-count">({{
+												getCategoryCount('지역별', '전남', '순천시') }})</span></li>
+											<li @click="goToStudyList('전남', '신안군')">신안군 <span class="study-count">({{
+												getCategoryCount('지역별', '전남', '신안군') }})</span></li>
+											<li @click="goToStudyList('전남', '여수시')">여수시 <span class="study-count">({{
+												getCategoryCount('지역별', '전남', '여수시') }})</span></li>
+											<li @click="goToStudyList('전남', '영광군')">영광군 <span class="study-count">({{
+												getCategoryCount('지역별', '전남', '영광군') }})</span></li>
+											<li @click="goToStudyList('전남', '영암군')">영암군 <span class="study-count">({{
+												getCategoryCount('지역별', '전남', '영암군') }})</span></li>
+											<li @click="goToStudyList('전남', '완도군')">완도군 <span class="study-count">({{
+												getCategoryCount('지역별', '전남', '완도군') }})</span></li>
+											<li @click="goToStudyList('전남', '장성군')">장성군 <span class="study-count">({{
+												getCategoryCount('지역별', '전남', '장성군') }})</span></li>
+											<li @click="goToStudyList('전남', '장흥군')">장흥군 <span class="study-count">({{
+												getCategoryCount('지역별', '전남', '장흥군') }})</span></li>
+											<li @click="goToStudyList('전남', '진도군')">진도군 <span class="study-count">({{
+												getCategoryCount('지역별', '전남', '진도군') }})</span></li>
 										</ul>
 										<ul class="sub-sub-menu-column">
-											<li @click="goToStudyList('전남', '함평군')">함평군 <span
-													class="study-count">({{
-														regionCounts['전남']?.['함평군'] || 0 }})</span></li>
-											<li @click="goToStudyList('전남', '해남군')">해남군 <span
-													class="study-count">({{
-														regionCounts['전남']?.['해남군'] || 0 }})</span></li>
-											<li @click="goToStudyList('전남', '화순군')">화순군 <span
-													class="study-count">({{
-														regionCounts['전남']?.['화순군'] || 0 }})</span></li>
+											<li @click="goToStudyList('전남', '함평군')">함평군 <span class="study-count">({{
+												getCategoryCount('지역별', '전남', '함평군') }})</span></li>
+											<li @click="goToStudyList('전남', '해남군')">해남군 <span class="study-count">({{
+												getCategoryCount('지역별', '전남', '해남군') }})</span></li>
+											<li @click="goToStudyList('전남', '화순군')">화순군 <span class="study-count">({{
+												getCategoryCount('지역별', '전남', '화순군') }})</span></li>
 										</ul>
 									</div>
 								</li>
@@ -852,49 +693,35 @@
 									<div class="sub-sub-menu">
 										<ul class="sub-sub-menu-column">
 											<li @click="goToStudyList('전북', '전체')">전체 <span class="study-count">({{
-												regionCounts['전북']?.['전체'] || 0 }})</span></li>
-											<li @click="goToStudyList('전북', '고창군')">고창군 <span
-													class="study-count">({{
-														regionCounts['전북']?.['고창군'] || 0 }})</span></li>
-											<li @click="goToStudyList('전북', '군산시')">군산시 <span
-													class="study-count">({{
-														regionCounts['전북']?.['군산시'] || 0 }})</span></li>
-											<li @click="goToStudyList('전북', '김제시')">김제시 <span
-													class="study-count">({{
-														regionCounts['전북']?.['김제시'] || 0 }})</span></li>
-											<li @click="goToStudyList('전북', '남원시')">남원시 <span
-													class="study-count">({{
-														regionCounts['전북']?.['남원시'] || 0 }})</span></li>
-											<li @click="goToStudyList('전북', '무주군')">무주군 <span
-													class="study-count">({{
-														regionCounts['전북']?.['무주군'] || 0 }})</span></li>
-											<li @click="goToStudyList('전북', '부안군')">부안군 <span
-													class="study-count">({{
-														regionCounts['전북']?.['부안군'] || 0 }})</span></li>
-											<li @click="goToStudyList('전북', '순창군')">순창군 <span
-													class="study-count">({{
-														regionCounts['전북']?.['순창군'] || 0 }})</span></li>
-											<li @click="goToStudyList('전북', '완주군')">완주군 <span
-													class="study-count">({{
-														regionCounts['전북']?.['완주군'] || 0 }})</span></li>
-											<li @click="goToStudyList('전북', '익산시')">익산시 <span
-													class="study-count">({{
-														regionCounts['전북']?.['익산시'] || 0 }})</span></li>
-											<li @click="goToStudyList('전북', '임실군')">임실군 <span
-													class="study-count">({{
-														regionCounts['전북']?.['임실군'] || 0 }})</span></li>
-											<li @click="goToStudyList('전북', '장수군')">장수군 <span
-													class="study-count">({{
-														regionCounts['전북']?.['장수군'] || 0 }})</span></li>
-											<li @click="goToStudyList('전북', '전주시')">전주시 <span
-													class="study-count">({{
-														regionCounts['전북']?.['전주시'] || 0 }})</span></li>
-											<li @click="goToStudyList('전북', '정읍시')">정읍시 <span
-													class="study-count">({{
-														regionCounts['전북']?.['정읍시'] || 0 }})</span></li>
-											<li @click="goToStudyList('전북', '진안군')">진안군 <span
-													class="study-count">({{
-														regionCounts['전북']?.['진안군'] || 0 }})</span></li>
+												getCategoryCount('지역별', '전북', '전체') }})</span></li>
+											<li @click="goToStudyList('전북', '고창군')">고창군 <span class="study-count">({{
+												getCategoryCount('지역별', '전북', '고창군') }})</span></li>
+											<li @click="goToStudyList('전북', '군산시')">군산시 <span class="study-count">({{
+												getCategoryCount('지역별', '전북', '군산시') }})</span></li>
+											<li @click="goToStudyList('전북', '김제시')">김제시 <span class="study-count">({{
+												getCategoryCount('지역별', '전북', '김제시') }})</span></li>
+											<li @click="goToStudyList('전북', '남원시')">남원시 <span class="study-count">({{
+												getCategoryCount('지역별', '전북', '남원시') }})</span></li>
+											<li @click="goToStudyList('전북', '무주군')">무주군 <span class="study-count">({{
+												getCategoryCount('지역별', '전북', '무주군') }})</span></li>
+											<li @click="goToStudyList('전북', '부안군')">부안군 <span class="study-count">({{
+												getCategoryCount('지역별', '전북', '부안군') }})</span></li>
+											<li @click="goToStudyList('전북', '순창군')">순창군 <span class="study-count">({{
+												getCategoryCount('지역별', '전북', '순창군') }})</span></li>
+											<li @click="goToStudyList('전북', '완주군')">완주군 <span class="study-count">({{
+												getCategoryCount('지역별', '전북', '완주군') }})</span></li>
+											<li @click="goToStudyList('전북', '익산시')">익산시 <span class="study-count">({{
+												getCategoryCount('지역별', '전북', '익산시') }})</span></li>
+											<li @click="goToStudyList('전북', '임실군')">임실군 <span class="study-count">({{
+												getCategoryCount('지역별', '전북', '임실군') }})</span></li>
+											<li @click="goToStudyList('전북', '장수군')">장수군 <span class="study-count">({{
+												getCategoryCount('지역별', '전북', '장수군') }})</span></li>
+											<li @click="goToStudyList('전북', '전주시')">전주시 <span class="study-count">({{
+												getCategoryCount('지역별', '전북', '전주시') }})</span></li>
+											<li @click="goToStudyList('전북', '정읍시')">정읍시 <span class="study-count">({{
+												getCategoryCount('지역별', '전북', '정읍시') }})</span></li>
+											<li @click="goToStudyList('전북', '진안군')">진안군 <span class="study-count">({{
+												getCategoryCount('지역별', '전북', '진안군') }})</span></li>
 										</ul>
 									</div>
 								</li>
@@ -905,63 +732,45 @@
 									<div class="sub-sub-menu">
 										<ul class="sub-sub-menu-column">
 											<li @click="goToStudyList('강원', '전체')">전체 <span class="study-count">({{
-												regionCounts['강원']?.['전체'] || 0 }})</span></li>
-											<li @click="goToStudyList('강원', '강릉시')">강릉시 <span
-													class="study-count">({{
-														regionCounts['강원']?.['강릉시'] || 0 }})</span></li>
-											<li @click="goToStudyList('강원', '고성군')">고성군 <span
-													class="study-count">({{
-														regionCounts['강원']?.['고성군'] || 0 }})</span></li>
-											<li @click="goToStudyList('강원', '동해시')">동해시 <span
-													class="study-count">({{
-														regionCounts['강원']?.['동해시'] || 0 }})</span></li>
-											<li @click="goToStudyList('강원', '삼척시')">삼척시 <span
-													class="study-count">({{
-														regionCounts['강원']?.['삼척시'] || 0 }})</span></li>
-											<li @click="goToStudyList('강원', '속초시')">속초시 <span
-													class="study-count">({{
-														regionCounts['강원']?.['속초시'] || 0 }})</span></li>
-											<li @click="goToStudyList('강원', '양구군')">양구군 <span
-													class="study-count">({{
-														regionCounts['강원']?.['양구군'] || 0 }})</span></li>
-											<li @click="goToStudyList('강원', '양양군')">양양군 <span
-													class="study-count">({{
-														regionCounts['강원']?.['양양군'] || 0 }})</span></li>
-											<li @click="goToStudyList('강원', '영월군')">영월군 <span
-													class="study-count">({{
-														regionCounts['강원']?.['영월군'] || 0 }})</span></li>
-											<li @click="goToStudyList('강원', '원주시')">원주시 <span
-													class="study-count">({{
-														regionCounts['강원']?.['원주시'] || 0 }})</span></li>
+												getCategoryCount('지역별', '강원', '전체') }})</span></li>
+											<li @click="goToStudyList('강원', '강릉시')">강릉시 <span class="study-count">({{
+												getCategoryCount('지역별', '강원', '강릉시') }})</span></li>
+											<li @click="goToStudyList('강원', '고성군')">고성군 <span class="study-count">({{
+												getCategoryCount('지역별', '강원', '고성군') }})</span></li>
+											<li @click="goToStudyList('강원', '동해시')">동해시 <span class="study-count">({{
+												getCategoryCount('지역별', '강원', '동해시') }})</span></li>
+											<li @click="goToStudyList('강원', '삼척시')">삼척시 <span class="study-count">({{
+												getCategoryCount('지역별', '강원', '삼척시') }})</span></li>
+											<li @click="goToStudyList('강원', '속초시')">속초시 <span class="study-count">({{
+												getCategoryCount('지역별', '강원', '속초시') }})</span></li>
+											<li @click="goToStudyList('강원', '양구군')">양구군 <span class="study-count">({{
+												getCategoryCount('지역별', '강원', '양구군') }})</span></li>
+											<li @click="goToStudyList('강원', '양양군')">양양군 <span class="study-count">({{
+												getCategoryCount('지역별', '강원', '양양군') }})</span></li>
+											<li @click="goToStudyList('강원', '영월군')">영월군 <span class="study-count">({{
+												getCategoryCount('지역별', '강원', '영월군') }})</span></li>
+											<li @click="goToStudyList('강원', '원주시')">원주시 <span class="study-count">({{
+												getCategoryCount('지역별', '강원', '원주시') }})</span></li>
 										</ul>
 										<ul class="sub-sub-menu-column">
-											<li @click="goToStudyList('강원', '인제군')">인제군 <span
-													class="study-count">({{
-														regionCounts['강원']?.['인제군'] || 0 }})</span></li>
-											<li @click="goToStudyList('강원', '정선군')">정선군 <span
-													class="study-count">({{
-														regionCounts['강원']?.['정선군'] || 0 }})</span></li>
-											<li @click="goToStudyList('강원', '철원군')">철원군 <span
-													class="study-count">({{
-														regionCounts['강원']?.['철원군'] || 0 }})</span></li>
-											<li @click="goToStudyList('강원', '춘천시')">춘천시 <span
-													class="study-count">({{
-														regionCounts['강원']?.['춘천시'] || 0 }})</span></li>
-											<li @click="goToStudyList('강원', '태백시')">태백시 <span
-													class="study-count">({{
-														regionCounts['강원']?.['태백시'] || 0 }})</span></li>
-											<li @click="goToStudyList('강원', '평창군')">평창군 <span
-													class="study-count">({{
-														regionCounts['강원']?.['평창군'] || 0 }})</span></li>
-											<li @click="goToStudyList('강원', '홍천군')">홍천군 <span
-													class="study-count">({{
-														regionCounts['강원']?.['홍천군'] || 0 }})</span></li>
-											<li @click="goToStudyList('강원', '화천군')">화천군 <span
-													class="study-count">({{
-														regionCounts['강원']?.['화천군'] || 0 }})</span></li>
-											<li @click="goToStudyList('강원', '횡성군')">횡성군 <span
-													class="study-count">({{
-														regionCounts['강원']?.['횡성군'] || 0 }})</span></li>
+											<li @click="goToStudyList('강원', '인제군')">인제군 <span class="study-count">({{
+												getCategoryCount('지역별', '강원', '인제군') }})</span></li>
+											<li @click="goToStudyList('강원', '정선군')">정선군 <span class="study-count">({{
+												getCategoryCount('지역별', '강원', '정선군') }})</span></li>
+											<li @click="goToStudyList('강원', '철원군')">철원군 <span class="study-count">({{
+												getCategoryCount('지역별', '강원', '철원군') }})</span></li>
+											<li @click="goToStudyList('강원', '춘천시')">춘천시 <span class="study-count">({{
+												getCategoryCount('지역별', '강원', '춘천시') }})</span></li>
+											<li @click="goToStudyList('강원', '태백시')">태백시 <span class="study-count">({{
+												getCategoryCount('지역별', '강원', '태백시') }})</span></li>
+											<li @click="goToStudyList('강원', '평창군')">평창군 <span class="study-count">({{
+												getCategoryCount('지역별', '강원', '평창군') }})</span></li>
+											<li @click="goToStudyList('강원', '홍천군')">홍천군 <span class="study-count">({{
+												getCategoryCount('지역별', '강원', '홍천군') }})</span></li>
+											<li @click="goToStudyList('강원', '화천군')">화천군 <span class="study-count">({{
+												getCategoryCount('지역별', '강원', '화천군') }})</span></li>
+											<li @click="goToStudyList('강원', '횡성군')">횡성군 <span class="study-count">({{
+												getCategoryCount('지역별', '강원', '횡성군') }})</span></li>
 										</ul>
 									</div>
 								</li>
@@ -972,13 +781,11 @@
 									<div class="sub-sub-menu">
 										<ul class="sub-sub-menu-column">
 											<li @click="goToStudyList('제주', '전체')">전체 <span class="study-count">({{
-												regionCounts['제주']?.['전체'] || 0 }})</span></li>
-											<li @click="goToStudyList('제주', '서귀포시')">서귀포시 <span
-													class="study-count">({{
-														regionCounts['제주']?.['서귀포시'] || 0 }})</span></li>
-											<li @click="goToStudyList('제주', '제주시')">제주시 <span
-													class="study-count">({{
-														regionCounts['제주']?.['제주시'] || 0 }})</span></li>
+												getCategoryCount('지역별', '제주', '전체') }})</span></li>
+											<li @click="goToStudyList('제주', '서귀포시')">서귀포시 <span class="study-count">({{
+												getCategoryCount('지역별', '제주', '서귀포시') }})</span></li>
+											<li @click="goToStudyList('제주', '제주시')">제주시 <span class="study-count">({{
+												getCategoryCount('지역별', '제주', '제주시') }})</span></li>
 										</ul>
 									</div>
 								</li>
@@ -987,91 +794,88 @@
 						<li class="menu-item">
 							학습자별
 							<ul class="sub-menu">
-								<li class="sub-menu-item category">
-									<div class="category-name">중등</div>
+								<li class="sub-menu-item region">
+									<div class="region-name">중등</div>
 									<div class="sub-sub-menu">
 										<ul class="sub-sub-menu-column">
-											<li @click="goToStudyList('중등', '전체')">전체 <span class="study-count">({{
-												regionCounts['중등']?.['전체'] || 0 }})</span></li>
-											<li @click="goToStudyList('중등', '1학년')">1학년 <span
-													class="study-count">({{
-														regionCounts['중등']?.['1학년'] || 0 }})</span></li>
-											<li @click="goToStudyList('중등', '2학년')">2학년 <span
-													class="study-count">({{
-														regionCounts['중등']?.['2학년'] || 0 }})</span></li>
-											<li @click="goToStudyList('중등', '3학년')">3학년 <span
-													class="study-count">({{
-														regionCounts['중등']?.['3학년'] || 0 }})</span></li>
+											<li @click="goToStudyList('중등', '전체')">전체
+												<span class="study-count">({{ getCategoryCount('학습자별', '중등', '전체')
+													}})</span>
+											</li>
+											<li @click="goToStudyList('중등', '1학년')">1학년
+												<span class="study-count">({{ getCategoryCount('학습자별', '중등', '1학년')
+													}})</span>
+											</li>
+											<li @click="goToStudyList('중등', '2학년')">2학년
+												<span class="study-count">({{ getCategoryCount('학습자별', '중등', '2학년')
+													}})</span>
+											</li>
+											<li @click="goToStudyList('중등', '3학년')">3학년
+												<span class="study-count">({{ getCategoryCount('학습자별', '중등', '3학년')
+													}})</span>
+											</li>
 										</ul>
 									</div>
 								</li>
-								<li class="sub-menu-item category">
-									<div class="category-name">고등</div>
+								<li class="sub-menu-item region">
+									<div class="region-name">고등</div>
 									<div class="sub-sub-menu">
 										<ul class="sub-sub-menu-column">
 											<li @click="goToStudyList('고등', '전체')">전체 <span class="study-count">({{
-												regionCounts['고등']?.['전체'] || 0 }})</span></li>
-											<li @click="goToStudyList('고등', '1학년')">1학년 <span
-													class="study-count">({{
-														regionCounts['고등']?.['1학년'] || 0 }})</span></li>
-											<li @click="goToStudyList('고등', '2학년')">2학년 <span
-													class="study-count">({{
-														regionCounts['고등']?.['2학년'] || 0 }})</span></li>
-											<li @click="goToStudyList('고등', '3학년')">3학년 <span
-													class="study-count">({{
-														regionCounts['고등']?.['3학년'] || 0 }})</span></li>
+												getCategoryCount('학습자별', '고등', '전체') }})</span></li>
+											<li @click="goToStudyList('고등', '1학년')">1학년 <span class="study-count">({{
+												getCategoryCount('학습자별', '고등', '1학년') }})</span></li>
+											<li @click="goToStudyList('고등', '2학년')">2학년 <span class="study-count">({{
+												getCategoryCount('학습자별', '고등', '2학년') }})</span></li>
+											<li @click="goToStudyList('고등', '3학년')">3학년 <span class="study-count">({{
+												getCategoryCount('학습자별', '고등', '3학년') }})</span></li>
 										</ul>
 									</div>
 								</li>
-								<li class="sub-menu-item category">
-									<div class="category-name">대학/청년</div>
+								<li class="sub-menu-item region">
+									<div class="region-name">대학/청년</div>
 									<div class="sub-sub-menu">
 										<ul class="sub-sub-menu-column">
-											<li @click="goToStudyList('대학/청년', '대학생')">대학생 <span
-													class="study-count">({{
-														regionCounts['대학/청년']?.['대학생'] || 0 }})</span></li>
-											<li @click="goToStudyList('대학/청년', '청년')">청년 <span
-													class="study-count">({{
-														regionCounts['대학/청년']?.['청년'] || 0 }})</span></li>
+											<li @click="goToStudyList('대학/청년', '대학생')">대학생 <span class="study-count">({{
+												getCategoryCount('학습자별', '대학/청년', '대학생') }})</span></li>
+											<li @click="goToStudyList('대학/청년', '청년')">청년 <span class="study-count">({{
+												getCategoryCount('학습자별', '대학/청년', '청년') }})</span></li>
 										</ul>
 									</div>
 								</li>
-								<li class="sub-menu-item category">
-									<div class="category-name">취업준비/수험</div>
+								<li class="sub-menu-item region">
+									<div class="region-name">취업준비/수험</div>
 									<div class="sub-sub-menu">
 										<ul class="sub-sub-menu-column">
 											<li @click="goToStudyList('취업준비/수험', '취업준비생')">취업준비생 <span
 													class="study-count">({{
-														regionCounts['취업준비/수험']?.['취업준비생'] || 0 }})</span></li>
+														getCategoryCount('학습자별', '취업준비/수험', '취업준비생') }})</span></li>
 											<li @click="goToStudyList('취업준비/수험', '수험생')">수험생 <span
 													class="study-count">({{
-														regionCounts['취업준비/수험']?.['수험생'] || 0 }})</span></li>
+														getCategoryCount('학습자별', '취업준비/수험', '수험생') }})</span></li>
 										</ul>
 									</div>
 								</li>
-								<li class="sub-menu-item category">
-									<div class="category-name">경력/이직</div>
+								<li class="sub-menu-item region">
+									<div class="region-name">경력/이직</div>
 									<div class="sub-sub-menu">
 										<ul class="sub-sub-menu-column">
-											<li @click="goToStudyList('경력/이직', '경력')">경력 <span
-													class="study-count">({{
-														regionCounts['경력/이직']?.['경력'] || 0 }})</span></li>
-											<li @click="goToStudyList('경력/이직', '이직')">이직 <span
-													class="study-count">({{
-														regionCounts['경력/이직']?.['이직'] || 0 }})</span></li>
+											<li @click="goToStudyList('경력/이직', '경력')">경력 <span class="study-count">({{
+												getCategoryCount('학습자별', '경력/이직', '경력') }})</span></li>
+											<li @click="goToStudyList('경력/이직', '이직')">이직 <span class="study-count">({{
+												getCategoryCount('학습자별', '경력/이직', '이직') }})</span></li>
 										</ul>
 									</div>
 								</li>
-								<li class="sub-menu-item category">
-									<div class="category-name">취미/자기계발</div>
+								<li class="sub-menu-item region">
+									<div class="region-name">취미/자기계발</div>
 									<div class="sub-sub-menu">
 										<ul class="sub-sub-menu-column">
-											<li @click="goToStudyList('취미/자기계발', '취미')">취미 <span
-													class="study-count">({{
-														regionCounts['취미/자기계발']?.['취미'] || 0 }})</span></li>
+											<li @click="goToStudyList('취미/자기계발', '취미')">취미 <span class="study-count">({{
+												getCategoryCount('학습자별', '취미/자기계발', '취미') }})</span></li>
 											<li @click="goToStudyList('취미/자기계발', '자기계발')">자기계발 <span
 													class="study-count">({{
-														regionCounts['취미/자기계발']?.['자기계발'] || 0 }})</span></li>
+														getCategoryCount('학습자별', '취미/자기계발', '자기계발') }})</span></li>
 										</ul>
 									</div>
 								</li>
@@ -1080,150 +884,164 @@
 						<li class="menu-item">
 							전공별
 							<ul class="sub-menu">
-								<li class="sub-menu-item category">
-									<div class="category-name">전체</div>
+								<li class="sub-menu-item region">
+									<div class="region-name">인문계열</div>
 									<div class="sub-sub-menu">
 										<ul class="sub-sub-menu-column">
-											<li @click="goToStudyList('전공', '전체')">전체 <span class="study-count">({{
-												regionCounts['전공']?.['전체'] || 0 }})</span></li>
-											<li @click="goToStudyList('전공', '인문계열')">인문계열 <span
-													class="study-count">({{
-														regionCounts['전공']?.['인문계열'] || 0 }})</span></li>
-											<li @click="goToStudyList('전공', '사회계열')">사회계열 <span
-													class="study-count">({{
-														regionCounts['전공']?.['사회계열'] || 0 }})</span></li>
-											<li @click="goToStudyList('전공', '자연계열')">자연계열 <span
-													class="study-count">({{
-														regionCounts['전공']?.['자연계열'] || 0 }})</span></li>
-											<li @click="goToStudyList('전공', '공학계열')">공학계열 <span
-													class="study-count">({{
-														regionCounts['전공']?.['공학계열'] || 0 }})</span></li>
-											<li @click="goToStudyList('전공', '예체능계열')">예체능계열 <span
-													class="study-count">({{
-														regionCounts['전공']?.['예체능계열'] || 0 }})</span></li>
+											<li @click="goToStudyList('인문계열', '전체')">전체 <span class="study-count">({{
+												getCategoryCount('전공별', '인문계열', '전체') }})</span></li>
+											<li @click="goToStudyList('인문계열', '철학')">철학 <span class="study-count">({{
+												getCategoryCount('전공별', '인문계열', '철학') }})</span></li>
+											<li @click="goToStudyList('인문계열', '역사학')">역사학 <span class="study-count">({{
+												getCategoryCount('전공별', '인문계열', '역사학') }})</span></li>
+											<li @click="goToStudyList('인문계열', '문학')">문학 <span class="study-count">({{
+												getCategoryCount('전공별', '인문계열', '문학') }})</span></li>
+											<li @click="goToStudyList('인문계열', '언어학')">언어학 <span class="study-count">({{
+												getCategoryCount('전공별', '인문계열', '언어학') }})</span></li>
+											<li @click="goToStudyList('인문계열', '종교학')">종교학 <span class="study-count">({{
+												getCategoryCount('전공별', '인문계열', '종교학') }})</span></li>
+											<li @click="goToStudyList('인문계열', '고고학')">고고학 <span class="study-count">({{
+												getCategoryCount('전공별', '인문계열', '고고학') }})</span></li>
+											<li @click="goToStudyList('인문계열', '예술학')">예술학 <span class="study-count">({{
+												getCategoryCount('전공별', '인문계열', '예술학') }})</span></li>
+											<li @click="goToStudyList('인문계열', '문화학')">문화학 <span class="study-count">({{
+												getCategoryCount('전공별', '인문계열', '문화학') }})</span></li>
 										</ul>
 									</div>
 								</li>
-								<li class="sub-menu-item category">
-									<div class="category-name">
-										인문계열
-									</div>
+								<li class="sub-menu-item region">
+									<div class="region-name">사회과학계열</div>
 									<div class="sub-sub-menu">
 										<ul class="sub-sub-menu-column">
-											<li @click="goToStudyList('전공', '전체')">전체 <span class="study-count">({{
-												regionCounts['전공']?.['전체'] || 0 }})</span></li>
-											<li @click="goToStudyList('전공', '국어국문학')">국어국문학 <span
+											<li @click="goToStudyList('사회과학계열', '전체')">전체 <span class="study-count">({{
+												getCategoryCount('전공별', '사회과학계열', '전체') }})</span></li>
+											<li @click="goToStudyList('사회과학계열', '경제학')">경제학 <span
 													class="study-count">({{
-														regionCounts['전공']?.['국어국문학'] || 0 }})</span></li>
-											<li @click="goToStudyList('전공', '영어영문학')">영어영문학 <span
+														getCategoryCount('전공별', '사회과학계열', '경제학') }})</span></li>
+											<li @click="goToStudyList('사회과학계열', '사회학')">사회학 <span
 													class="study-count">({{
-														regionCounts['전공']?.['영어영문학'] || 0 }})</span></li>
-											<li @click="goToStudyList('전공', '철학')">철학 <span class="study-count">({{
-												regionCounts['전공']?.['철학'] || 0 }})</span></li>
-											<li @click="goToStudyList('전공', '사학')">사학 <span class="study-count">({{
-												regionCounts['전공']?.['사학'] || 0 }})</span></li>
-											<li @click="goToStudyList('전공', '기타 인문계열')">기타 인문계열 <span
+														getCategoryCount('전공별', '사회과학계열', '사회학') }})</span></li>
+											<li @click="goToStudyList('사회과학계열', '심리학')">심리학 <span
 													class="study-count">({{
-														regionCounts['전공']?.['기타 인문계열'] || 0 }})</span></li>
+														getCategoryCount('전공별', '사회과학계열', '심리학') }})</span></li>
+											<li @click="goToStudyList('사회과학계열', '교육학')">교육학 <span
+													class="study-count">({{
+														getCategoryCount('전공별', '사회과학계열', '교육학') }})</span></li>
+											<li @click="goToStudyList('사회과학계열', '인류학')">인류학 <span
+													class="study-count">({{
+														getCategoryCount('전공별', '사회과학계열', '인류학') }})</span></li>
+											<li @click="goToStudyList('사회과학계열', '행정학')">행정학 <span
+													class="study-count">({{
+														getCategoryCount('전공별', '사회과학계열', '행정학') }})</span></li>
+											<li @click="goToStudyList('사회과학계열', '법학')">법학 <span class="study-count">({{
+												getCategoryCount('전공별', '사회과학계열', '법학') }})</span></li>
+											<li @click="goToStudyList('사회과학계열', '언론/미디어학')">언론/미디어학 <span
+													class="study-count">({{
+														getCategoryCount('전공별', '사회과학계열', '언론/미디어학') }})</span></li>
 										</ul>
 									</div>
 								</li>
-								<li class="sub-menu-item category">
-									<div class="category-name">
-										사회계열
-									</div>
+								<li class="sub-menu-item region">
+									<div class="region-name">자연과학계열</div>
 									<div class="sub-sub-menu">
 										<ul class="sub-sub-menu-column">
-											<li @click="goToStudyList('전공', '경영학')">경영학 <span
+											<li @click="goToStudyList('자연과학계열', '전체')">전체 <span class="study-count">({{
+												getCategoryCount('전공별', '자연과학계열', '전체') }})</span></li>
+											<li @click="goToStudyList('자연과학계열', '수학')">수학 <span class="study-count">({{
+												getCategoryCount('전공별', '자연과학계열', '수학') }})</span></li>
+											<li @click="goToStudyList('자연과학계열', '물리학')">물리학 <span
 													class="study-count">({{
-														regionCounts['전공']?.['경영학'] || 0 }})</span></li>
-											<li @click="goToStudyList('전공', '경제학')">경제학 <span
+														getCategoryCount('전공별', '자연과학계열', '물리학') }})</span></li>
+											<li @click="goToStudyList('자연과학계열', '화학')">화학 <span class="study-count">({{
+												getCategoryCount('전공별', '자연과학계열', '화학') }})</span></li>
+											<li @click="goToStudyList('자연과학계열', '생물학')">생물학 <span
 													class="study-count">({{
-														regionCounts['전공']?.['경제학'] || 0 }})</span></li>
-											<li @click="goToStudyList('전공', '법학')">법학 <span class="study-count">({{
-												regionCounts['전공']?.['법학'] || 0 }})</span></li>
-											<li @click="goToStudyList('전공', '행정학')">행정학 <span
+														getCategoryCount('전공별', '자연과학계열', '생물학') }})</span></li>
+											<li @click="goToStudyList('자연과학계열', '지구과학')">지구과학 <span
 													class="study-count">({{
-														regionCounts['전공']?.['행정학'] || 0 }})</span></li>
-											<li @click="goToStudyList('전공', '교육학')">교육학 <span
+														getCategoryCount('전공별', '자연과학계열', '지구과학') }})</span></li>
+											<li @click="goToStudyList('자연과학계열', '통계학')">통계학 <span
 													class="study-count">({{
-														regionCounts['전공']?.['교육학'] || 0 }})</span></li>
-											<li @click="goToStudyList('전공', '기타 사회계열')">기타 사회계열 <span
-													class="study-count">({{
-														regionCounts['전공']?.['기타 사회계열'] || 0 }})</span></li>
+														getCategoryCount('전공별', '자연과학계열', '통계학') }})</span></li>
 										</ul>
 									</div>
 								</li>
-								<li class="sub-menu-item category">
-									<div class="category-name">
-										자연계열
-									</div>
+								<li class="sub-menu-item region">
+									<div class="region-name">공학계열</div>
 									<div class="sub-sub-menu">
 										<ul class="sub-sub-menu-column">
-											<li @click="goToStudyList('전공', '수학')">수학 <span class="study-count">({{
-												regionCounts['전공']?.['수학'] || 0 }})</span></li>
-											<li @click="goToStudyList('전공', '물리학')">물리학 <span
+											<li @click="goToStudyList('공학계열', '전체')">전체 <span class="study-count">({{
+												getCategoryCount('전공별', '공학계열', '전체') }})</span></li>
+											<li @click="goToStudyList('공학계열', '기계공학')">기계공학 <span
 													class="study-count">({{
-														regionCounts['전공']?.['물리학'] || 0 }})</span></li>
-											<li @click="goToStudyList('전공', '화학')">화학 <span class="study-count">({{
-												regionCounts['전공']?.['화학'] || 0 }})</span></li>
-											<li @click="goToStudyList('전공', '생물학')">생물학 <span
+														getCategoryCount('전공별', '공학계열', '기계공학') }})</span></li>
+											<li @click="goToStudyList('공학계열', '전기전자공학')">전기전자공학 <span
 													class="study-count">({{
-														regionCounts['전공']?.['생물학'] || 0 }})</span></li>
-											<li @click="goToStudyList('전공', '지구과학')">지구과학 <span
+														getCategoryCount('전공별', '공학계열', '전기전자공학') }})</span></li>
+											<li @click="goToStudyList('공학계열', '컴퓨터공학')">컴퓨터공학 <span
 													class="study-count">({{
-														regionCounts['전공']?.['지구과학'] || 0 }})</span></li>
-											<li @click="goToStudyList('전공', '기타 자연계열')">기타 자연계열 <span
+														getCategoryCount('전공별', '공학계열', '컴퓨터공학') }})</span></li>
+											<li @click="goToStudyList('공학계열', '화학공학')">화학공학 <span
 													class="study-count">({{
-														regionCounts['전공']?.['기타 자연계열'] || 0 }})</span></li>
+														getCategoryCount('전공별', '공학계열', '화학공학') }})</span></li>
+											<li @click="goToStudyList('공학계열', '토목공학')">토목공학 <span
+													class="study-count">({{
+														getCategoryCount('전공별', '공학계열', '토목공학') }})</span></li>
+											<li @click="goToStudyList('공학계열', '건축학')">건축학 <span class="study-count">({{
+												getCategoryCount('전공별', '공학계열', '건축학') }})</span></li>
+											<li @click="goToStudyList('공학계열', '로봇공학')">로봇공학 <span
+													class="study-count">({{
+														getCategoryCount('전공별', '공학계열', '로봇공학') }})</span></li>
 										</ul>
 									</div>
 								</li>
-								<li class="sub-menu-item category">
-									<div class="category-name">
-										공학계열
-									</div>
+								<li class="sub-menu-item region">
+									<div class="region-name">의학/보건학계열</div>
 									<div class="sub-sub-menu">
 										<ul class="sub-sub-menu-column">
-											<li @click="goToStudyList('전공', '컴퓨터공학')">컴퓨터공학 <span
+											<li @click="goToStudyList('의학/보건학계열', '전체')">전체 <span
 													class="study-count">({{
-														regionCounts['전공']?.['컴퓨터공학'] || 0 }})</span></li>
-											<li @click="goToStudyList('전공', '전기전자공학')">전기전자공학 <span
+														getCategoryCount('전공별', '의학/보건학계열', '전체') }})</span></li>
+											<li @click="goToStudyList('의학/보건학계열', '의학')">의학 <span
 													class="study-count">({{
-														regionCounts['전공']?.['전기전자공학'] || 0 }})</span></li>
-											<li @click="goToStudyList('전공', '기계공학')">기계공학 <span
+														getCategoryCount('전공별', '의학/보건학계열', '의학') }})</span></li>
+											<li @click="goToStudyList('의학/보건학계열', '치의학')">치의학 <span
 													class="study-count">({{
-														regionCounts['전공']?.['기계공학'] || 0 }})</span></li>
-											<li @click="goToStudyList('전공', '화학공학')">화학공학 <span
+														getCategoryCount('전공별', '의학/보건학계열', '치의학') }})</span></li>
+											<li @click="goToStudyList('의학/보건학계열', '약학')">약학 <span
 													class="study-count">({{
-														regionCounts['전공']?.['화학공학'] || 0 }})</span></li>
-											<li @click="goToStudyList('전공', '건축공학')">건축공학 <span
+														getCategoryCount('전공별', '의학/보건학계열', '약학') }})</span></li>
+											<li @click="goToStudyList('의학/보건학계열', '간호학')">간호학 <span
 													class="study-count">({{
-														regionCounts['전공']?.['건축공학'] || 0 }})</span></li>
-											<li @click="goToStudyList('전공', '기타 공학계열')">기타 공학계열 <span
+														getCategoryCount('전공별', '의학/보건학계열', '간호학') }})</span></li>
+											<li @click="goToStudyList('의학/보건학계열', '수의학')">수의학 <span
 													class="study-count">({{
-														regionCounts['전공']?.['기타 공학계열'] || 0 }})</span></li>
+														getCategoryCount('전공별', '의학/보건학계열', '수의학') }})</span></li>
+											<li @click="goToStudyList('의학/보건학계열', '보건학')">보건학 <span
+													class="study-count">({{
+														getCategoryCount('전공별', '의학/보건학계열', '보건학') }})</span></li>
 										</ul>
 									</div>
 								</li>
-								<li class="sub-menu-item category">
-									<div class="category-name">
-										예체능계열
-									</div>
+								<li class="sub-menu-item region">
+									<div class="region-name">예체능계열</div>
 									<div class="sub-sub-menu">
 										<ul class="sub-sub-menu-column">
-											<li @click="goToStudyList('전공', '음악')">음악 <span class="study-count">({{
-												regionCounts['전공']?.['음악'] || 0 }})</span></li>
-											<li @click="goToStudyList('전공', '미술')">미술 <span class="study-count">({{
-												regionCounts['전공']?.['미술'] || 0 }})</span></li>
-											<li @click="goToStudyList('전공', '체육')">체육 <span class="study-count">({{
-												regionCounts['전공']?.['체육'] || 0 }})</span></li>
-											<li @click="goToStudyList('전공', '디자인')">디자인 <span
+											<li @click="goToStudyList('예체능계열', '전체')">전체 <span class="study-count">({{
+												getCategoryCount('전공별', '예체능계열', '전체') }})</span></li>
+											<li @click="goToStudyList('예체능계열', '음악')">음악 <span class="study-count">({{
+												getCategoryCount('전공별', '예체능계열', '음악') }})</span></li>
+											<li @click="goToStudyList('예체능계열', '미술')">미술 <span class="study-count">({{
+												getCategoryCount('전공별', '예체능계열', '미술') }})</span></li>
+											<li @click="goToStudyList('예체능계열', '연극/영화')">연극/영화 <span
 													class="study-count">({{
-														regionCounts['전공']?.['디자인'] || 0 }})</span></li>
-											<li @click="goToStudyList('전공', '기타 예체능계열')">기타 예체능계열 <span
-													class="study-count">({{
-														regionCounts['전공']?.['기타 예체능계열'] || 0 }})</span></li>
+														getCategoryCount('전공별', '예체능계열', '연극/영화') }})</span></li>
+											<li @click="goToStudyList('예체능계열', '무용')">무용 <span class="study-count">({{
+												getCategoryCount('전공별', '예체능계열', '무용') }})</span></li>
+											<li @click="goToStudyList('예체능계열', '체육학')">체육학
+												<span class="study-count">({{ getCategoryCount('전공별', '예체능계열', '체육학')
+													}})</span>
+											</li>
 										</ul>
 									</div>
 								</li>
@@ -1238,7 +1056,7 @@
 								<li class="sub-menu-item" @click="$router.push('/community/question')">
 									질문게시판
 								</li>
-							<li class="sub-menu-item" @click="$router.push('/community/suggestion')">
+								<li class="sub-menu-item" @click="$router.push('/community/suggestion')">
 									건의게시판
 								</li>
 							</ul>
@@ -1253,11 +1071,16 @@
 	</div>
 </template>
 
+<script lang="ts">
+import mitt from 'mitt';
+export const emitter = mitt();
+</script>
+
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, watch, onUnmounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import axios, { AxiosError } from 'axios';
-import { useUserStore } from '@/stores/user';
+import { useUserStore } from '../stores/user';
 import { storeToRefs } from 'pinia';
 
 declare global {
@@ -1285,7 +1108,6 @@ const { user } = storeToRefs(userStore);
 
 const isLoggedIn = ref(false);
 const userNickname = ref('');
-const regionCounts = ref<RegionCounts>({});
 const isMobile = ref(false);
 
 const updateMobileStatus = () => {
@@ -1297,34 +1119,47 @@ onMounted(() => {
 	window.addEventListener('resize', updateMobileStatus);
 	checkLoginStatus();
 	fetchStudyGroupCounts();
+	// 스터디 그룹 생성/삭제 이벤트 감지
+	emitter.on('studyGroupCreated', () => {
+		fetchStudyGroupCounts();
+	});
+	emitter.on('studyGroupDeleted', () => {
+		fetchStudyGroupCounts();
+	});
+	fetchCategories();
+	// 주기적으로 카테고리 정보 업데이트 (선택사항)
+	const updateInterval = setInterval(fetchCategories, 30000); // 30초마다 업데이트
+	onUnmounted(() => clearInterval(updateInterval));
 });
 
 const goToStudyList = (mainRegion: string, subRegion: string) => {
 	let mainCategory: string;
-	let subCategory: string;
-	let detailCategory: string | undefined;
 
-	if (mainRegion === '전공') {
-		mainCategory = '전공별';
-		subCategory = mainRegion;
-		detailCategory = subRegion;
+	// 메인 카테고리 판별 로직 개선
+	if (['서울', '부산', '대구', '인천', '광주', '대전', '울산', '경기', '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주', '세종'].includes(mainRegion)) {
+		mainCategory = '지역별';
 	} else if (['중등', '고등', '대학/청년', '취업준비/수험', '경력/이직', '취미/자기계발'].includes(mainRegion)) {
 		mainCategory = '학습자별';
-		subCategory = mainRegion;
-		detailCategory = subRegion;
+	} else if (['인문계열', '사회과학계열', '자연과학계열', '공학계열', '의학/보건학계열', '예체능계열'].includes(mainRegion)) {
+		mainCategory = '전공별';
 	} else {
-		mainCategory = '지역별';
-		subCategory = mainRegion;
-		detailCategory = subRegion === '전체' ? undefined : subRegion;
+		console.error('유효하지 않은 메인 카테고리:', mainRegion);
+		return;
 	}
 
+	// 라우팅 정보 구성
+	const routeQuery = {
+		mainCategory,
+		subCategory: mainRegion,
+		detailCategory: subRegion === '전체' ? undefined : subRegion
+	};
+
+	console.log('라우팅 정보:', routeQuery);
+
+	// 라우팅 실행
 	router.push({
 		name: 'StudyGroupList',
-		query: {
-			mainCategory,
-			subCategory,
-			detailCategory
-		}
+		query: routeQuery
 	});
 };
 
@@ -1364,7 +1199,7 @@ const logout = () => {
 
 const fetchStudyGroupCounts = async () => {
 	try {
-		const response = await axios.get('http://localhost:3000/study-groups/counts/region');
+		const response = await axios.get('http://localhost:3000/study-groups/counts/all');
 		regionCounts.value = response.data;
 	} catch (error) {
 		console.error('스터디 그룹 수 조회 실패:', error);
@@ -1374,13 +1209,38 @@ const fetchStudyGroupCounts = async () => {
 watch(() => route.path, () => {
 	checkLoginStatus();
 });
-</script>
 
-<script lang="ts">
-export default {
-	// eslint-disable-next-line vue/multi-word-component-names
-	name: 'Header'
-}
+// 컴포넌트 언마운트 시 이벤트 리스너 제거
+onUnmounted(() => {
+	emitter.off('studyGroupCreated');
+	emitter.off('studyGroupDeleted');
+});
+
+// 카테고리 카운트를 위한 상태 추가
+const categories = ref<Category[]>([]);
+
+// 카테고리 정보 가져오기
+const fetchCategories = async () => {
+	try {
+		const response = await axios.get('http://localhost:3000/study-groups/categories');
+		categories.value = response.data;
+		console.log('카테고리 데이터 로드:', response.data);
+	} catch (error) {
+		console.error('카테고리 조회 실패:', error);
+	}
+};
+
+// 특정 카테고리의 카운트 계산
+const getCategoryCount = (mainCategory: string, subCategory: string, detailCategory?: string) => {
+	const matchingCategories = categories.value.filter(category => {
+		const mainMatch = category.mainCategory === mainCategory;
+		const subMatch = category.subCategory === subCategory;
+		const detailMatch = !detailCategory || category.detailCategory === detailCategory;
+		return mainMatch && subMatch && detailMatch;
+	});
+
+	return matchingCategories.reduce((sum, category) => sum + (category.count || 0), 0);
+};
 </script>
 
 <style scoped>
@@ -1642,10 +1502,6 @@ export default {
 	gap: 8px;
 }
 
-.region-count {
-	display: none;
-}
-
 .study-count {
 	font-size: 12px;
 	color: #666;
@@ -1653,14 +1509,6 @@ export default {
 	padding: 2px 6px;
 	border-radius: 10px;
 	margin-left: 8px;
-}
-
-.category-count {
-	font-size: 12px;
-	color: #666;
-	background-color: #f3f4f6;
-	padding: 2px 6px;
-	border-radius: 10px;
 }
 
 @media (max-width: 768px) {
@@ -1697,8 +1545,10 @@ export default {
 }
 
 .nav-link {
-	font-size: 18px;  /* 폰트 크기 증가 */
-	font-weight: 600;  /* 폰트 굵기 증가 */
+	font-size: 18px;
+	/* 폰트 크기 증가 */
+	font-weight: 600;
+	/* 폰트 굵기 증가 */
 	text-decoration: none;
 	color: inherit;
 }

@@ -7,7 +7,7 @@ import {
     OneToMany,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
-import { Post } from '../../../community/entities/post.entity';
+import { Post } from '../../../posts/entities/post.entity';
 import { StudyGroup } from '../../../study/entities/study-group.entity';
 
 @Entity()

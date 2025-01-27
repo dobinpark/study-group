@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn, Index, ManyToMany, JoinTable } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn, Index, ManyToMany, JoinTable, JoinColumn } from 'typeorm';
 import { User } from '../../user/users/entities/user.entity';
 
 @Entity()
@@ -9,6 +9,10 @@ export class StudyGroup {
 
     @Column()
     name!: string;
+
+    @ManyToOne(() => User, { eager: true })
+    @JoinColumn()
+    leader!: User;
 
     @Column()
     @Index()

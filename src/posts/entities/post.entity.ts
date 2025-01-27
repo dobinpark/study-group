@@ -1,8 +1,8 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn, ManyToMany, JoinTable } from 'typeorm';
 import { User } from '../../user/users/entities/user.entity';
-import { PostCategory } from '../types/post.enum';
+import { PostCategory } from '../enum/post-category.enum';
 
-@Entity('post')
+@Entity()
 export class Post {
     @PrimaryGeneratedColumn()
     id!: number;
@@ -20,21 +20,24 @@ export class Post {
     })
     category!: PostCategory;
 
+    @ManyToOne(() => User, user => user.posts, { eager: false })
+    author!: User;
+
     @Column({ default: 0 })
     views!: number;
 
     @Column({ default: 0 })
     likes!: number;
 
-    @Column({ name: 'authorId' })
-    authorId!: number;
-
-    @ManyToOne(() => User, user => user.posts)
-    author!: User;
-
-    @CreateDateColumn({ name: 'createdAt' })
+    @CreateDateColumn()
     createdAt!: Date;
 
-    @UpdateDateColumn({ name: 'updatedAt' })
+    @UpdateDateColumn()
     updatedAt!: Date;
+
+    @ManyToMany(() => User)
+    @JoinTable({ name: 'post_likes' })
+    likedBy!: User[];
 }
+
+export { PostCategory };

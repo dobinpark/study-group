@@ -38,6 +38,20 @@
             </div>
             <button @click="createStudyGroup" class="create-button">스터디 만들기</button>
         </div>
+
+        <!-- 카테고리 목록 및 카운트 표시 -->
+        <div class="category-section" v-if="currentMainCategory && currentSubCategory">
+            <h3>세부 카테고리</h3>
+            <div class="category-list">
+                <div v-for="category in filteredCategories" 
+                     :key="`${category.mainCategory}-${category.subCategory}-${category.detailCategory}`"
+                     class="category-item"
+                     @click="selectDetailCategory(category.detailCategory)">
+                    <span class="category-name">{{ category.detailCategory }}</span>
+                    <span class="category-count">({{ category.count }})</span>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -60,15 +74,20 @@ interface StudyGroup {
     createdAt: string;
 }
 
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, watch, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
+import type { Category } from '@/types/category';
 
 const route = useRoute();
 const router = useRouter();
 const studyGroups = ref<StudyGroup[]>([]);
 const searchQuery = ref('');
 const loading = ref(true);
+const categories = ref<Category[]>([]);
+
+const currentMainCategory = computed(() => route.query.mainCategory as string);
+const currentSubCategory = computed(() => route.query.subCategory as string);
 
 const fetchStudyGroups = async () => {
     loading.value = true;
@@ -85,7 +104,21 @@ const fetchStudyGroups = async () => {
     }
 };
 
+const fetchCategories = async () => {
+    try {
+        const response = await axios.get('http://localhost:3000/study-groups/categories');
+        categories.value = response.data;
+        console.log('카테고리 데이터:', response.data);
+    } catch (error) {
+        console.error('카테고리 조회 실패:', error);
+    }
+};
+
 const goToDetail = (id: number) => {
+    if (!id || isNaN(id)) {
+        console.error('유효하지 않은 스터디 그룹 ID:', id);
+        return;
+    }
     router.push(`/study-groups/${id}`);
 };
 
@@ -113,13 +146,44 @@ const search = () => {
     fetchStudyGroups();
 };
 
+const selectDetailCategory = (detailCategory: string) => {
+    router.push({
+        query: {
+            ...route.query,
+            detailCategory
+        }
+    });
+};
+
 onMounted(() => {
     fetchStudyGroups();
+    fetchCategories();
 });
 
-// URL 쿼리 파라미터가 변경될 때마다 목록 새로 로딩
 watch(() => route.query, () => {
     fetchStudyGroups();
+}, { deep: true });
+
+watch(studyGroups, () => {
+    fetchCategories();
+});
+
+// 현재 선택된 메인/서브 카테고리에 해당하는 카테고리만 필터링
+const filteredCategories = computed(() => {
+    return categories.value.filter(category => 
+        category.mainCategory === currentMainCategory.value &&
+        category.subCategory === currentSubCategory.value
+    );
+});
+
+// 카테고리 데이터가 변경될 때마다 로그 출력
+watch(categories, (newCategories) => {
+    console.log('Categories updated:', newCategories);
+}, { deep: true });
+
+// 스터디 그룹이나 카테고리가 변경될 때마다 카테고리 정보 새로 로드
+watch([studyGroups, route.query], () => {
+    fetchCategories();
 }, { deep: true });
 </script>
 
@@ -276,5 +340,47 @@ watch(() => route.query, () => {
 .path-separator {
     margin: 0 0.5rem;
     color: #718096;
+}
+
+.category-section {
+    margin: 2rem 0;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+}
+
+.category-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.category-item {
+    padding: 0.5rem 1rem;
+    background-color: white;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid #e2e8f0;
+}
+
+.category-item:hover {
+    background-color: #4A90E2;
+    color: white;
+}
+
+.category-name {
+    font-weight: 500;
+}
+
+.category-count {
+    margin-left: 0.5rem;
+    font-weight: 600;
+    color: #4A90E2;
+}
+
+.category-item:hover .category-count {
+    color: white;
 }
 </style>

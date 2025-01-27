@@ -16,8 +16,8 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="post in posts" :key="post.id" @click="viewPost(post.id)">
-                        <td>{{ post.id }}</td>
+                    <tr v-for="(post, index) in posts" :key="post.id" @click="viewPost(post.id)">
+                        <td>{{ totalPosts - ((currentPage - 1) * itemsPerPage + index) }}</td>
                         <td class="title">{{ post.title }}</td>
                         <td>{{ post.author.nickname }}</td>
                         <td>{{ formatDate(post.createdAt) }}</td>
@@ -68,6 +68,7 @@ interface Post {
     likes: number;
     createdAt: string;
     category: PostCategory;
+    displayId: number;
 }
 
 const route = useRoute();
@@ -78,28 +79,42 @@ const currentPage = ref(1);
 const totalPages = ref(1);
 const searchQuery = ref('');
 const itemsPerPage = 10;
+const totalPosts = ref(0);
 
 const categoryTitle = computed(() => {
-    const category = route.params.category as keyof typeof PostCategoryKorean;
-    return PostCategoryKorean[category] || '게시판';
+    const category = route.params.category as string;
+    switch (category.toUpperCase()) {
+        case 'FREE':
+            return '자유게시판';
+        case 'QUESTION':
+            return '질문게시판';
+        case 'SUGGESTION':
+            return '건의게시판';
+        default:
+            return '게시판';
+    }
 });
 
-const loadPosts = async () => {
+const fetchPosts = async () => {
     try {
-        const response = await axios.get(`http://localhost:3000/posts/category/${route.params.category}`, {
+        const category = route.params.category.toUpperCase();
+        console.log('Fetching posts for category:', category);
+        
+        const response = await axios.get(`http://localhost:3000/posts/category/${category}`, {
             params: {
                 page: currentPage.value,
                 limit: itemsPerPage,
                 search: searchQuery.value
             }
         });
-        
+
         if (response.data) {
-            posts.value = response.data.items || [];
-            totalPages.value = Math.ceil((response.data.total || 0) / itemsPerPage);
+            posts.value = response.data.items;
+            totalPosts.value = response.data.total;
+            totalPages.value = Math.ceil(response.data.total / itemsPerPage);
         }
     } catch (error) {
-        console.error('게시글 로딩 실패:', error);
+        console.error('게시글 조회 실패:', error);
     }
 };
 
@@ -110,7 +125,7 @@ const formatDate = (dateString: string) => {
 
 const search = () => {
     currentPage.value = 1;
-    loadPosts();
+    fetchPosts();
 };
 
 const createPost = () => {
@@ -129,19 +144,23 @@ const viewPost = (id: number) => {
 
 const changePage = (page: number) => {
     currentPage.value = page;
-    loadPosts();
+    fetchPosts();
 };
 
 onMounted(() => {
-    loadPosts();
+    fetchPosts();
 });
 
-// URL 파라미터가 변경될 때마다 게시글 새로 로딩
+// route.params.category가 변경될 때마다 게시글 다시 가져오기
 watch(() => route.params.category, () => {
     currentPage.value = 1;
     searchQuery.value = '';
-    loadPosts();
+    fetchPosts();
 });
+
+function alert(arg0: string) {
+    throw new Error('Function not implemented.');
+}
 </script>
 
 <style scoped>

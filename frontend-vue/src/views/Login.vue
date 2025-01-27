@@ -25,7 +25,7 @@
     </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
@@ -43,11 +43,20 @@ const handleSubmit = async () => {
             password: password.value,
         });
 
-        localStorage.setItem('accessToken', response.data.accessToken);
-        localStorage.setItem('refreshToken', response.data.refreshToken);
-        router.push('/home');
+        if (response.data.accessToken) {
+            localStorage.setItem('accessToken', response.data.accessToken);
+            localStorage.setItem('userId', response.data.userId.toString());
+            localStorage.setItem('nickname', response.data.nickname);
+            
+            console.log('Login successful:', {
+                userId: response.data.userId,
+                token: response.data.accessToken
+            });
+            
+            router.push('/');
+        }
     } catch (error) {
-        console.error('로그인 실패:', error);
+        console.error('Login failed:', error);
         alert('로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.');
     }
 };

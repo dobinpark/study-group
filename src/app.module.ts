@@ -7,8 +7,12 @@ import { UsersModule } from './user/users/users.module';
 import { StudyModule } from './study/study.module';
 import { config } from 'dotenv';
 import { CacheModule } from '@nestjs/cache-manager';
-import { redisStore } from 'cache-manager-redis-store';
+import type { RedisClientOptions } from 'redis';
+import * as redisStore from 'cache-manager-redis-store';
 import { PostsModule } from './posts/posts.module';
+import { validate } from './config/env.validation';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
 
 config(); // .env 파일의 환경 변수를 로드합니다.
 
@@ -21,7 +25,8 @@ if (!process.env.DB_PORT) {
 @Module({
     imports: [
         ConfigModule.forRoot({
-            isGlobal: true,
+            validate,
+            isGlobal: true
         }),
         TypeOrmModule.forRootAsync({
             imports: [ConfigModule],
@@ -29,11 +34,11 @@ if (!process.env.DB_PORT) {
                 type: 'mysql',
                 host: configService.get('DB_HOST'),
                 port: configService.get('DB_PORT'),
-                username: configService.get('DB_USER'),
+                username: configService.get('DB_USERNAME'),
                 password: configService.get('DB_PASSWORD'),
-                database: configService.get('DB_NAME'),
+                database: configService.get('DB_DATABASE'),
                 entities: [__dirname + '/**/*.entity{.ts,.js}'],
-                synchronize: true, // 개발 환경에서만 true로 설정
+                synchronize: true,
             }),
             inject: [ConfigService],
         }),
@@ -41,14 +46,18 @@ if (!process.env.DB_PORT) {
         AuthModule,
         UsersModule,
         StudyModule,
-        CacheModule.register({
+        CacheModule.register<RedisClientOptions>({
             isGlobal: true,
-            store: redisStore,
-            host: String(process.env.REDIS_HOST || 'localhost'),
-            port: parseInt(String(process.env.REDIS_PORT || '6379')),
-            ttl: 300, // 기본 캐시 유효시간 5분
+            store: redisStore as any,
+            socket: {
+                host: process.env.REDIS_HOST || 'localhost',
+                port: parseInt(process.env.REDIS_PORT || '6379'),
+            },
+            ttl: 300,
         }),
         PostsModule,
     ],
+    controllers: [AppController],
+    providers: [AppService],
 })
 export class AppModule { }

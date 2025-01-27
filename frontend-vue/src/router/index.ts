@@ -1,13 +1,10 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
-import PostList from '../views/community/PostList.vue';
-import CreatePost from '../views/community/CreatePost.vue';
-import StudyGroupList from '../views/study/StudyGroupList.vue';
+import StudyGroupList from '@/views/study/StudyGroupList.vue';
 import Home from '../views/Home.vue';
 import Login from '../views/Login.vue';
 import Signup from '../views/Signup.vue';
 import Profile from '../views/Profile.vue';
 import CreateStudyGroup from '../views/study/CreateStudyGroup.vue';
-import StudyGroupDetail from '../views/study/StudyGroupDetail.vue';
 
 const routes: Array<RouteRecordRaw> = [
     {
@@ -44,20 +41,40 @@ const routes: Array<RouteRecordRaw> = [
     {
         path: '/community/:category',
         name: 'PostList',
-        component: PostList,
-        props: true
+        component: () => import('../views/community/PostList.vue'),
+        props: (route) => ({
+            category: typeof route.params.category === 'string' 
+                ? route.params.category.toUpperCase() 
+                : route.params.category
+        })
     },
     {
         path: '/community/:category/create',
         name: 'CreatePost',
-        component: CreatePost,
+        component: () => import('../views/community/CreatePost.vue'),
         props: true,
+        meta: { requiresAuth: true }
+    },
+    {
+        path: '/community/:category/:id',
+        name: 'PostDetail',
+        component: () => import('../views/community/PostDetail.vue')
+    },
+    {
+        path: '/community/:category/:id/edit',
+        name: 'EditPost',
+        component: () => import('../views/community/EditPost.vue'),
         meta: { requiresAuth: true }
     },
     {
         path: '/study-groups',
         name: 'StudyGroupList',
-        component: StudyGroupList
+        component: StudyGroupList,
+        props: (route) => ({
+            mainCategory: route.query.mainCategory,
+            subCategory: route.query.subCategory,
+            detailCategory: route.query.detailCategory
+        })
     },
     {
         path: '/study-groups/region/:mainRegion/:subRegion?',

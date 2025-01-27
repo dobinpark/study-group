@@ -80,7 +80,7 @@ const submitPost = async () => {
         await axios.post('http://localhost:3000/posts', {
             title: title.value,
             content: content.value,
-            category: route.params.category
+            category: route.params.category.toUpperCase()
         }, {
             headers: {
                 Authorization: `Bearer ${token}`
@@ -97,6 +97,11 @@ const submitPost = async () => {
 const cancel = () => {
     router.push(`/community/${route.params.category}`);
 };
+
+
+function alert(arg0: string) {
+    throw new Error('Function not implemented.');
+}
 </script>
 
 <style scoped>

@@ -7,23 +7,66 @@ import { UpdateStudyGroupDto } from '../dto/update-study-group.dto';
 import { User } from '../../user/users/entities/user.entity';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
+import { Category } from '../entities/category.entity';
 
 @Injectable()
 export class StudyGroupService {
     constructor(
         @InjectRepository(StudyGroup)
         private studyGroupRepository: Repository<StudyGroup>,
+        @InjectRepository(Category)
+        private categoryRepository: Repository<Category>,
         @Inject(CACHE_MANAGER) private cacheManager: Cache
     ) {}
 
     async createStudyGroup(createStudyGroupDto: CreateStudyGroupDto, user: User): Promise<StudyGroup> {
-        const studyGroup = this.studyGroupRepository.create({
-            ...createStudyGroupDto,
-            creator: user,
-            members: [user]
-        });
+        try {
+            // 스터디 그룹 생성
+            const studyGroup = this.studyGroupRepository.create({
+                ...createStudyGroupDto,
+                leader: user,
+                members: [user] // 생성자를 멤버로 자동 추가
+            });
 
-        return await this.studyGroupRepository.save(studyGroup);
+            // 먼저 스터디 그룹 저장
+            const savedStudyGroup = await this.studyGroupRepository.save(studyGroup);
+
+            // 카테고리 찾기 또는 생성 및 카운트 업데이트
+            let category = await this.categoryRepository.findOne({
+                where: {
+                    mainCategory: createStudyGroupDto.mainCategory,
+                    subCategory: createStudyGroupDto.subCategory,
+                    detailCategory: createStudyGroupDto.detailCategory
+                }
+            });
+
+            if (!category) {
+                // 카테고리가 없으면 새로 생성
+                category = this.categoryRepository.create({
+                    mainCategory: createStudyGroupDto.mainCategory,
+                    subCategory: createStudyGroupDto.subCategory,
+                    detailCategory: createStudyGroupDto.detailCategory,
+                    count: 1 // 새로 생성하는 경우 초기값 1
+                });
+            } else {
+                // 기존 카테고리인 경우 카운트 증가
+                category.count += 1;
+            }
+
+            await this.categoryRepository.save(category);
+            
+            console.log('Updated category:', {
+                mainCategory: category.mainCategory,
+                subCategory: category.subCategory,
+                detailCategory: category.detailCategory,
+                count: category.count
+            });
+
+            return savedStudyGroup;
+        } catch (error) {
+            console.error('Error in createStudyGroup:', error);
+            throw error;
+        }
     }
 
     async updateStudyGroup(
@@ -33,14 +76,14 @@ export class StudyGroupService {
     ): Promise<StudyGroup> {
         const studyGroup = await this.studyGroupRepository.findOne({
             where: { id },
-            relations: ['creator']
+            relations: ['leader']
         });
 
         if (!studyGroup) {
             throw new NotFoundException('스터디 그룹을 찾을 수 없습니다.');
         }
 
-        if (studyGroup.creator.id !== user.id) {
+        if (studyGroup.leader.id !== user.id) {
             throw new UnauthorizedException('스터디 그룹을 수정할 권한이 없습니다.');
         }
 
@@ -63,15 +106,29 @@ export class StudyGroupService {
     async deleteStudyGroup(id: number, user: User): Promise<void> {
         const studyGroup = await this.studyGroupRepository.findOne({
             where: { id },
-            relations: ['creator']
+            relations: ['leader']
         });
 
         if (!studyGroup) {
             throw new NotFoundException('스터디 그룹을 찾을 수 없습니다.');
         }
 
-        if (studyGroup.creator.id !== user.id) {
+        if (studyGroup.leader.id !== user.id) {
             throw new UnauthorizedException('스터디 그룹을 삭제할 권한이 없습니다.');
+        }
+
+        // 카테고리 찾아서 count 감소
+        const category = await this.categoryRepository.findOne({
+            where: {
+                mainCategory: studyGroup.mainCategory,
+                subCategory: studyGroup.subCategory,
+                detailCategory: studyGroup.detailCategory
+            }
+        });
+
+        if (category) {
+            category.count = Math.max(0, (category.count || 1) - 1);
+            await this.categoryRepository.save(category);
         }
 
         await this.studyGroupRepository.remove(studyGroup);
@@ -82,41 +139,28 @@ export class StudyGroupService {
         subCategory?: string,
         detailCategory?: string
     ): Promise<StudyGroup[]> {
-        const cacheKey = `study_groups:${mainCategory}:${subCategory}:${detailCategory}`;
-        
-        // 캐시 확인
-        const cachedData = await this.cacheManager.get<StudyGroup[]>(cacheKey);
-        if (cachedData) {
-            return cachedData;
-        }
-
-        // DB 조회
         const queryBuilder = this.studyGroupRepository.createQueryBuilder('studyGroup')
-            .leftJoinAndSelect('studyGroup.creator', 'creator')
+            .leftJoinAndSelect('studyGroup.leader', 'leader')
             .leftJoinAndSelect('studyGroup.members', 'members')
-            .orderBy('studyGroup.createdAt', 'DESC')
-            .where('1 = 1');  // 기본 조건
+            .orderBy('studyGroup.createdAt', 'DESC');
+
+        console.log('Received parameters:', { mainCategory, subCategory, detailCategory });
 
         if (mainCategory) {
             queryBuilder.andWhere('studyGroup.mainCategory = :mainCategory', { mainCategory });
         }
-        
-        if (subCategory && subCategory !== '전체') {
+
+        if (subCategory) {
             queryBuilder.andWhere('studyGroup.subCategory = :subCategory', { subCategory });
-        } else if (subCategory === '전체' && mainCategory) {
-            // mainCategory가 있고 subCategory가 '전체'인 경우, 해당 mainCategory의 모든 스터디 그룹을 조회
-            queryBuilder.andWhere('studyGroup.mainCategory = :mainCategory', { mainCategory });
         }
-        
-        if (detailCategory && detailCategory !== '전체') {
+
+        if (detailCategory) {
             queryBuilder.andWhere('studyGroup.detailCategory = :detailCategory', { detailCategory });
         }
 
         const results = await queryBuilder.getMany();
-        
-        // 캐시 저장 (5분)
-        await this.cacheManager.set(cacheKey, results, 300000);
-        
+        console.log('Query results:', results);
+
         return results;
     }
 
@@ -149,7 +193,7 @@ export class StudyGroupService {
     async getStudyGroupCountsByRegion(): Promise<Record<string, Record<string, number>>> {
         const studyGroups = await this.studyGroupRepository
             .createQueryBuilder('studyGroup')
-            .select(['studyGroup.subCategory', 'studyGroup.detailCategory'])
+            .select(['studyGroup.mainCategory', 'studyGroup.subCategory', 'studyGroup.detailCategory'])
             .where('studyGroup.mainCategory = :category', { category: '지역별' })
             .getMany();
 
@@ -165,12 +209,6 @@ export class StudyGroupService {
             }
             
             counts[group.subCategory][group.detailCategory]++;
-            
-            // '전체' 카운트 업데이트
-            if (!counts[group.subCategory]['전체']) {
-                counts[group.subCategory]['전체'] = 0;
-            }
-            counts[group.subCategory]['전체']++;
         });
 
         return counts;
@@ -182,7 +220,7 @@ export class StudyGroupService {
         mainCategory?: string;
     }) {
         const query = this.studyGroupRepository.createQueryBuilder('studyGroup')
-            .leftJoinAndSelect('studyGroup.creator', 'creator');
+            .leftJoinAndSelect('studyGroup.leader', 'leader');
     
         if (params.mainCategory === '지역별') {
             query.where('studyGroup.mainCategory = :mainCategory', { mainCategory: params.mainCategory });
@@ -224,7 +262,7 @@ export class StudyGroupService {
     async getStudyGroupDetails(id: number): Promise<StudyGroup> {
         const studyGroup = await this.studyGroupRepository.findOne({
             where: { id },
-            relations: ['creator', 'members']
+            relations: ['leader', 'members']
         });
 
         if (!studyGroup) {
@@ -235,9 +273,16 @@ export class StudyGroupService {
     }
 
     async findOne(id: number): Promise<StudyGroup> {
+        // id를 숫자로 확실하게 변환
+        const numericId = Number(id);
+        
+        if (isNaN(numericId)) {
+            throw new BadRequestException('유효하지 않은 ID입니다.');
+        }
+
         const studyGroup = await this.studyGroupRepository.findOne({
-            where: { id },
-            relations: ['creator', 'members']
+            where: { id: numericId },
+            relations: ['leader', 'members']
         });
 
         if (!studyGroup) {
@@ -255,18 +300,18 @@ export class StudyGroupService {
 
             // 내가 생성한 스터디
             const created = await this.studyGroupRepository.find({
-                where: { creator: { id: user.id } },
-                relations: ['creator', 'members'],
+                where: { leader: { id: user.id } },
+                relations: ['leader', 'members'],
                 order: { createdAt: 'DESC' }
             });
 
             // 내가 참여한 스터디 (생성한 스터디 제외)
             const joined = await this.studyGroupRepository
                 .createQueryBuilder('studyGroup')
-                .leftJoinAndSelect('studyGroup.creator', 'creator')
+                .leftJoinAndSelect('studyGroup.leader', 'leader')
                 .leftJoinAndSelect('studyGroup.members', 'members')
                 .innerJoin('studyGroup.members', 'member', 'member.id = :userId', { userId: user.id })
-                .where('creator.id != :userId', { userId: user.id })
+                .where('leader.id != :userId', { userId: user.id })
                 .orderBy('studyGroup.createdAt', 'DESC')
                 .getMany();
 
@@ -277,6 +322,24 @@ export class StudyGroupService {
             return { created, joined };
         } catch (error) {
             console.error('내 스터디 조회 중 오류 발생:', error);
+            throw error;
+        }
+    }
+
+    async getCategories() {
+        try {
+            const categories = await this.categoryRepository.find({
+                order: {
+                    mainCategory: 'ASC',
+                    subCategory: 'ASC',
+                    detailCategory: 'ASC'
+                }
+            });
+            
+            console.log('All categories:', categories);
+            return categories;
+        } catch (error) {
+            console.error('Error fetching categories:', error);
             throw error;
         }
     }

@@ -5,9 +5,9 @@ export enum PostCategory {
 }
 
 export const PostCategoryKorean = {
-    [PostCategory.FREE]: '자유게시판',
-    [PostCategory.QUESTION]: '질문게시판',
-    [PostCategory.SUGGESTION]: '건의게시판'
+    FREE: '자유게시판',
+    QUESTION: '질문게시판',
+    SUGGESTION: '건의게시판'
 };
 
 export interface Post {

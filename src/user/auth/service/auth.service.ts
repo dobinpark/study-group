@@ -30,7 +30,7 @@ export class AuthService {
         return user;
     }
 
-    async logIn(loginDto: LoginDto): Promise<{ accessToken: string; refreshToken: string }> {
+    async logIn(loginDto: LoginDto): Promise<{ accessToken: string; refreshToken: string; userId: number; nickname: string }> {
         const { username, password } = loginDto;
         const user = await this.userRepository.findOne({ where: { username } });
 
@@ -47,7 +47,12 @@ export class AuthService {
         const accessToken = this.jwtService.sign(payload);
         const refreshToken = await this.createAndSaveRefreshToken(user);
 
-        return { accessToken, refreshToken };
+        return { 
+            accessToken, 
+            refreshToken,
+            userId: user.id,
+            nickname: user.nickname
+        };
     }
 
     private async createAndSaveRefreshToken(user: User): Promise<string> {

@@ -92,11 +92,50 @@ export class StudyGroupController {
         return { count };
     }
 
+    @Get('categories')
+    @ApiOperation({ summary: '카테고리별 스터디 그룹 수 조회' })
+    async getCategories() {
+        return await this.studyGroupService.getCategories();
+    }
+
+    @Get('counts/all')
+    @ApiOperation({ summary: '모든 카테고리의 스터디 그룹 수 조회' })
+    async getAllCounts() {
+        const categories = await this.studyGroupService.getCategories();
+        const counts: Record<string, Record<string, Record<string, number>>> = {
+            '학습별': {},
+            '지역별': {}
+        };
+
+        // 학습별 카테고리 카운트
+        for (const category of categories) {
+            if (!counts[category.mainCategory]) {
+                counts[category.mainCategory] = {};
+            }
+            if (!counts[category.mainCategory][category.subCategory]) {
+                counts[category.mainCategory][category.subCategory] = {};
+            }
+            counts[category.mainCategory][category.subCategory][category.detailCategory] = category.count;
+        }
+
+        // 지역별 카운트도 포함
+        const regionCounts = await this.studyGroupService.getStudyGroupCountsByRegion();
+        counts['지역별'] = regionCounts;
+
+        return counts;
+    }
+
     @Get('counts/region')
     @ApiOperation({ summary: '지역별 스터디 그룹 수 조회' })
-    @ApiResponse({ status: 200, description: '지역별 스터디 그룹 수를 반환합니다.' })
     async getStudyGroupCountsByRegion() {
         return this.studyGroupService.getStudyGroupCountsByRegion();
+    }
+
+    @Get(':id')
+    @ApiOperation({ summary: '스터디 그룹 상세 조회' })
+    @ApiResponse({ status: 200, description: '스터디 그룹 상세 정보를 반환합니다.' })
+    async findOne(@Param('id') id: number) {
+        return this.studyGroupService.findOne(id);
     }
 
     @Post(':id/join')
@@ -107,12 +146,5 @@ export class StudyGroupController {
         @GetUser() user: User
     ) {
         return this.studyGroupService.joinStudyGroup(id, user);
-    }
-
-    @Get(':id')
-    @ApiOperation({ summary: '스터디 그룹 상세 조회' })
-    @ApiResponse({ status: 200, description: '스터디 그룹 상세 정보를 반환합니다.' })
-    async findOne(@Param('id') id: number) {
-        return this.studyGroupService.findOne(id);
     }
 }
