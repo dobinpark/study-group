@@ -138,19 +138,26 @@ const editPost = () => {
 };
 
 const deletePost = async () => {
-    if (!confirm('정말 삭제하시겠습니까?')) return;
+    if (!confirm('정말로 삭제하시겠습니까?')) return;
 
     try {
         const token = localStorage.getItem('accessToken');
+        if (!token) {
+            window.alert('로그인이 필요한 서비스입니다.');
+            router.push('/login');
+            return;
+        }
+
         await axios.delete(`http://localhost:3000/posts/${route.params.id}`, {
-            headers: { Authorization: `Bearer ${token}` }
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
         });
-        router.push({
-            path: '/posts',
-            query: { category: route.query.category }
-        });
-    } catch (error) {
-        console.error('게시글 삭제 실패:', error);
+
+        window.alert('게시글이 삭제되었습니다.');
+        router.push(`/posts?category=${route.query.category}`);
+    } catch (error: any) {
+        window.alert(error.response?.data?.message || '게시글 삭제에 실패했습니다.');
     }
 };
 

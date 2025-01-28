@@ -72,25 +72,25 @@ const submitPost = async () => {
     try {
         const token = localStorage.getItem('accessToken');
         if (!token) {
-            alert('로그인이 필요한 서비스입니다.');
+            window.alert('로그인이 필요한 서비스입니다.');
             router.push('/login');
             return;
         }
 
-        await axios.post('http://localhost:3000/posts', {
+        const response = await axios.post('http://localhost:3000/posts', {
             title: title.value,
             content: content.value,
-            category: route.params.category.toUpperCase()
+            category: getCategory(String(route.params.category))
         }, {
             headers: {
                 Authorization: `Bearer ${token}`
             }
         });
 
-        router.push(`/community/${route.params.category}`);
-    } catch (error) {
-        console.error('게시글 작성 실패:', error);
-        alert('게시글 작성에 실패했습니다.');
+        window.alert('게시글이 성공적으로 작성되었습니다.');
+        router.push(`/community/${route.params.category}/${response.data.id}`);
+    } catch (error: any) {
+        window.alert(error.response?.data?.message || '게시글 작성에 실패했습니다.');
     }
 };
 
@@ -98,10 +98,14 @@ const cancel = () => {
     router.push(`/community/${route.params.category}`);
 };
 
-
-function alert(arg0: string) {
-    throw new Error('Function not implemented.');
-}
+const getCategory = (category: string): string => {
+    const categoryMap: { [key: string]: string } = {
+        'free': 'FREE',
+        'question': 'QUESTION',
+        'suggestion': 'SUGGESTION'
+    };
+    return categoryMap[category.toLowerCase()] || 'FREE';
+};
 </script>
 
 <style scoped>
