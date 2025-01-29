@@ -38,20 +38,6 @@
             </div>
             <button @click="createStudyGroup" class="create-button">스터디 만들기</button>
         </div>
-
-        <!-- 카테고리 목록 및 카운트 표시 -->
-        <div class="category-section" v-if="currentMainCategory && currentSubCategory">
-            <h3>세부 카테고리</h3>
-            <div class="category-list">
-                <div v-for="category in filteredCategories" 
-                     :key="`${category.mainCategory}-${category.subCategory}-${category.detailCategory}`"
-                     class="category-item"
-                     @click="selectDetailCategory(category.detailCategory)">
-                    <span class="category-name">{{ category.detailCategory }}</span>
-                    <span class="category-count">({{ category.count }})</span>
-                </div>
-            </div>
-        </div>
     </div>
 </template>
 

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException, InternalServerErrorException } from '@nestjs/common';
 import { PostsRepository } from '../repository/posts.repository';
 import { Post } from '../entities/post.entity';
 import { CreatePostDto } from '../dto/create-post.dto';
@@ -95,5 +95,26 @@ export class PostsService {
         Object.assign(post, updatePostDto);
 
         return await this.postRepository.save(post);
+    }
+
+    async deletePost(id: number, user: User): Promise<void> {
+        const post = await this.postRepository.findOne({
+            where: { id },
+            relations: ['author']
+        });
+
+        if (!post) {
+            throw new NotFoundException('게시글을 찾을 수 없습니다.');
+        }
+
+        if (post.author.id !== user.id) {
+            throw new UnauthorizedException('게시글을 삭제할 권한이 없습니다.');
+        }
+
+        try {
+            await this.postRepository.remove(post);
+        } catch (error) {
+            throw new InternalServerErrorException('게시글 삭제 중 오류가 발생했습니다.');
+        }
     }
 }

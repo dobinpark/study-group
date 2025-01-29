@@ -65,6 +65,7 @@ interface Post {
     createdAt: string;
     views: number;
     likes: number;
+    category: string;
 }
 
 const route = useRoute();
@@ -155,9 +156,29 @@ const deletePost = async () => {
         });
 
         window.alert('게시글이 삭제되었습니다.');
-        router.push(`/posts?category=${route.query.category}`);
+        let redirectPath;
+        switch (post.value?.category) {
+            case 'FREE':
+                redirectPath = '/community/free';
+                break;
+            case 'QUESTION':
+                redirectPath = '/community/question';
+                break;
+            case 'SUGGESTION':
+                redirectPath = '/community/suggestion';
+                break;
+            default:
+                redirectPath = '/community/free';
+        }
+        router.push({
+            path: redirectPath
+        });
     } catch (error: any) {
-        window.alert(error.response?.data?.message || '게시글 삭제에 실패했습니다.');
+        const errorMessage = error.response?.data?.message || '게시글 삭제에 실패했습니다.';
+        window.alert(errorMessage);
+        if (error.response?.status === 401) {
+            router.push('/login');
+        }
     }
 };
 

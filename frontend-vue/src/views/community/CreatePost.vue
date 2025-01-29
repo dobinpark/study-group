@@ -77,10 +77,14 @@ const submitPost = async () => {
             return;
         }
 
+        const category = getCategory(String(route.params.category));
+        console.log('Route params:', route.params);
+        console.log('Submitting post with category:', category);
+
         const response = await axios.post('http://localhost:3000/posts', {
             title: title.value,
             content: content.value,
-            category: getCategory(String(route.params.category))
+            category: category
         }, {
             headers: {
                 Authorization: `Bearer ${token}`
@@ -88,23 +92,34 @@ const submitPost = async () => {
         });
 
         window.alert('게시글이 성공적으로 작성되었습니다.');
-        router.push(`/community/${route.params.category}/${response.data.id}`);
+        router.push({
+            path: `/posts/${response.data.id}`,
+            query: { 
+                category: category
+            }
+        });
     } catch (error: any) {
         window.alert(error.response?.data?.message || '게시글 작성에 실패했습니다.');
     }
 };
 
 const cancel = () => {
-    router.push(`/community/${route.params.category}`);
+    router.push({
+        path: '/posts',
+        query: { category: getCategory(String(route.params.category)) }
+    });
 };
 
 const getCategory = (category: string): string => {
+    console.log('Incoming category parameter:', category);
     const categoryMap: { [key: string]: string } = {
         'free': 'FREE',
         'question': 'QUESTION',
         'suggestion': 'SUGGESTION'
     };
-    return categoryMap[category.toLowerCase()] || 'FREE';
+    const mappedCategory = categoryMap[category.toLowerCase()];
+    console.log('Category mapping:', { original: category, mapped: mappedCategory });
+    return mappedCategory || 'FREE';
 };
 </script>
 

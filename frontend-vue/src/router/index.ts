@@ -40,7 +40,6 @@ const routes: Array<RouteRecordRaw> = [
     },
     {
         path: '/posts',
-        name: 'PostList',
         component: () => import('@/views/community/PostList.vue'),
         props: (route) => ({
             category: route.query.category?.toString()?.toUpperCase() || 'FREE'
@@ -48,7 +47,6 @@ const routes: Array<RouteRecordRaw> = [
     },
     {
         path: '/posts/create',
-        name: 'CreatePost',
         component: () => import('@/views/community/CreatePost.vue'),
         meta: { requiresAuth: true }
     },

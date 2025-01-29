@@ -154,7 +154,7 @@ export class StudyGroupService {
             queryBuilder.andWhere('studyGroup.subCategory = :subCategory', { subCategory });
         }
 
-        if (detailCategory) {
+        if (detailCategory && detailCategory !== '전체') {
             queryBuilder.andWhere('studyGroup.detailCategory = :detailCategory', { detailCategory });
         }
 
@@ -180,10 +180,12 @@ export class StudyGroupService {
         if (mainCategory) {
             queryBuilder.andWhere('studyGroup.mainCategory = :mainCategory', { mainCategory });
         }
+        
         if (subCategory) {
             queryBuilder.andWhere('studyGroup.subCategory = :subCategory', { subCategory });
         }
-        if (detailCategory) {
+
+        if (detailCategory && detailCategory !== '전체') {
             queryBuilder.andWhere('studyGroup.detailCategory = :detailCategory', { detailCategory });
         }
 
@@ -201,7 +203,9 @@ export class StudyGroupService {
 
         studyGroups.forEach(group => {
             if (!counts[group.subCategory]) {
-                counts[group.subCategory] = {};
+                counts[group.subCategory] = {
+                    '전체': 0  // 각 중분류의 '전체' 카운트 초기화
+                };
             }
             
             if (!counts[group.subCategory][group.detailCategory]) {
@@ -209,6 +213,7 @@ export class StudyGroupService {
             }
             
             counts[group.subCategory][group.detailCategory]++;
+            counts[group.subCategory]['전체']++;  // 해당 중분류의 '전체' 카운트 증가
         });
 
         return counts;
