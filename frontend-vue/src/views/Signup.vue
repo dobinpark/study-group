@@ -50,7 +50,7 @@
 <script setup>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import axios from 'axios';
+import axios from '@/utils/axios';
 
 const router = useRouter();
 
@@ -79,10 +79,9 @@ const signup = async () => {
 
 		const formattedPhoneNumber = phoneNumber.value.replace(/-/g, '');
 
-		const response = await axios.post('http://localhost:3000/auth/signup', {
+		const response = await axios.post('/auth/signup', {
 			username: username.value,
 			password: password.value,
-			confirmPassword: confirmPassword.value,
 			nickname: nickname.value,
 			email: email.value,
 			phoneNumber: formattedPhoneNumber
