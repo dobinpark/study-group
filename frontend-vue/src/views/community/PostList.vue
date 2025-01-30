@@ -55,8 +55,8 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import axios from 'axios';
-import { PostCategory, PostCategoryKorean } from '../../types/post';
+import axios from '../../utils/axios';
+import { PostCategory } from '../../types/post';
 
 interface Author {
     id: number;

@@ -55,7 +55,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
-import axios from 'axios';
+import axios from '../../utils/axios';
 import { emitter } from '../../components/Header.vue';
 
 const router = useRouter();

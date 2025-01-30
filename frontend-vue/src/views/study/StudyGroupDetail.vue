@@ -108,7 +108,7 @@ interface StudyGroup {
 
 import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import axios from 'axios';
+import axios from '../../utils/axios';
 import { useUserStore } from '../../stores/user';
 
 const route = useRoute();

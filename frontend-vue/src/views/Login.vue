@@ -17,7 +17,7 @@
                     계정이 없으신가요? <router-link to="/signup">회원가입</router-link>
                 </div>
                 <div class="find-password-link">
-                    비밀번호를 까먹으셨나요? <a href="#" @click.prevent="openFindPasswordModal">비밀번호 찾기</a>
+비밀번호를 까먹으셨나요? <a href="#" @click.prevent="openFindPasswordModal">비밀번호 찾기</a>
                 </div>
             </form>
         </div>
@@ -28,8 +28,8 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import axios from 'axios';
-import FindPasswordModal from '@/components/FindPasswordModal.vue';
+import axios from '../utils/axios';
+import FindPasswordModal from '../components/FindPasswordModal.vue';
 
 const router = useRouter();
 const username = ref('');

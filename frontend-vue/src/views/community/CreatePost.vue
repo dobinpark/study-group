@@ -28,8 +28,8 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import axios from 'axios';
-import { PostCategory, PostCategoryKorean } from '../../types/post';
+import axios from '../../utils/axios';
+import { PostCategoryKorean } from '../../types/post';
 
 const route = useRoute();
 const router = useRouter();

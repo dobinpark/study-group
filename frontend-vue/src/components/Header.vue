@@ -1093,7 +1093,7 @@ export const emitter = mitt();
 
 import { ref, onMounted, watch, onUnmounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import axios, { AxiosError } from 'axios';
+import axios from '../utils/axios';
 import { useUserStore } from '../stores/user';
 import { storeToRefs } from 'pinia';
 

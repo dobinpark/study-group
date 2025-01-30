@@ -99,7 +99,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import axios from 'axios';
+import axios from '../utils/axios';
 
 const router = useRouter();
 const profile = ref({

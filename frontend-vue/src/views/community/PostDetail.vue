@@ -52,7 +52,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import axios from 'axios';
+import axios from '../../utils/axios';
 
 interface Post {
     id: number;
