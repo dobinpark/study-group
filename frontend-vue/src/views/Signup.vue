@@ -97,6 +97,7 @@ const signup = async () => {
 		const response = await axios.post('/auth/signup', {
 			username: username.value,
 			password: password.value,
+			confirmPassword: confirmPassword.value,
 			nickname: nickname.value,
 			email: email.value,
 			phoneNumber: formattedPhoneNumber
