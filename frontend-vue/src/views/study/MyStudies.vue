@@ -126,14 +126,33 @@ const loading = ref(true);
 const fetchMyStudies = async () => {
     try {
         const token = localStorage.getItem('accessToken');
+        if (!token) {
+            alert('로그인이 필요한 서비스입니다.');
+            router.push('/login');
+            return;
+        }
+
+        loading.value = true;
         const response = await axios.get('http://localhost:3000/study-groups/my-studies', {
-            headers: { Authorization: `Bearer ${token}` }
+            headers: { 
+                Authorization: `Bearer ${token}`
+            }
         });
         
-        createdStudies.value = response.data.created;
-        joinedStudies.value = response.data.joined;
+        console.log('내 스터디 조회 응답:', response.data);
+
+        if (response.data) {
+            createdStudies.value = response.data.created || [];
+            joinedStudies.value = response.data.joined || [];
+        }
     } catch (error) {
         console.error('내 스터디 조회 실패:', error);
+        if (axios.isAxiosError(error) && error.response?.status === 401) {
+            alert('로그인이 필요한 서비스입니다.');
+            router.push('/login');
+        } else {
+            alert('스터디 그룹 조회에 실패했습니다.');
+        }
     } finally {
         loading.value = false;
     }
@@ -150,6 +169,7 @@ const truncateText = (text: string, maxLength: number) => {
 };
 
 const goToStudyDetail = (studyId: number) => {
+    if (!studyId) return;
     router.push(`/study-groups/${studyId}`);
 };
 

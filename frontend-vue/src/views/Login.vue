@@ -38,26 +38,44 @@ const isModalOpen = ref(false);
 
 const handleSubmit = async () => {
     try {
-        const response = await axios.post('http://localhost:3000/auth/login', {
+        if (!username.value || !password.value) {
+            alert('아이디와 비밀번호를 모두 입력해주세요.');
+            return;
+        }
+
+        const loginResponse = await axios.post('http://localhost:3000/auth/login', {
             username: username.value,
             password: password.value,
         });
 
-        if (response.data.accessToken) {
-            localStorage.setItem('accessToken', response.data.accessToken);
-            localStorage.setItem('userId', response.data.userId.toString());
-            localStorage.setItem('nickname', response.data.nickname);
-            
-            console.log('Login successful:', {
-                userId: response.data.userId,
-                token: response.data.accessToken
+        if (!loginResponse.data || !loginResponse.data.accessToken) {
+            throw new Error('로그인 응답 데이터가 올바르지 않습니다.');
+        }
+
+        // 로그인 정보 저장
+        const { accessToken, userId, nickname } = loginResponse.data;
+        localStorage.setItem('accessToken', accessToken);
+        localStorage.setItem('userId', userId.toString());
+        localStorage.setItem('nickname', nickname);
+
+        try {
+            // 프로필 정보 확인
+            await axios.get('http://localhost:3000/users/profile', {
+                headers: { 
+                    Authorization: `Bearer ${accessToken}`
+                }
             });
             
+            // 로그인 성공 후 홈으로 이동
+            router.push('/');
+        } catch (profileError) {
+            console.error('프로필 조회 실패:', profileError);
+            // 프로필 조회 실패해도 로그인은 유지
             router.push('/');
         }
-    } catch (error) {
+    } catch (error: any) {
         console.error('Login failed:', error);
-        alert('로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.');
+        alert(error.response?.data?.message || '로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.');
     }
 };
 

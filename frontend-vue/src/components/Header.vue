@@ -10,17 +10,23 @@
 					</router-link>
 				</div>
 				<div class="right-section">
-					<span v-if="isLoggedIn" class="welcome-text">{{ userNickname }}님, 환영합니다</span>
 					<div class="auth-container">
-						<template v-if="user">
-							<router-link to="/my-studies" class="nav-link">
-								<i class="fas fa-book-reader"></i>
-								내 스터디
-							</router-link>
-							<router-link to="/profile">
-								<img src="@/assets/images/man.png" alt="프로필" class="profile-icon" />
-							</router-link>
-							<button @click="logout" class="logout-button">로그아웃</button>
+						<template v-if="isLoggedIn">
+							<span class="welcome-text">{{ userNickname }}님, 환영합니다</span>
+							<div class="nav-buttons">
+								<router-link to="/my-studies" class="nav-button">
+									<i class="fas fa-book-reader"></i>
+									내 스터디
+								</router-link>
+								<router-link to="/profile" class="nav-button">
+									<i class="fas fa-user"></i>
+									프로필
+								</router-link>
+							</div>
+							<button @click="logout" class="logout-button">
+								<i class="fas fa-sign-out-alt"></i>
+								로그아웃
+							</button>
 						</template>
 						<template v-else>
 							<span class="login-text">로그인 하세요</span>
@@ -37,7 +43,7 @@
 				<nav class="nav-items">
 					<ul class="main-menu">
 						<li class="menu-item">
-							지역별
+							<span>지역별</span>
 							<ul class="sub-menu">
 								<li class="sub-menu-item region">
 									<div class="region-name">
@@ -792,7 +798,7 @@
 							</ul>
 						</li>
 						<li class="menu-item">
-							학습자별
+							<span>학습자별</span>
 							<ul class="sub-menu">
 								<li class="sub-menu-item region">
 									<div class="region-name">중등</div>
@@ -882,7 +888,7 @@
 							</ul>
 						</li>
 						<li class="menu-item">
-							전공별
+							<span>전공별</span>
 							<ul class="sub-menu">
 								<li class="sub-menu-item region">
 									<div class="region-name">인문계열</div>
@@ -1172,39 +1178,60 @@ const goToStudyList = (mainRegion: string, subRegion: string) => {
 	});
 };
 
-const checkLoginStatus = async () => {
-	const token = localStorage.getItem('accessToken');
-	if (token) {
-		try {
-			const response = await axios.get('http://localhost:3000/users/profile', {
-				headers: {
-					Authorization: `Bearer ${token}`
-				}
-			});
-			userStore.setUser(response.data);
-			isLoggedIn.value = true;
-			userNickname.value = response.data.nickname;
-		} catch (error: unknown) {
-			console.error('프로필 조회 실패:', error);
-			if (error instanceof AxiosError && error.response?.status === 401) {
-				logout();
-			}
-		}
-	} else {
-		userStore.setUser(null);
-		isLoggedIn.value = false;
-		userNickname.value = '';
-	}
+const checkLoginStatus = () => {
+    const token = localStorage.getItem('accessToken');
+    const nickname = localStorage.getItem('nickname');
+
+    if (token && nickname) {
+        isLoggedIn.value = true;
+        userNickname.value = nickname;
+    } else {
+        isLoggedIn.value = false;
+        userNickname.value = '';
+    }
+};
+
+const validateToken = async () => {
+    const token = localStorage.getItem('accessToken');
+    if (!token) return;
+
+    try {
+        const response = await axios.get('http://localhost:3000/users/profile', {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+
+        if (response.data) {
+            isLoggedIn.value = true;
+            userNickname.value = response.data.nickname;
+            localStorage.setItem('nickname', response.data.nickname);
+        }
+    } catch (error) {
+        console.error('토큰 검증 실패:', error);
+        logout();
+    }
 };
 
 const logout = () => {
-	localStorage.removeItem('accessToken');
-	localStorage.removeItem('refreshToken');
-	userStore.setUser(null);
-	isLoggedIn.value = false;
-	userNickname.value = '';
-	router.push('/login');
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('userId');
+    localStorage.removeItem('nickname');
+    isLoggedIn.value = false;
+    userNickname.value = '';
+    router.push('/login');
 };
+
+// 컴포넌트 마운트 시 로그인 상태 즉시 체크하고, 토큰 유효성은 비동기로 검증
+onMounted(() => {
+    checkLoginStatus();  // 즉시 로컬 스토리지 기반으로 상태 설정
+    validateToken();     // 비동기로 토큰 유효성 검증
+});
+
+// 라우트 변경 시 로그인 상태 체크
+watch(() => route.path, () => {
+    checkLoginStatus();
+});
 
 const fetchStudyGroupCounts = async () => {
 	try {
@@ -1227,29 +1254,67 @@ onUnmounted(() => {
 
 // 카테고리 카운트를 위한 상태 추가
 const categories = ref<Category[]>([]);
+const loading = ref(false);
 
-// 카테고리 정보 가져오기
+// 카테고리 정보 가져오기 (프론트엔드 캐싱 적용)
 const fetchCategories = async () => {
-	try {
-		const response = await axios.get('http://localhost:3000/study-groups/categories');
-		categories.value = response.data;
-		console.log('카테고리 데이터 로드:', response.data);
-	} catch (error) {
-		console.error('카테고리 조회 실패:', error);
-	}
+    try {
+        const response = await axios.get('http://localhost:3000/study-groups/categories');
+        console.log('카테고리 데이터:', response.data); // 데이터 확인용 로그
+        categories.value = response.data;
+    } catch (error) {
+        console.error('카테고리 조회 실패:', error);
+    }
 };
 
 // 특정 카테고리의 카운트 계산
 const getCategoryCount = (mainCategory: string, subCategory: string, detailCategory?: string) => {
-	const matchingCategories = categories.value.filter(category => {
-		const mainMatch = category.mainCategory === mainCategory;
-		const subMatch = category.subCategory === subCategory;
-		const detailMatch = !detailCategory || category.detailCategory === detailCategory;
-		return mainMatch && subMatch && detailMatch;
-	});
+    console.log('getCategoryCount 호출:', { mainCategory, subCategory, detailCategory }); // 파라미터 확인용 로그
+    
+    const matchingCategories = categories.value.filter(category => {
+        const mainMatch = category.mainCategory === mainCategory;
+        const subMatch = category.subCategory === subCategory;
+        const detailMatch = !detailCategory || category.detailCategory === detailCategory;
+        
+        return mainMatch && subMatch && detailMatch;
+    });
 
-	return matchingCategories.reduce((sum, category) => sum + (category.count || 0), 0);
+    const count = matchingCategories.reduce((sum, category) => sum + (category.count || 0), 0);
+    console.log('매칭된 카테고리:', matchingCategories, '총 개수:', count); // 결과 확인용 로그
+    
+    return count;
 };
+
+// 컴포넌트 마운트 시 카테고리 정보 즉시 가져오기
+onMounted(async () => {
+    await fetchCategories();
+    checkLoginStatus();
+});
+
+const categoryUpdateInterval = ref<number>();
+
+const startCategoryUpdateInterval = () => {
+    categoryUpdateInterval.value = setInterval(async () => {
+        await fetchCategories();
+    }, 30000);
+};
+
+onMounted(async () => {
+    await fetchCategories();
+    checkLoginStatus();
+    startCategoryUpdateInterval();
+});
+
+onUnmounted(() => {
+    if (categoryUpdateInterval.value) {
+        clearInterval(categoryUpdateInterval.value);
+    }
+});
+
+// 라우트 변경 시 로그인 상태만 체크
+watch(() => route.path, () => {
+    checkLoginStatus();
+});
 </script>
 
 <style scoped>
@@ -1337,29 +1402,42 @@ const getCategoryCount = (mainCategory: string, subCategory: string, detailCateg
 }
 
 .main-menu {
-	display: flex;
-	justify-content: space-around;
-	list-style: none;
-	margin: 0;
-	padding: 0;
-	position: relative;
+    display: flex;
+    justify-content: center;  /* space-around에서 center로 변경 */
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    position: relative;
+    gap: 5rem;  /* 대분류 간격 넓히기 */
 }
 
 .menu-item {
-	color: #fff;
-	font-weight: bold;
-	font-size: 20px;
-	cursor: default;
-	/* 대분류 클릭 비활성화 */
-	padding: 5px 60px;
-	position: relative;
-	display: flex;
-	align-items: center;
-	justify-content: center;
+    color: #fff;
+    font-weight: bold;
+    font-size: 20px;
+    cursor: pointer;  /* default에서 pointer로 변경 */
+    padding: 5px 20px;  /* 좌우 패딩 조정 */
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;  /* 링크 밑줄 제거 */
+}
+
+.menu-item > span,
+.menu-item > a {
+    color: #fff;
+    text-decoration: none;
+    display: block;
 }
 
 .menu-item:hover {
-	color: #1a365d;
+    color: #1a365d;
+}
+
+.menu-item:hover > span,
+.menu-item:hover > a {
+    color: #1a365d;
 }
 
 .sub-menu {
@@ -1575,5 +1653,227 @@ const getCategoryCount = (mainCategory: string, subCategory: string, detailCateg
 
 .sub-menu-item a:hover {
 	background-color: #f3f4f6;
+}
+
+.user-section {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.welcome-text {
+    color: #4A90E2;
+    font-weight: 600;
+}
+
+.user-menu {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    color: #4A90E2;
+    text-decoration: none;
+    font-weight: 600;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.menu-item:hover {
+    background-color: #f0f7ff;
+}
+
+.menu-item i {
+    font-size: 1.1rem;
+}
+
+.login-link {
+    color: #4A90E2;
+    text-decoration: none;
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.login-link:hover {
+    background-color: #f0f7ff;
+}
+
+.logout-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background-color: #4A90E2;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.2s;
+}
+
+.logout-button:hover {
+    background-color: #357ABD;
+}
+
+@media (max-width: 768px) {
+    .user-menu {
+        flex-direction: column;
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background-color: white;
+        padding: 0.5rem;
+        border-radius: 4px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .menu-item {
+        width: 100%;
+        justify-content: flex-start;
+    }
+}
+
+.nav-buttons {
+    display: flex;
+    gap: 0.5rem;  /* 1rem에서 0.5rem으로 간격 축소 */
+    margin: 0 0.5rem;  /* 좌우 마진도 축소 */
+}
+
+.nav-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;  /* 아이콘과 텍스트 사이 간격 축소 */
+    padding: 0.5rem 1rem;  /* 패딩 축소 */
+    color: #4A90E2;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;  /* 폰트 크기 축소 */
+    border-radius: 6px;  /* 모서리 반경 축소 */
+    transition: all 0.3s ease;
+    background-color: rgba(74, 144, 226, 0.1);
+    border: 2px solid transparent;
+    width: 100px;  /* 버튼 너비 축소 */
+    text-align: center;
+}
+
+.nav-button:hover {
+    background-color: rgba(74, 144, 226, 0.15);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(74, 144, 226, 0.15);
+}
+
+.nav-button:active {
+    transform: translateY(0);
+}
+
+.nav-button i {
+    margin: 0;  /* 아이콘 마진 제거 */
+    font-size: 1rem;  /* 아이콘 크기 축소 */
+    color: #4A90E2;
+}
+
+.nav-button span {
+    flex: 1;  /* 텍스트가 남은 공간을 차지하도록 설정 */
+    text-align: center;  /* 텍스트 중앙 정렬 */
+}
+
+.logout-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;  /* 아이콘과 텍스트 사이 간격 축소 */
+    padding: 0.5rem 1rem;  /* 패딩 축소 */
+    background-color: #4A90E2;
+    color: white;
+    border: none;
+    border-radius: 6px;  /* 모서리 반경 축소 */
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;  /* 폰트 크기 축소 */
+    transition: all 0.3s ease;
+    width: 100px;  /* 버튼 너비 축소 */
+    text-align: center;
+}
+
+.logout-button:hover {
+    background-color: #357ABD;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(74, 144, 226, 0.2);
+}
+
+.logout-button:active {
+    transform: translateY(0);
+}
+
+.logout-button i {
+    margin: 0;  /* 아이콘 마진 제거 */
+}
+
+.logout-button span {
+    flex: 1;  /* 텍스트가 남은 공간을 차지하도록 설정 */
+    text-align: center;  /* 텍스트 중앙 정렬 */
+}
+
+.auth-container {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.welcome-text {
+    color: #4A90E2;
+    font-weight: 600;
+}
+
+@media (max-width: 768px) {
+    .nav-buttons {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .nav-button {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+.main-menu {
+    display: flex;
+    justify-content: center;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    position: relative;
+    gap: 5rem;  /* 메뉴 간격 */
+}
+
+.menu-item {
+    color: #fff;
+    font-weight: bold;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 5px 20px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.menu-item span {
+    display: block;  /* 텍스트가 보이도록 block으로 설정 */
+    color: #fff;     /* 텍스트 색상 지정 */
+}
+
+.menu-item:hover span {
+    color: #1a365d;  /* 호버 시 텍스트 색상 변경 */
 }
 </style>

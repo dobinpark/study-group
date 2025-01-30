@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException, UnauthorizedException, BadRequestException, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { StudyGroup } from '../entities/study-group.entity';
@@ -11,6 +11,10 @@ import { Category } from '../entities/category.entity';
 
 @Injectable()
 export class StudyGroupService {
+    private categoryCache: Category[] = [];
+    private lastCacheUpdate: number = 0;
+    private readonly CACHE_TTL = 5 * 60 * 1000; // 5분 캐시
+
     constructor(
         @InjectRepository(StudyGroup)
         private studyGroupRepository: Repository<StudyGroup>,
@@ -61,6 +65,9 @@ export class StudyGroupService {
                 detailCategory: category.detailCategory,
                 count: category.count
             });
+
+            // 캐시 무효화
+            this.invalidateCache();
 
             return savedStudyGroup;
         } catch (error) {
@@ -132,6 +139,9 @@ export class StudyGroupService {
         }
 
         await this.studyGroupRepository.remove(studyGroup);
+
+        // 캐시 무효화
+        this.invalidateCache();
     }
 
     async findByCategory(
@@ -164,10 +174,56 @@ export class StudyGroupService {
         return results;
     }
 
-    // 캐시 무효화 처리
+    async getCategories() {
+        try {
+            const categories = await this.categoryRepository
+                .createQueryBuilder('category')
+                .leftJoin('study_group', 'sg', `
+                    sg.mainCategory = category.mainCategory AND 
+                    sg.subCategory = category.subCategory AND 
+                    sg.detailCategory = category.detailCategory
+                `)
+                .select([
+                    'category.mainCategory',
+                    'category.subCategory',
+                    'category.detailCategory',
+                    'COUNT(sg.id) as count'
+                ])
+                .groupBy('category.mainCategory')
+                .addGroupBy('category.subCategory')
+                .addGroupBy('category.detailCategory')
+                .getRawMany();
+
+            return categories.map(cat => ({
+                mainCategory: cat.mainCategory,
+                subCategory: cat.subCategory,
+                detailCategory: cat.detailCategory,
+                count: parseInt(cat.count)
+            }));
+        } catch (error) {
+            console.error('Error fetching categories:', error);
+            throw error;
+        }
+    }
+
+    // 기존 invalidateCache 함수 수정
     async invalidateCache(mainCategory?: string, subCategory?: string, detailCategory?: string) {
-        const cacheKey = `study_groups:${mainCategory}:${subCategory}:${detailCategory}`;
-        await this.cacheManager.del(cacheKey);
+        // Redis 캐시 무효화
+        if (mainCategory) {
+            const cacheKey = this.getCacheKey(mainCategory, subCategory, detailCategory);
+            await this.cacheManager.del(cacheKey);
+        }
+
+        // 메모리 캐시도 함께 무효화
+        this.categoryCache = [];
+        this.lastCacheUpdate = 0;
+    }
+
+    private getCacheKey(mainCategory: string, subCategory?: string, detailCategory?: string): string {
+        let key = `study-groups:${mainCategory}`;
+        if (subCategory) key += `:${subCategory}`;
+        if (detailCategory) key += `:${detailCategory}`;
+        return key;
     }
 
     async getStudyGroupCount(
@@ -297,55 +353,33 @@ export class StudyGroupService {
         return studyGroup;
     }
 
-    async getMyStudyGroups(user: User): Promise<{ created: StudyGroup[], joined: StudyGroup[] }> {
+    async getMyStudyGroups(user: User) {
         try {
-            if (!user || !user.id) {
-                throw new UnauthorizedException('유효한 사용자 정보가 없습니다.');
-            }
-
-            // 내가 생성한 스터디
-            const created = await this.studyGroupRepository.find({
-                where: { leader: { id: user.id } },
-                relations: ['leader', 'members'],
+            // 내가 생성한 스터디 그룹
+            const createdStudyGroups = await this.studyGroupRepository.find({
+                where: { creator: { id: user.id } },
+                relations: ['creator', 'members', 'leader'],
                 order: { createdAt: 'DESC' }
             });
 
-            // 내가 참여한 스터디 (생성한 스터디 제외)
-            const joined = await this.studyGroupRepository
+            // 내가 참여중인 스터디 그룹 (생성한 그룹 제외)
+            const joinedStudyGroups = await this.studyGroupRepository
                 .createQueryBuilder('studyGroup')
-                .leftJoinAndSelect('studyGroup.leader', 'leader')
+                .leftJoinAndSelect('studyGroup.creator', 'creator')
                 .leftJoinAndSelect('studyGroup.members', 'members')
-                .innerJoin('studyGroup.members', 'member', 'member.id = :userId', { userId: user.id })
-                .where('leader.id != :userId', { userId: user.id })
+                .leftJoinAndSelect('studyGroup.leader', 'leader')
+                .where('members.id = :userId', { userId: user.id })
+                .andWhere('creator.id != :userId', { userId: user.id })
                 .orderBy('studyGroup.createdAt', 'DESC')
                 .getMany();
 
-            console.log('사용자 ID:', user.id);
-            console.log('생성한 스터디:', created);
-            console.log('참여한 스터디:', joined);
-
-            return { created, joined };
+            return {
+                created: createdStudyGroups,
+                joined: joinedStudyGroups
+            };
         } catch (error) {
-            console.error('내 스터디 조회 중 오류 발생:', error);
-            throw error;
-        }
-    }
-
-    async getCategories() {
-        try {
-            const categories = await this.categoryRepository.find({
-                order: {
-                    mainCategory: 'ASC',
-                    subCategory: 'ASC',
-                    detailCategory: 'ASC'
-                }
-            });
-            
-            console.log('All categories:', categories);
-            return categories;
-        } catch (error) {
-            console.error('Error fetching categories:', error);
-            throw error;
+            console.error('스터디 그룹 조회 실패:', error);
+            throw new InternalServerErrorException('스터디 그룹 조회에 실패했습니다.');
         }
     }
 }
