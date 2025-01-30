@@ -100,7 +100,7 @@ const formattedContent = computed(() => {
 const fetchPost = async () => {
     try {
         loading.value = true;
-        const response = await axios.get(`http://localhost:3000/posts/${route.params.id}`);
+        const response = await axios.get(`/posts/${route.params.id}`);
         post.value = response.data;
 
         if (response.data.category && !route.query.category) {
@@ -149,7 +149,7 @@ const deletePost = async () => {
             return;
         }
 
-        await axios.delete(`http://localhost:3000/posts/${route.params.id}`, {
+        await axios.delete(`/posts/${route.params.id}`, {
             headers: {
                 Authorization: `Bearer ${token}`
             }
@@ -191,7 +191,7 @@ const toggleLike = async () => {
     try {
         const token = localStorage.getItem('accessToken');
         const response = await axios.post(
-            `http://localhost:3000/posts/${route.params.id}/toggle-like`,
+            `/posts/${route.params.id}/toggle-like`,
             {},
             { headers: { Authorization: `Bearer ${token}` } }
         );

@@ -48,7 +48,7 @@ const errors = ref({
 
 const fetchPost = async () => {
     try {
-        const response = await axios.get(`http://localhost:3000/posts/${route.params.id}`);
+        const response = await axios.get(`/posts/${route.params.id}`);
         title.value = response.data.title;
         content.value = response.data.content;
         
@@ -104,7 +104,7 @@ const submitEdit = async () => {
         };
 
         const response = await axios.put(
-            `http://localhost:3000/posts/${route.params.id}`,
+            `/posts/${route.params.id}`,
             updateData,
             {
                 headers: { 

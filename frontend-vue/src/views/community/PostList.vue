@@ -110,7 +110,7 @@ const fetchPosts = async () => {
         const category = (route.query.category as string || props.category || 'FREE').toUpperCase();
         console.log('Fetching posts for category:', category);
         
-        const response = await axios.get(`http://localhost:3000/posts/category/${category}`, {
+        const response = await axios.get(`/posts/category/${category}`, {
             params: {
                 page: currentPage.value,
                 limit: itemsPerPage,

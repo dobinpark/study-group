@@ -62,8 +62,8 @@ interface StudyGroup {
 
 import { ref, onMounted, watch, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import axios from 'axios';
-import type { Category } from '@/types/category';
+import axios from '../../utils/axios';
+import type { Category } from '../../types/category';
 
 const route = useRoute();
 const router = useRouter();
@@ -78,7 +78,7 @@ const currentSubCategory = computed(() => route.query.subCategory as string);
 const fetchStudyGroups = async () => {
     loading.value = true;
     try {
-        const response = await axios.get('http://localhost:3000/study-groups', {
+        const response = await axios.get('/study-groups', {
             params: route.query
         });
         studyGroups.value = response.data || [];
@@ -92,7 +92,7 @@ const fetchStudyGroups = async () => {
 
 const fetchCategories = async () => {
     try {
-        const response = await axios.get('http://localhost:3000/study-groups/categories');
+        const response = await axios.get('/study-groups/categories');
         categories.value = response.data;
         console.log('카테고리 데이터:', response.data);
     } catch (error) {

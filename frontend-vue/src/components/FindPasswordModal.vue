@@ -35,7 +35,7 @@ const email = ref('');
 
 const handleSubmit = async () => {
     try {
-        const response = await axios.post('http://localhost:3000/users/find-password', {
+        const response = await axios.post('/users/find-password', {
             username: username.value,
             email: email.value
         });

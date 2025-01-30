@@ -171,7 +171,7 @@ const handleSubmit = async () => {
             return;
         }
 
-        await axios.post('http://localhost:3000/study-groups', studyGroup.value, {
+            await axios.post('/study-groups', studyGroup.value, {
             headers: {
                 Authorization: `Bearer ${token}`
             }

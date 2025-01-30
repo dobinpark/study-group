@@ -81,7 +81,7 @@ const submitPost = async () => {
         console.log('Route params:', route.params);
         console.log('Submitting post with category:', category);
 
-        const response = await axios.post('http://localhost:3000/posts', {
+        const response = await axios.post('/posts', {
             title: title.value,
             content: content.value,
             category: category

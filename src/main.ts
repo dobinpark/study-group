@@ -14,9 +14,7 @@ async function bootstrap() {
 
     // CORS 설정
     app.enableCors({
-        origin: ['http://3.34.184.97', 'http://localhost:8080'],
-        methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-        allowedHeaders: ['Content-Type', 'Authorization'],
+        origin: true,
         credentials: true,
     });
 

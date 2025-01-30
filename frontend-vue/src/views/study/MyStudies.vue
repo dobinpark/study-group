@@ -133,7 +133,7 @@ const fetchMyStudies = async () => {
         }
 
         loading.value = true;
-        const response = await axios.get('http://localhost:3000/study-groups/my-studies', {
+        const response = await axios.get('/study-groups/my-studies', {
             headers: { 
                 Authorization: `Bearer ${token}`
             }

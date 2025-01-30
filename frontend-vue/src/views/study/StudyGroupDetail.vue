@@ -134,7 +134,7 @@ const loadStudyGroup = async () => {
     isLoading.value = true;
     
     try {
-        const response = await axios.get(`http://localhost:3000/study-groups/${route.params.id}`);
+        const response = await axios.get(`/study-groups/${route.params.id}`);
         console.log('스터디 그룹 데이터:', response.data);
         console.log('현재 로그인 상태:', userStore.user);
         
@@ -171,7 +171,7 @@ const joinStudyGroup = async () => {
 
     try {
         isLoading.value = true;
-        await axios.post(`http://localhost:3000/study-groups/${route.params.id}/join`, {}, {
+        await axios.post(`/study-groups/${route.params.id}/join`, {}, {
             headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
         });
         await loadStudyGroup();
@@ -192,7 +192,7 @@ const handleDelete = async () => {
 
     try {
         const token = localStorage.getItem('accessToken');
-        await axios.delete(`http://localhost:3000/study-groups/${route.params.id}`, {
+        await axios.delete(`/study-groups/${route.params.id}`, {
             headers: { Authorization: `Bearer ${token}` }
         });
         alert('스터디 그룹이 삭제되었습니다.');
@@ -212,7 +212,7 @@ onMounted(async () => {
     const token = window.localStorage.getItem('accessToken');
     if (token && !userStore.user) {
         try {
-            const response = await axios.get('http://localhost:3000/auth/profile', {
+            const response = await axios.get('/auth/profile', {
                 headers: { Authorization: `Bearer ${token}` }
             });
             userStore.setUser(response.data);

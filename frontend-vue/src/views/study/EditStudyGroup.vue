@@ -164,7 +164,7 @@ const detailCategories = computed(() => {
 
 const loadStudyGroup = async () => {
     try {
-        const response = await axios.get(`http://localhost:3000/study-groups/${route.params.id}`);
+        const response = await axios.get(`/study-groups/${route.params.id}`);
         const { name, mainCategory, subCategory, detailCategory, content, maxMembers } = response.data;
         studyGroup.value = { name, mainCategory, subCategory, detailCategory, content, maxMembers };
     } catch (error) {
@@ -188,7 +188,7 @@ const handleSubmit = async () => {
             maxMembers: Number(studyGroup.value.maxMembers)
         };
 
-        await axios.put(`http://localhost:3000/study-groups/${route.params.id}`, updateData, {
+        await axios.put(`/study-groups/${route.params.id}`, updateData, {
             headers: {
                 Authorization: `Bearer ${token}`
             }

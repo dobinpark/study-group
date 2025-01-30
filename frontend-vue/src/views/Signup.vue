@@ -67,7 +67,7 @@ const cancel = () => {
 
 const validatePassword = (password) => {
 	const passwordRegex = /^(?=.*[a-z])(?=.*[0-9])(?=.*[!@#$%^&*()\-_=+{};:,<.>])[a-z0-9!@#$%^&*()\-_=+{};:,<.>]{8,}$/;
-	
+
 	if (!passwordRegex.test(password)) {
 		return '비밀번호는 소문자, 숫자, 특수문자를 각각 1개 이상 포함해야 합니다.';
 	}

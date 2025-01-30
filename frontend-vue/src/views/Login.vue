@@ -17,7 +17,7 @@
                     계정이 없으신가요? <router-link to="/signup">회원가입</router-link>
                 </div>
                 <div class="find-password-link">
-비밀번호를 까먹으셨나요? <a href="#" @click.prevent="openFindPasswordModal">비밀번호 찾기</a>
+                    비밀번호를 까먹으셨나요? <a href="#" @click.prevent="openFindPasswordModal">비밀번호 찾기</a>
                 </div>
             </form>
         </div>
@@ -43,7 +43,7 @@ const handleSubmit = async () => {
             return;
         }
 
-        const loginResponse = await axios.post('http://localhost:3000/auth/login', {
+        const loginResponse = await axios.post('/auth/login', {
             username: username.value,
             password: password.value,
         });
@@ -60,12 +60,12 @@ const handleSubmit = async () => {
 
         try {
             // 프로필 정보 확인
-            await axios.get('http://localhost:3000/users/profile', {
-                headers: { 
+            await axios.get('/users/profile', {
+                headers: {
                     Authorization: `Bearer ${accessToken}`
                 }
             });
-            
+
             // 로그인 성공 후 홈으로 이동
             router.push('/');
         } catch (profileError) {
@@ -74,8 +74,8 @@ const handleSubmit = async () => {
             router.push('/');
         }
     } catch (error: any) {
-        console.error('Login failed:', error);
-        alert(error.response?.data?.message || '로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.');
+        console.error('Login failed:', error.response?.data?.message || '로그인에 실패했습니다.');
+        alert(error.response?.data?.message || '로그인에 실패했습니다.');
     }
 };
 

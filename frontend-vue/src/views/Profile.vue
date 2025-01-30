@@ -117,7 +117,7 @@ const passwordChange = ref({
 const getProfile = async () => {
     try {
         const token = localStorage.getItem('accessToken');
-        const response = await axios.get('http://localhost:3000/users/profile', {
+        const response = await axios.get('/users/profile', {
             headers: {
                 Authorization: `Bearer ${token}`
             }
@@ -147,7 +147,7 @@ const updateProfile = async () => {
             updateData.newPassword = passwordChange.value.newPassword;
         }
 
-        await axios.put('http://localhost:3000/users/profile', updateData, {
+        await axios.put('/users/profile', updateData, {
             headers: {
                 Authorization: `Bearer ${token}`
             }
