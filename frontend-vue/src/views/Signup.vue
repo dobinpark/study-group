@@ -65,10 +65,38 @@ const cancel = () => {
 	router.push('/home');
 };
 
+const validatePassword = (password) => {
+	const minLength = 8;
+	const hasUpperCase = /[A-Z]/.test(password);
+	const hasLowerCase = /[a-z]/.test(password);
+	const hasNumbers = /\d/.test(password);
+	const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+	if (password.length < minLength) {
+		return '비밀번호는 8자 이상이어야 합니다.';
+	}
+	if (!(hasUpperCase || hasLowerCase)) {
+		return '비밀번호는 영문자를 포함해야 합니다.';
+	}
+	if (!hasNumbers) {
+		return '비밀번호는 숫자를 포함해야 합니다.';
+	}
+	if (!hasSpecialChar) {
+		return '비밀번호는 특수문자를 포함해야 합니다.';
+	}
+	return '';
+};
+
 const signup = async () => {
 	try {
 		if (!username.value || !password.value || !confirmPassword.value || !nickname.value || !email.value || !phoneNumber.value) {
 			alert('모든 필드를 입력해주세요.');
+			return;
+		}
+
+		const passwordError = validatePassword(password.value);
+		if (passwordError) {
+			alert(passwordError);
 			return;
 		}
 
