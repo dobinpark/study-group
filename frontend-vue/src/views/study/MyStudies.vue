@@ -134,11 +134,11 @@ const fetchMyStudies = async () => {
 
         loading.value = true;
         const response = await axios.get('/study-groups/my-studies', {
-            headers: { 
+            headers: {
                 Authorization: `Bearer ${token}`
             }
         });
-        
+
         console.log('내 스터디 조회 응답:', response.data);
 
         if (response.data) {
@@ -320,8 +320,13 @@ onMounted(() => {
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 @media (max-width: 768px) {
@@ -337,4 +342,4 @@ onMounted(() => {
         font-size: 1.5rem;
     }
 }
-</style> 
+</style>

@@ -15,13 +15,13 @@
 							<span class="welcome-text">{{ userNickname }}님, 환영합니다</span>
 							<div class="nav-buttons">
 								<router-link to="/my-studies" class="nav-button">
-									<i class="fas fa-book-reader"></i>
-									내 스터디
-								</router-link>
+								<i class="fas fa-book-reader"></i>
+								내 스터디
+							</router-link>
 								<router-link to="/profile" class="nav-button">
 									<i class="fas fa-user"></i>
 									프로필
-								</router-link>
+							</router-link>
 							</div>
 							<button @click="logout" class="logout-button">
 								<i class="fas fa-sign-out-alt"></i>
@@ -1058,17 +1058,17 @@
 							<ul class="sub-menu">
 								<li class="sub-menu-item">
 									<router-link :to="{ path: '/posts', query: { category: 'FREE' } }">
-										자유게시판
+									자유게시판
 									</router-link>
 								</li>
 								<li class="sub-menu-item">
 									<router-link :to="{ path: '/posts', query: { category: 'QUESTION' } }">
-										질문게시판
+									질문게시판
 									</router-link>
 								</li>
 								<li class="sub-menu-item">
 									<router-link :to="{ path: '/posts', query: { category: 'SUGGESTION' } }">
-										건의게시판
+									건의게시판
 									</router-link>
 								</li>
 							</ul>
@@ -1137,7 +1137,7 @@ onMounted(async () => {
 	fetchStudyGroupCounts();
 	// 스터디 그룹 생성/삭제 이벤트 감지
 	emitter.on('studyGroupCreated', () => {
-		fetchStudyGroupCounts();
+	fetchStudyGroupCounts();
 	});
 	emitter.on('studyGroupDeleted', () => {
 		fetchStudyGroupCounts();
@@ -1197,10 +1197,10 @@ const validateToken = async () => {
 
 	try {
 		const response = await axios.get('/users/profile', {
-			headers: {
-				Authorization: `Bearer ${token}`
-			}
-		});
+				headers: {
+					Authorization: `Bearer ${token}`
+				}
+			});
 		console.log('토큰 검증 응답:', response.data);
 		if (response.data) {
 			isLoggedIn.value = true;
@@ -1209,7 +1209,7 @@ const validateToken = async () => {
 		}
 	} catch (error) {
 		console.error('토큰 검증 실패:', error);
-		logout();
+				logout();
 	}
 };
 
@@ -1269,7 +1269,6 @@ const fetchCategories = async () => {
 
 // 특정 카테고리의 카운트 계산
 const getCategoryCount = (mainCategory: string, subCategory: string, detailCategory?: string) => {
-	console.log('getCategoryCount 호출:', { mainCategory, subCategory, detailCategory }); // 파라미터 확인용 로그
 
 	const matchingCategories = categories.value.filter(category => {
 		const mainMatch = category.mainCategory === mainCategory;
@@ -1280,7 +1279,6 @@ const getCategoryCount = (mainCategory: string, subCategory: string, detailCateg
 	});
 
 	const count = matchingCategories.reduce((sum, category) => sum + (category.count || 0), 0);
-	console.log('매칭된 카테고리:', matchingCategories, '총 개수:', count); // 결과 확인용 로그
 
 	return count;
 };
@@ -1291,10 +1289,8 @@ onMounted(async () => {
 	checkLoginStatus();
 });
 
-const categoryUpdateInterval = ref<number>();
-
 const startCategoryUpdateInterval = () => {
-	categoryUpdateInterval.value = setInterval(async () => {
+	categoryUpdateInterval.value = window.setInterval(async () => {
 		await fetchCategories();
 	}, 30000);
 };
@@ -1306,15 +1302,18 @@ onMounted(async () => {
 });
 
 onUnmounted(() => {
-	if (categoryUpdateInterval.value) {
-		clearInterval(categoryUpdateInterval.value);
-	}
+    if (categoryUpdateInterval.value) {
+        clearInterval(categoryUpdateInterval.value);
+    }
 });
 
 // 라우트 변경 시 로그인 상태만 체크
 watch(() => route.path, () => {
 	checkLoginStatus();
 });
+
+// 기존 코드 상단 부분에 추가
+const categoryUpdateInterval = ref<number>();
 </script>
 
 <style scoped>

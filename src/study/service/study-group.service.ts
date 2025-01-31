@@ -26,8 +26,8 @@ export class StudyGroupService {
     async createStudyGroup(createStudyGroupDto: CreateStudyGroupDto, user: User): Promise<StudyGroup> {
         try {
             // 스터디 그룹 생성
-            const studyGroup = this.studyGroupRepository.create({
-                ...createStudyGroupDto,
+        const studyGroup = this.studyGroupRepository.create({
+            ...createStudyGroupDto,
                 leader: user,
                 members: [user] // 생성자를 멤버로 자동 추가
             });
@@ -159,18 +159,18 @@ export class StudyGroupService {
         if (mainCategory) {
             queryBuilder.andWhere('studyGroup.mainCategory = :mainCategory', { mainCategory });
         }
-
+        
         if (subCategory) {
             queryBuilder.andWhere('studyGroup.subCategory = :subCategory', { subCategory });
         }
-
+        
         if (detailCategory && detailCategory !== '전체') {
             queryBuilder.andWhere('studyGroup.detailCategory = :detailCategory', { detailCategory });
         }
 
         const results = await queryBuilder.getMany();
         console.log('Query results:', results);
-
+        
         return results;
     }
 
@@ -211,7 +211,7 @@ export class StudyGroupService {
         // Redis 캐시 무효화
         if (mainCategory) {
             const cacheKey = this.getCacheKey(mainCategory, subCategory, detailCategory);
-            await this.cacheManager.del(cacheKey);
+        await this.cacheManager.del(cacheKey);
         }
 
         // 메모리 캐시도 함께 무효화

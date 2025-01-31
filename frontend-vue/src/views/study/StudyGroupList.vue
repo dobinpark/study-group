@@ -64,6 +64,9 @@ import { ref, onMounted, watch, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from '../../utils/axios';
 import type { Category } from '../../types/category';
+import { useAuthStore } from '../../stores/auth';
+import { cachedFetch } from '../../utils/cache';
+import { handleApiError } from '../../utils/error-handler';
 
 const route = useRoute();
 const router = useRouter();
@@ -76,17 +79,16 @@ const currentMainCategory = computed(() => route.query.mainCategory as string);
 const currentSubCategory = computed(() => route.query.subCategory as string);
 
 const fetchStudyGroups = async () => {
-    loading.value = true;
     try {
-        const response = await axios.get('/study-groups', {
-            params: route.query
+        const data = await cachedFetch('/study-groups', {
+            ttl: 5 * 60 * 1000, // 5 minutes cache
+            key: 'study-groups-list'
         });
-        studyGroups.value = response.data || [];
+        return data;
     } catch (error) {
-        console.error('스터디 그룹 조회 실패:', error);
-        studyGroups.value = [];
-    } finally {
-        loading.value = false;
+        const apiError = handleApiError(error);
+        console.error(apiError.message);
+        throw apiError;
     }
 };
 

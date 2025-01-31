@@ -18,13 +18,12 @@ import { RefreshToken } from './entities/refresh-token.entity';
             imports: [ConfigModule],
             inject: [ConfigService],
             useFactory: async (configService: ConfigService) => ({
-                secret: configService.get('JWT_SECRET'),
-                signOptions: { 
-                    expiresIn: '1h',
-                },
+                secret: configService.get<string>('JWT_SECRET'),
+                signOptions: {
+                    expiresIn: configService.get<string>('JWT_EXPIRES_IN', '1h')
+                }
             }),
         }),
-        TypeOrmModule.forFeature([RefreshToken]),
     ],
     controllers: [AuthController],
     providers: [AuthService, JwtStrategy, RefreshTokenRepository],
