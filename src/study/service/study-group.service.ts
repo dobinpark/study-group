@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { StudyGroup } from '../entities/study-group.entity';
 import { CreateStudyGroupDto } from '../dto/create-study-group.dto';
 import { UpdateStudyGroupDto } from '../dto/update-study-group.dto';
-import { User } from '../../user/users/entities/user.entity';
+import { User } from '../../user/entities/user.entity';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { Category } from '../entities/category.entity';
@@ -23,16 +23,17 @@ export class StudyGroupService {
         @Inject(CACHE_MANAGER) private cacheManager: Cache
     ) {}
 
+    // 스터디 그룹 생성
     async createStudyGroup(createStudyGroupDto: CreateStudyGroupDto, user: User): Promise<StudyGroup> {
         try {
-            // 스터디 그룹 생성
-        const studyGroup = this.studyGroupRepository.create({
-            ...createStudyGroupDto,
+            // 새로운 스터디 그룹 생성
+            const studyGroup = this.studyGroupRepository.create({
+                ...createStudyGroupDto,
                 leader: user,
                 members: [user] // 생성자를 멤버로 자동 추가
             });
 
-            // 먼저 스터디 그룹 저장
+            // 스터디 그룹 저장
             const savedStudyGroup = await this.studyGroupRepository.save(studyGroup);
 
             // 카테고리 찾기 또는 생성 및 카운트 업데이트
@@ -59,13 +60,6 @@ export class StudyGroupService {
 
             await this.categoryRepository.save(category);
             
-            console.log('Updated category:', {
-                mainCategory: category.mainCategory,
-                subCategory: category.subCategory,
-                detailCategory: category.detailCategory,
-                count: category.count
-            });
-
             // 캐시 무효화
             this.invalidateCache();
 
@@ -76,6 +70,7 @@ export class StudyGroupService {
         }
     }
 
+    // 스터디 그룹 업데이트
     async updateStudyGroup(
         id: number,
         updateStudyGroupDto: UpdateStudyGroupDto,
@@ -110,6 +105,7 @@ export class StudyGroupService {
         return updatedStudyGroup;
     }
 
+    // 스터디 그룹 삭제
     async deleteStudyGroup(id: number, user: User): Promise<void> {
         const studyGroup = await this.studyGroupRepository.findOne({
             where: { id },
@@ -144,6 +140,7 @@ export class StudyGroupService {
         this.invalidateCache();
     }
 
+    // 카테고리별 스터디 그룹 찾기
     async findByCategory(
         mainCategory?: string,
         subCategory?: string,
@@ -153,8 +150,6 @@ export class StudyGroupService {
             .leftJoinAndSelect('studyGroup.leader', 'leader')
             .leftJoinAndSelect('studyGroup.members', 'members')
             .orderBy('studyGroup.createdAt', 'DESC');
-
-        console.log('Received parameters:', { mainCategory, subCategory, detailCategory });
 
         if (mainCategory) {
             queryBuilder.andWhere('studyGroup.mainCategory = :mainCategory', { mainCategory });
@@ -168,12 +163,10 @@ export class StudyGroupService {
             queryBuilder.andWhere('studyGroup.detailCategory = :detailCategory', { detailCategory });
         }
 
-        const results = await queryBuilder.getMany();
-        console.log('Query results:', results);
-        
-        return results;
+        return await queryBuilder.getMany();
     }
 
+    // 모든 카테고리 가져오기
     async getCategories() {
         try {
             const categories = await this.categoryRepository
@@ -206,12 +199,11 @@ export class StudyGroupService {
         }
     }
 
-    // 기존 invalidateCache 함수 수정
+    // 캐시 무효화
     async invalidateCache(mainCategory?: string, subCategory?: string, detailCategory?: string) {
-        // Redis 캐시 무효화
         if (mainCategory) {
             const cacheKey = this.getCacheKey(mainCategory, subCategory, detailCategory);
-        await this.cacheManager.del(cacheKey);
+            await this.cacheManager.del(cacheKey);
         }
 
         // 메모리 캐시도 함께 무효화
@@ -219,6 +211,7 @@ export class StudyGroupService {
         this.lastCacheUpdate = 0;
     }
 
+    // 캐시 키 생성
     private getCacheKey(mainCategory: string, subCategory?: string, detailCategory?: string): string {
         let key = `study-groups:${mainCategory}`;
         if (subCategory) key += `:${subCategory}`;
@@ -226,6 +219,7 @@ export class StudyGroupService {
         return key;
     }
 
+    // 스터디 그룹 수 가져오기
     async getStudyGroupCount(
         mainCategory?: string,
         subCategory?: string,
@@ -248,6 +242,7 @@ export class StudyGroupService {
         return await queryBuilder.getCount();
     }
 
+    // 지역별 스터디 그룹 수 가져오기
     async getStudyGroupCountsByRegion(): Promise<Record<string, Record<string, number>>> {
         const studyGroups = await this.studyGroupRepository
             .createQueryBuilder('studyGroup')
@@ -275,6 +270,7 @@ export class StudyGroupService {
         return counts;
     }
 
+    // 모든 스터디 그룹 찾기
     async findAll(params: {
         mainRegion?: string;
         subRegion?: string;
@@ -298,6 +294,7 @@ export class StudyGroupService {
         return await query.getMany();
     }
 
+    // 스터디 그룹 참여
     async joinStudyGroup(studyGroupId: number, user: User): Promise<StudyGroup> {
         const studyGroup = await this.studyGroupRepository.findOne({
             where: { id: studyGroupId },
@@ -320,6 +317,7 @@ export class StudyGroupService {
         return await this.studyGroupRepository.save(studyGroup);
     }
 
+    // 스터디 그룹 세부 정보 가져오기
     async getStudyGroupDetails(id: number): Promise<StudyGroup> {
         const studyGroup = await this.studyGroupRepository.findOne({
             where: { id },
@@ -333,8 +331,8 @@ export class StudyGroupService {
         return studyGroup;
     }
 
+    // 특정 스터디 그룹 찾기
     async findOne(id: number): Promise<StudyGroup> {
-        // id를 숫자로 확실하게 변환
         const numericId = Number(id);
         
         if (isNaN(numericId)) {
@@ -353,6 +351,7 @@ export class StudyGroupService {
         return studyGroup;
     }
 
+    // 내가 참여한 스터디 그룹 가져오기
     async getMyStudyGroups(user: User) {
         try {
             // 내가 생성한 스터디 그룹

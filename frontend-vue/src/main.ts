@@ -10,8 +10,8 @@ import { createPinia } from 'pinia'
 
 // Axios 인스턴스 생성
 const axiosInstance = axios.create({
-    baseURL: 'http://localhost:3000', // NestJS API 서버 주소
-})
+    baseURL: process.env.VUE_APP_API_URL, // 환경 변수에서 API 서버 주소 가져오기
+});
 
 // Vue 애플리케이션 생성
 const app = createApp(App)

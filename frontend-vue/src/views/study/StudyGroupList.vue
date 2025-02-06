@@ -42,11 +42,20 @@
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted, watch, computed } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import axios from '../../utils/axios';
+import type { Category } from '../../types/category';
+import { cachedFetch } from '../../utils/cache';
+import { handleApiError } from '../../utils/error-handler';
+
+// 사용자 인터페이스 정의
 interface User {
     id: number;
     nickname: string;
 }
 
+// 스터디 그룹 인터페이스 정의
 interface StudyGroup {
     id: number;
     name: string;
@@ -60,14 +69,6 @@ interface StudyGroup {
     createdAt: string;
 }
 
-import { ref, onMounted, watch, computed } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import axios from '../../utils/axios';
-import type { Category } from '../../types/category';
-import { useAuthStore } from '../../stores/auth';
-import { cachedFetch } from '../../utils/cache';
-import { handleApiError } from '../../utils/error-handler';
-
 const route = useRoute();
 const router = useRouter();
 const studyGroups = ref<StudyGroup[]>([]);
@@ -75,16 +76,19 @@ const searchQuery = ref('');
 const loading = ref(true);
 const categories = ref<Category[]>([]);
 
+// 현재 선택된 메인 카테고리
 const currentMainCategory = computed(() => route.query.mainCategory as string);
+// 현재 선택된 서브 카테고리
 const currentSubCategory = computed(() => route.query.subCategory as string);
 
+// 스터디 그룹 목록 가져오기
 const fetchStudyGroups = async () => {
     try {
         const data = await cachedFetch('/study-groups', {
             ttl: 5 * 60 * 1000, // 5 minutes cache
             key: 'study-groups-list'
         });
-        return data;
+        studyGroups.value = data;
     } catch (error) {
         const apiError = handleApiError(error);
         console.error(apiError.message);
@@ -92,6 +96,7 @@ const fetchStudyGroups = async () => {
     }
 };
 
+// 카테고리 목록 가져오기
 const fetchCategories = async () => {
     try {
         const response = await axios.get('/study-groups/categories');
@@ -102,6 +107,7 @@ const fetchCategories = async () => {
     }
 };
 
+// 스터디 그룹 상세 페이지로 이동
 const goToDetail = (id: number) => {
     if (!id || isNaN(id)) {
         console.error('유효하지 않은 스터디 그룹 ID:', id);
@@ -110,6 +116,7 @@ const goToDetail = (id: number) => {
     router.push(`/study-groups/${id}`);
 };
 
+// 스터디 그룹 생성 페이지로 이동
 const createStudyGroup = () => {
     const token = localStorage.getItem('accessToken');
     if (!token) {
@@ -120,20 +127,24 @@ const createStudyGroup = () => {
     router.push('/create-study');
 };
 
+// 날짜 형식 변환
 const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('ko-KR');
 };
 
+// 텍스트 자르기
 const truncateContent = (content: string | undefined) => {
     if (!content) return '';
     return content.length > 100 ? content.substring(0, 100) + '...' : content;
 };
 
+// 검색 기능
 const search = () => {
     fetchStudyGroups();
 };
 
+// 세부 카테고리 선택
 const selectDetailCategory = (detailCategory: string) => {
     router.push({
         query: {
@@ -143,15 +154,18 @@ const selectDetailCategory = (detailCategory: string) => {
     });
 };
 
+// 컴포넌트가 마운트될 때 스터디 그룹 및 카테고리 목록 가져오기
 onMounted(() => {
     fetchStudyGroups();
     fetchCategories();
 });
 
+// 라우트 쿼리가 변경될 때마다 스터디 그룹 목록 새로 가져오기
 watch(() => route.query, () => {
     fetchStudyGroups();
 }, { deep: true });
 
+// 스터디 그룹 목록이 변경될 때마다 카테고리 목록 새로 가져오기
 watch(studyGroups, () => {
     fetchCategories();
 });

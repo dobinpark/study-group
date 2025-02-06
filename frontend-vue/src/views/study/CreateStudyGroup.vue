@@ -60,6 +60,7 @@ import { emitter } from '../../components/Header.vue';
 
 const router = useRouter();
 
+// 스터디 그룹 정보를 위한 인터페이스
 interface StudyGroup {
     name: string;
     mainCategory: string;
@@ -69,6 +70,7 @@ interface StudyGroup {
     maxMembers: number;
 }
 
+// 스터디 그룹 정보 초기화
 const studyGroup = ref<StudyGroup>({
     name: '',
     mainCategory: '',
@@ -78,12 +80,14 @@ const studyGroup = ref<StudyGroup>({
     maxMembers: 2
 });
 
+// 카테고리 데이터를 위한 인터페이스
 interface CategoryData {
     [key: string]: {
         [key: string]: string[];
     };
 }
 
+// 카테고리 데이터 정의
 const categoryData: CategoryData = {
     '지역별': {
         '서울': ['강남구', '강동구', '강북구', '강서구', '관악구', '광진구', '구로구',
@@ -152,16 +156,19 @@ const categoryData: CategoryData = {
     }
 };
 
+// 선택된 대분류에 따른 중분류 목록 계산
 const subCategories = computed(() => {
     if (!studyGroup.value.mainCategory) return [];
     return Object.keys(categoryData[studyGroup.value.mainCategory as keyof typeof categoryData] || {});
 });
 
+// 선택된 중분류에 따른 소분류 목록 계산
 const detailCategories = computed(() => {
     if (!studyGroup.value.mainCategory || !studyGroup.value.subCategory) return [];
     return categoryData[studyGroup.value.mainCategory as keyof typeof categoryData]?.[studyGroup.value.subCategory] || [];
 });
 
+// 스터디 그룹 생성 처리
 const handleSubmit = async () => {
     try {
         const token = localStorage.getItem('accessToken');
@@ -171,23 +178,37 @@ const handleSubmit = async () => {
             return;
         }
 
-            await axios.post('/study-groups', studyGroup.value, {
+        const response = await axios.post('/study-groups', studyGroup.value, {
             headers: {
                 Authorization: `Bearer ${token}`
             }
         });
 
-        // 스터디 그룹 생성 성공 후 이벤트 발생
-        emitter.emit('studyGroupCreated');
-        alert('스터디 그룹이 생성되었습니다.');
-        router.push('/study-groups');
+        if (response.status === 201) {
+            emitter?.emit('studyGroupCreated');
+            alert('스터디 그룹이 생성되었습니다.');
+            router.push('/study-groups');
+        }
     } catch (error: any) {
         alert(error.response?.data?.message || '스터디 그룹 생성에 실패했습니다.');
     }
 };
 
+// 이전 페이지로 돌아가기
 const goBack = () => {
     router.back();
+};
+
+// 스터디 그룹 생성/삭제 이벤트 감지
+if (emitter) {
+    emitter.on('studyGroupCreated', () => {
+        fetchStudyGroupCounts();
+    });
+}
+
+// 그룹 카운트 가져오는 로직
+const fetchStudyGroupCounts = () => {
+    // 그룹 카운트 가져오는 로직
 };
 </script>
 

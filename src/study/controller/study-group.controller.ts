@@ -1,55 +1,51 @@
-import { Controller, Post, Body, UseGuards, Put, Param, Delete, Get, Query } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
+import { Controller, Post, Body, Put, Param, Delete, Get, Query } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
 import { StudyGroupService } from '../service/study-group.service';
 import { CreateStudyGroupDto } from '../dto/create-study-group.dto';
 import { UpdateStudyGroupDto } from '../dto/update-study-group.dto';
-import { JwtAuthGuard } from '../../user/auth/jwt-auth.guard';
-import { GetUser } from '../../user/auth/get-user.decorator';
-import { User } from '../../user/users/entities/user.entity';
+import { User } from '../../user/entities/user.entity';
 
 @ApiTags('스터디 그룹')
 @Controller('study-groups')
 export class StudyGroupController {
     constructor(private readonly studyGroupService: StudyGroupService) {}
 
+    // 스터디 그룹 생성
     @Post()
-    @UseGuards(JwtAuthGuard)
-    @ApiBearerAuth()
     @ApiOperation({ summary: '스터디 그룹 생성' })
     @ApiResponse({ status: 201, description: '스터디 그룹이 생성되었습니다.' })
     async createStudyGroup(
         @Body() createStudyGroupDto: CreateStudyGroupDto,
-        @GetUser() user: User
+        user: User
     ) {
         return this.studyGroupService.createStudyGroup(createStudyGroupDto, user);
     }
 
+    // 스터디 그룹 수정
     @Put(':id')
-    @UseGuards(JwtAuthGuard)
-    @ApiBearerAuth()
     @ApiOperation({ summary: '스터디 그룹 수정' })
     @ApiResponse({ status: 200, description: '스터디 그룹이 수정되었습니다.' })
     async updateStudyGroup(
         @Param('id') id: number,
         @Body() updateStudyGroupDto: UpdateStudyGroupDto,
-        @GetUser() user: User
+        user: User
     ) {
         return this.studyGroupService.updateStudyGroup(id, updateStudyGroupDto, user);
     }
 
+    // 스터디 그룹 삭제
     @Delete(':id')
-    @UseGuards(JwtAuthGuard)
-    @ApiBearerAuth()
     @ApiOperation({ summary: '스터디 그룹 삭제' })
     @ApiResponse({ status: 200, description: '스터디 그룹이 삭제되었습니다.' })
     async deleteStudyGroup(
         @Param('id') id: number,
-        @GetUser() user: User
+        user: User
     ) {
         await this.studyGroupService.deleteStudyGroup(id, user);
         return { message: '스터디 그룹이 성공적으로 삭제되었습니다.' };
     }
 
+    // 카테고리별 스터디 그룹 조회
     @Get()
     @ApiOperation({ summary: '카테고리별 스터디 그룹 조회' })
     @ApiQuery({ name: 'mainCategory', required: false })
@@ -64,15 +60,15 @@ export class StudyGroupController {
         return this.studyGroupService.findByCategory(mainCategory, subCategory, detailCategory);
     }
 
+    // 내 스터디 목록 조회
     @Get('my-studies')
-    @UseGuards(JwtAuthGuard)
-    @ApiBearerAuth()
     @ApiOperation({ summary: '내 스터디 목록 조회' })
     @ApiResponse({ status: 200, description: '내가 생성하거나 참여한 스터디 그룹 목록을 반환합니다.' })
-    async getMyStudyGroups(@GetUser() user: User) {
+    async getMyStudyGroups(user: User) {
         return this.studyGroupService.getMyStudyGroups(user);
     }
 
+    // 스터디 그룹 수 조회
     @Get('count')
     @ApiOperation({ summary: '스터디 그룹 수 조회' })
     @ApiQuery({ name: 'mainCategory', required: false })
@@ -92,12 +88,14 @@ export class StudyGroupController {
         return { count };
     }
 
+    // 카테고리별 스터디 그룹 수 조회
     @Get('categories')
     @ApiOperation({ summary: '카테고리별 스터디 그룹 수 조회' })
     async getCategories() {
         return await this.studyGroupService.getCategories();
     }
 
+    // 모든 카테고리의 스터디 그룹 수 조회
     @Get('counts/all')
     @ApiOperation({ summary: '모든 카테고리의 스터디 그룹 수 조회' })
     async getAllCounts() {
@@ -125,12 +123,14 @@ export class StudyGroupController {
         return counts;
     }
 
+    // 지역별 스터디 그룹 수 조회
     @Get('counts/region')
     @ApiOperation({ summary: '지역별 스터디 그룹 수 조회' })
     async getStudyGroupCountsByRegion() {
         return this.studyGroupService.getStudyGroupCountsByRegion();
     }
 
+    // 스터디 그룹 상세 조회
     @Get(':id')
     @ApiOperation({ summary: '스터디 그룹 상세 조회' })
     @ApiResponse({ status: 200, description: '스터디 그룹 상세 정보를 반환합니다.' })
@@ -138,12 +138,12 @@ export class StudyGroupController {
         return this.studyGroupService.findOne(id);
     }
 
+    // 스터디 그룹 참여
     @Post(':id/join')
-    @UseGuards(JwtAuthGuard)
     @ApiOperation({ summary: '스터디 그룹 참여' })
     async joinStudyGroup(
         @Param('id') id: number,
-        @GetUser() user: User
+        user: User
     ) {
         return this.studyGroupService.joinStudyGroup(id, user);
     }

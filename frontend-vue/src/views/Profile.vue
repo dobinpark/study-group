@@ -102,6 +102,8 @@ import { useRouter } from 'vue-router';
 import axios from '../utils/axios';
 
 const router = useRouter();
+
+// 프로필 정보와 비밀번호 변경 정보를 위한 ref 변수들
 const profile = ref({
     username: '',
     nickname: '',
@@ -114,6 +116,7 @@ const passwordChange = ref({
     newPassword: ''
 });
 
+// 프로필 정보 가져오기
 const getProfile = async () => {
     try {
         const token = localStorage.getItem('accessToken');
@@ -132,6 +135,7 @@ const getProfile = async () => {
     }
 };
 
+// 프로필 업데이트
 const updateProfile = async () => {
     try {
         const token = localStorage.getItem('accessToken');
@@ -161,6 +165,7 @@ const updateProfile = async () => {
     }
 };
 
+// 컴포넌트가 마운트될 때 프로필 정보 가져오기
 onMounted(() => {
     getProfile();
 });

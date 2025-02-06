@@ -41,11 +41,13 @@ const errors = ref({
     content: ''
 });
 
+// 카테고리 제목 계산
 const categoryTitle = computed(() => {
     const category = route.params.category as keyof typeof PostCategoryKorean;
     return PostCategoryKorean[category] || '게시판';
 });
 
+// 폼 유효성 검사
 const validateForm = () => {
     let isValid = true;
     errors.value = {
@@ -66,6 +68,7 @@ const validateForm = () => {
     return isValid;
 };
 
+// 게시글 제출
 const submitPost = async () => {
     if (!validateForm()) return;
 
@@ -103,6 +106,7 @@ const submitPost = async () => {
     }
 };
 
+// 취소 버튼 클릭 시
 const cancel = () => {
     router.push({
         path: '/posts',
@@ -110,6 +114,7 @@ const cancel = () => {
     });
 };
 
+// 카테고리 매핑
 const getCategory = (category: string): string => {
     console.log('Incoming category parameter:', category);
     const categoryMap: { [key: string]: string } = {

@@ -93,18 +93,15 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from '../../utils/axios';
+import { AxiosError, isAxiosError } from 'axios';
 
-declare global {
-    interface Window {
-        localStorage: Storage;
-    }
-}
-
+// 사용자 인터페이스 정의
 interface User {
     id: number;
     nickname: string;
 }
 
+// 스터디 그룹 인터페이스 정의
 interface StudyGroup {
     id: number;
     name: string;
@@ -123,6 +120,7 @@ const createdStudies = ref<StudyGroup[]>([]);
 const joinedStudies = ref<StudyGroup[]>([]);
 const loading = ref(true);
 
+// 내 스터디 목록 가져오기
 const fetchMyStudies = async () => {
     try {
         const token = localStorage.getItem('accessToken');
@@ -146,8 +144,9 @@ const fetchMyStudies = async () => {
             joinedStudies.value = response.data.joined || [];
         }
     } catch (error) {
-        console.error('내 스터디 조회 실패:', error);
-        if (axios.isAxiosError(error) && error.response?.status === 401) {
+        const axiosError = error as AxiosError;
+        console.error('내 스터디 조회 실패:', axiosError);
+        if (isAxiosError(axiosError) && axiosError.response?.status === 401) {
             alert('로그인이 필요한 서비스입니다.');
             router.push('/login');
         } else {
@@ -158,21 +157,25 @@ const fetchMyStudies = async () => {
     }
 };
 
+// 날짜 형식 변환
 const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('ko-KR');
 };
 
+// 텍스트 자르기
 const truncateText = (text: string, maxLength: number) => {
     if (text.length <= maxLength) return text;
     return text.slice(0, maxLength) + '...';
 };
 
+// 스터디 상세 페이지로 이동
 const goToStudyDetail = (studyId: number) => {
     if (!studyId) return;
     router.push(`/study-groups/${studyId}`);
 };
 
+// 컴포넌트가 마운트될 때 내 스터디 목록 가져오기
 onMounted(() => {
     fetchMyStudies();
 });

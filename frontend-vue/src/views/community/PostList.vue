@@ -90,6 +90,7 @@ const itemsPerPage = 10;
 const totalPosts = ref(0);
 const loading = ref(true);
 
+// 카테고리 제목 계산
 const categoryTitle = computed(() => {
     const category = (route.query.category as string || props.category || 'FREE').toUpperCase();
     
@@ -105,6 +106,7 @@ const categoryTitle = computed(() => {
     }
 });
 
+// 게시글 목록 가져오기
 const fetchPosts = async () => {
     try {
         const category = (route.query.category as string || props.category || 'FREE').toUpperCase();
@@ -130,16 +132,19 @@ const fetchPosts = async () => {
     }
 };
 
+// 날짜 형식 변환
 const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('ko-KR');
 };
 
+// 검색 기능
 const search = () => {
     currentPage.value = 1;
     fetchPosts();
 };
 
+// 글쓰기 페이지로 이동
 const createPost = () => {
     const token = localStorage.getItem('accessToken');
     if (!token) {
@@ -150,15 +155,18 @@ const createPost = () => {
     router.push('/posts/create');
 };
 
+// 게시글 상세 페이지로 이동
 const viewPost = (id: number) => {
     router.push(`/posts/${id}`);
 };
 
+// 페이지 변경
 const changePage = (page: number) => {
     currentPage.value = page;
     fetchPosts();
 };
 
+// 컴포넌트가 마운트될 때 게시글 목록 가져오기
 onMounted(() => {
     fetchPosts();
 });
@@ -169,10 +177,6 @@ watch(() => route.query.category, () => {
     searchQuery.value = '';
     fetchPosts();
 });
-
-function alert(arg0: string) {
-    throw new Error('Function not implemented.');
-}
 </script>
 
 <style scoped>

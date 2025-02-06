@@ -28,21 +28,9 @@ export class EnvironmentVariables {
     @IsNotEmpty()
     DB_DATABASE!: string;
 
-    @IsString()
-    @IsNotEmpty()
-    JWT_SECRET!: string;
-
     @IsNumber()
     @IsOptional()
     PORT: number = 3000;
-
-    @IsString()
-    @IsNotEmpty()
-    UPLOAD_DIR: string = 'uploads';
-
-    @IsNumber()
-    @IsOptional()
-    MAX_FILE_SIZE: number = 5 * 1024 * 1024;
 }
 
 export function validate(config: Record<string, unknown>) {

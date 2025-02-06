@@ -1,4 +1,5 @@
-const { defineConfig } = require('@vue/cli-service')
+const { defineConfig } = require('@vue/cli-service');
+
 module.exports = defineConfig({
   transpileDependencies: true,
   configureWebpack: {
@@ -8,5 +9,14 @@ module.exports = defineConfig({
         maxSize: 250000,
       }
     }
-  }
-})
+  },
+  devServer: {
+    proxy: {
+      '^/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+        pathRewrite: { '^/api': '' },
+      },
+    },
+  },
+});

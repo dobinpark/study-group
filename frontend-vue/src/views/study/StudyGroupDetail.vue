@@ -88,6 +88,11 @@
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted, computed } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import axios from '../../utils/axios';
+import { useUserStore } from '../../stores/user';
+
 interface User {
     id: number;
     nickname: string;
@@ -106,11 +111,6 @@ interface StudyGroup {
     createdAt: string;
 }
 
-import { ref, onMounted, computed } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import axios from '../../utils/axios';
-import { useUserStore } from '../../stores/user';
-
 const route = useRoute();
 const router = useRouter();
 const userStore = useUserStore();
@@ -120,13 +120,11 @@ const isLoading = ref(false);
 const error = ref<string | null>(null);
 
 const isCreator = computed(() => {
-    if (!studyGroup.value || !userStore.user) return false;
-    return studyGroup.value.creator.id === userStore.user.id;
+    return studyGroup.value?.creator.id === userStore.user?.id;
 });
 
 const isAlreadyMember = computed(() => {
-    if (!studyGroup.value?.members || !userStore.user) return false;
-    return studyGroup.value.members.some(m => m.id === userStore.user?.id);
+    return studyGroup.value?.members.some(m => m.id === userStore.user?.id);
 });
 
 const loadStudyGroup = async () => {
@@ -148,7 +146,7 @@ const loadStudyGroup = async () => {
             creator: response.data.creator || { id: 0, nickname: '알 수 없음' }
         };
 
-        console.log('스터디 그룹 생성자:', studyGroup.value.creator);
+        console.log('스터디 그룹 생성자:', studyGroup.value?.creator);
         console.log('현재 사용자:', userStore.user);
         console.log('isCreator 값:', isCreator.value);
         

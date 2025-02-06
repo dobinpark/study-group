@@ -1,4 +1,5 @@
-import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
+import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
+import { useUserStore } from '../stores/user';
 import StudyGroupList from '@/views/study/StudyGroupList.vue';
 import Home from '../views/Home.vue';
 import Login from '../views/Login.vue';
@@ -100,11 +101,12 @@ const routes: Array<RouteRecordRaw> = [
 const router = createRouter({
     history: createWebHistory(),
     routes
-})
+});
 
 // 네비게이션 가드 설정
 router.beforeEach((to, from, next) => {
-    const isAuthenticated = !!localStorage.getItem('accessToken');
+    const userStore = useUserStore();
+    const isAuthenticated = userStore.isAuthenticated;
     
     if (to.meta.requiresAuth && !isAuthenticated) {
         next('/login');
@@ -113,4 +115,4 @@ router.beforeEach((to, from, next) => {
     }
 });
 
-export default router
+export default router;

@@ -54,6 +54,7 @@ import axios from '@/utils/axios';
 
 const router = useRouter();
 
+// 사용자 입력을 위한 ref 변수들
 const username = ref('');
 const password = ref('');
 const confirmPassword = ref('');
@@ -61,10 +62,12 @@ const nickname = ref('');
 const email = ref('');
 const phoneNumber = ref('');
 
+// 취소 버튼 클릭 시 홈으로 이동
 const cancel = () => {
 	router.push('/home');
 };
 
+// 비밀번호 유효성 검사
 const validatePassword = (password) => {
 	const passwordRegex = /^(?=.*[a-z])(?=.*[0-9])(?=.*[!@#$%^&*()\-_=+{};:,<.>])[a-z0-9!@#$%^&*()\-_=+{};:,<.>]{8,}$/;
 
@@ -74,26 +77,32 @@ const validatePassword = (password) => {
 	return '';
 };
 
+// 회원가입 처리
 const signup = async () => {
 	try {
+		// 모든 필드가 입력되었는지 확인
 		if (!username.value || !password.value || !confirmPassword.value || !nickname.value || !email.value || !phoneNumber.value) {
 			alert('모든 필드를 입력해주세요.');
 			return;
 		}
 
+		// 비밀번호 유효성 검사
 		const passwordError = validatePassword(password.value);
 		if (passwordError) {
 			alert(passwordError);
 			return;
 		}
 
+		// 비밀번호 일치 여부 확인
 		if (password.value !== confirmPassword.value) {
 			alert('비밀번호가 일치하지 않습니다.');
 			return;
 		}
 
+		// 전화번호 포맷팅
 		const formattedPhoneNumber = phoneNumber.value.replace(/-/g, '');
 
+		// 회원가입 요청
 		const response = await axios.post('/auth/signup', {
 			username: username.value,
 			password: password.value,

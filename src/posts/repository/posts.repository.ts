@@ -9,6 +9,7 @@ export class PostsRepository extends Repository<Post> {
         super(Post, dataSource.createEntityManager());
     }
 
+    // 카테고리별 게시물 찾기
     async findByCategory(category: PostCategory, page: number, limit: number, search?: string) {
         console.log('Repository finding posts for category:', category);
         
@@ -39,6 +40,7 @@ export class PostsRepository extends Repository<Post> {
         };
     }
 
+    // 게시물 생성
     async createPost(post: Post): Promise<Post> {
         return await this.save(post);
     }

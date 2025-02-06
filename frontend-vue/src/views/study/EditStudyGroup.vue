@@ -60,6 +60,7 @@ import axios from '../../utils/axios';
 const router = useRouter();
 const route = useRoute();
 
+// 스터디 그룹 정보를 위한 인터페이스
 interface StudyGroup {
     name: string;
     mainCategory: string;
@@ -69,6 +70,7 @@ interface StudyGroup {
     maxMembers: number;
 }
 
+// 스터디 그룹 정보 초기화
 const studyGroup = ref<StudyGroup>({
     name: '',
     mainCategory: '',
@@ -78,12 +80,14 @@ const studyGroup = ref<StudyGroup>({
     maxMembers: 2
 });
 
+// 카테고리 데이터를 위한 인터페이스
 interface CategoryData {
     [key: string]: {
         [key: string]: string[];
     };
 }
 
+// 카테고리 데이터 정의
 const categoryData: CategoryData = {
   '지역별': {
     '서울': ['강남구', '강동구', '강북구', '강서구', '관악구', '광진구', '구로구',
@@ -152,16 +156,19 @@ const categoryData: CategoryData = {
   }
 };
 
+// 선택된 대분류에 따른 중분류 목록 계산
 const subCategories = computed(() => {
     if (!studyGroup.value.mainCategory) return [];
     return Object.keys(categoryData[studyGroup.value.mainCategory as keyof typeof categoryData] || {});
 });
 
+// 선택된 중분류에 따른 소분류 목록 계산
 const detailCategories = computed(() => {
     if (!studyGroup.value.mainCategory || !studyGroup.value.subCategory) return [];
     return categoryData[studyGroup.value.mainCategory as keyof typeof categoryData]?.[studyGroup.value.subCategory] || [];
 });
 
+// 스터디 그룹 정보 로드
 const loadStudyGroup = async () => {
     try {
         const response = await axios.get(`/study-groups/${route.params.id}`);
@@ -174,6 +181,7 @@ const loadStudyGroup = async () => {
     }
 };
 
+// 스터디 그룹 수정 처리
 const handleSubmit = async () => {
     try {
         const token = window.localStorage.getItem('accessToken');
@@ -201,10 +209,12 @@ const handleSubmit = async () => {
     }
 };
 
+// 이전 페이지로 돌아가기
 const goBack = () => {
     router.back();
 };
 
+// 컴포넌트가 마운트될 때 스터디 그룹 정보 로드
 onMounted(() => {
     loadStudyGroup();
 });
@@ -312,4 +322,4 @@ onMounted(() => {
         grid-template-columns: 1fr;
     }
 }
-</style> 
+</style>

@@ -17,6 +17,7 @@ import { useRouter } from 'vue-router';
 
 const router = useRouter();
 
+// 스터디 그룹 생성 버튼 클릭 시 처리
 const handleCreateStudy = () => {
     const isAuthenticated = !!localStorage.getItem('accessToken');
     if (!isAuthenticated) {

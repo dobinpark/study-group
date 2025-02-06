@@ -29,13 +29,15 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from '../utils/axios';
-import FindPasswordModal from '../components/FindPasswordModal.vue';
+import { useUserStore } from '../stores/user';
 
 const router = useRouter();
+const userStore = useUserStore();
 const username = ref('');
 const password = ref('');
 const isModalOpen = ref(false);
 
+// 로그인 폼 제출 처리
 const handleSubmit = async () => {
     try {
         if (!username.value || !password.value) {
@@ -43,49 +45,35 @@ const handleSubmit = async () => {
             return;
         }
 
+        // 로그인 요청
         const loginResponse = await axios.post('/auth/login', {
             username: username.value,
             password: password.value,
         });
 
-        if (!loginResponse.data || !loginResponse.data.accessToken) {
-            throw new Error('로그인 응답 데이터가 올바르지 않습니다.');
-        }
-
-        // 로그인 정보 저장
-        const { accessToken, userId, nickname } = loginResponse.data;
-        localStorage.setItem('accessToken', accessToken);
-        localStorage.setItem('userId', userId.toString());
-        localStorage.setItem('nickname', nickname);
-
-        try {
-            // 프로필 정보 확인
-            await axios.get('/users/profile', {
-                headers: {
-                    Authorization: `Bearer ${accessToken}`
-                }
-            });
-
-            // 로그인 성공 후 홈으로 이동
-            router.push('/');
-        } catch (profileError) {
-            console.error('프로필 조회 실패:', profileError);
-            // 프로필 조회 실패해도 로그인은 유지
+        if (loginResponse.data.accessToken) {
+            const { accessToken, userId, nickname } = loginResponse.data;
+            localStorage.setItem('accessToken', accessToken);
+            localStorage.setItem('userId', userId.toString());
+            localStorage.setItem('nickname', nickname);
             router.push('/');
         }
     } catch (error: any) {
-        console.error('Login failed:', error.response?.data?.message || '로그인에 실패했습니다.');
-        alert(error.response?.data?.message || '로그인에 실패했습니다.');
+        const errorMessage = error.response?.data?.message || '로그인에 실패했습니다. 다시 시도해주세요.';
+        alert(errorMessage);
     }
 };
 
+// 비밀번호 찾기 모달 열기
 const openFindPasswordModal = () => {
     isModalOpen.value = true;
 };
 
+// 모달 닫기
 const closeModal = () => {
     isModalOpen.value = false;
 };
+
 </script>
 
 <style scoped>

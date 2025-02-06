@@ -46,6 +46,7 @@ const errors = ref({
     content: ''
 });
 
+// 게시글 데이터 가져오기
 const fetchPost = async () => {
     try {
         const response = await axios.get(`/posts/${route.params.id}`);
@@ -67,6 +68,7 @@ const fetchPost = async () => {
     }
 };
 
+// 폼 유효성 검사
 const validateForm = () => {
     let isValid = true;
     errors.value = {
@@ -87,6 +89,7 @@ const validateForm = () => {
     return isValid;
 };
 
+// 게시글 수정 제출
 const submitEdit = async () => {
     if (!validateForm()) return;
 
@@ -130,6 +133,7 @@ const submitEdit = async () => {
     }
 };
 
+// 뒤로 가기
 const goBack = () => {
     // 취소 시에도 카테고리 정보 유지
     router.push({
@@ -138,6 +142,7 @@ const goBack = () => {
     });
 };
 
+// 컴포넌트가 마운트될 때 게시글 데이터 가져오기
 onMounted(() => {
     fetchPost();
 });
@@ -268,4 +273,4 @@ onMounted(() => {
         justify-content: center;
     }
 }
-</style> 
+</style>

@@ -3,5 +3,8 @@ module.exports = {
     extends: [
         // 'next/core-web-vitals',
         // 다른 ESLint 설정이 있다면 유지합니다.
-    ]
+    ],
+    parserOptions: {
+        sourceType: 'module' // 추가
+    }
 }

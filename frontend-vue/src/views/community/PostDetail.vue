@@ -196,8 +196,10 @@ const toggleLike = async () => {
             { headers: { Authorization: `Bearer ${token}` } }
         );
 
-        isLiked.value = response.data.liked;
-        post.value.likes += response.data.liked ? 1 : -1;
+        if (post.value) { // post.value가 null이 아닐 때만 실행
+            isLiked.value = response.data.liked;
+            post.value.likes += response.data.liked ? 1 : -1;
+        }
     } catch (error) {
         console.error('좋아요 처리 실패:', error);
     }

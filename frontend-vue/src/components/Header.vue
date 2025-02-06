@@ -1,5 +1,6 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <template>
+<header>
 	<div>
 		<div class="top-container">
 			<div class="top-content">
@@ -1081,34 +1082,34 @@
 			</div>
 		</div>
 	</div>
+</header>
 </template>
 
 <script lang="ts">
+import { provide } from 'vue';
 import mitt from 'mitt';
-import { Category } from '../types/category';
-export const emitter = mitt();
+
+export const emitter = mitt(); // emitter 정의
+provide('emitter', emitter); // emitter를 provide
+
+export default {
+    // eslint-disable-next-line vue/multi-word-component-names
+    name: 'Header',
+};
+
+// 스터디 그룹 생성/삭제 이벤트 감지
+emitter.on('studyGroupCreated', () => {
+    // 필요한 로직 추가
+});
 </script>
 
 <script setup lang="ts">
-
 import { ref, onMounted, watch, onUnmounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import axios from '../utils/axios';
 import { useUserStore } from '../stores/user';
 import { storeToRefs } from 'pinia';
-
-// 최상단으로 이동
-declare global {
-	interface Window {
-		readonly innerWidth: number;
-		addEventListener: typeof addEventListener;
-		localStorage: {
-			getItem(key: string): string | null;
-			setItem(key: string, value: string): void;
-			removeItem(key: string): void;
-		};
-	}
-}
+import { Category } from '../types/category';
 
 type RegionCounts = {
 	[key: string]: {
@@ -1302,9 +1303,9 @@ onMounted(async () => {
 });
 
 onUnmounted(() => {
-    if (categoryUpdateInterval.value) {
-        clearInterval(categoryUpdateInterval.value);
-    }
+	if (categoryUpdateInterval.value) {
+		clearInterval(categoryUpdateInterval.value);
+	}
 });
 
 // 라우트 변경 시 로그인 상태만 체크
@@ -1904,3 +1905,5 @@ const categoryUpdateInterval = ref<number>();
 	/* 호버 시 텍스트 색상 변경 */
 }
 </style>
+
+export { emitter };

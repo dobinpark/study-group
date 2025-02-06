@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn, Index, ManyToMany, JoinTable, JoinColumn } from 'typeorm';
-import { User } from '../../user/users/entities/user.entity';
+import { User } from '../../user/entities/user.entity';
 
 @Entity()
 @Index(['mainCategory', 'subCategory', 'detailCategory'])

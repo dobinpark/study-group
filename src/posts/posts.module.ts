@@ -4,7 +4,7 @@ import { PostsController } from './controller/posts.controller';
 import { PostsService } from './service/posts.service';
 import { PostsRepository } from './repository/posts.repository';
 import { Post } from './entities/post.entity';
-import { User } from '../user/users/entities/user.entity';
+import { User } from '../user/entities/user.entity';
 import { CacheModule } from '@nestjs/cache-manager';
 
 @Module({

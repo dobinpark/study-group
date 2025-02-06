@@ -2,7 +2,7 @@ import { Injectable, NotFoundException, UnauthorizedException, InternalServerErr
 import { PostsRepository } from '../repository/posts.repository';
 import { Post } from '../entities/post.entity';
 import { CreatePostDto } from '../dto/create-post.dto';
-import { User } from '../../user/users/entities/user.entity';
+import { User } from '../../user/entities/user.entity';
 import { PostCategory } from '../enum/post-category.enum';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -11,25 +11,25 @@ import { UpdatePostDto } from '../dto/update-post.dto';
 @Injectable()
 export class PostsService {
     constructor(
-        private readonly postsRepository: PostsRepository,
+        @InjectRepository(PostsRepository)
+        private postsRepository: PostsRepository,
         @InjectRepository(Post)
         private readonly postRepository: Repository<Post>,
         @InjectRepository(User)
         private readonly userRepository: Repository<User>
     ) {}
 
-    async findByCategory(category: PostCategory, options: { page: number; limit: number; search?: string }) {
+    async findByCategory(category: PostCategory, page: number, limit: number, search?: string) {
         console.log('Service finding posts for category:', category);
-        return await this.postsRepository.findByCategory(category, options.page, options.limit, options.search);
+        return await this.postsRepository.findByCategory(category, page, limit, search);
     }
 
     async createPost(createPostDto: CreatePostDto, user: User): Promise<Post> {
         const post = this.postRepository.create({
             ...createPostDto,
-            category: createPostDto.category,
             author: user
         });
-        return await this.postRepository.save(post);
+        return await this.postsRepository.createPost(post);
     }
 
     async findOne(id: number): Promise<Post> {
