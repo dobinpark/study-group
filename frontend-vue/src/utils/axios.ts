@@ -1,39 +1,29 @@
-import axios from 'axios';
+import axios, { type AxiosInstance, isAxiosError } from 'axios'; // isAxiosError 를 임포트에 추가
 
 // Axios 인스턴스 생성
-const instance = axios.create({
-    baseURL: process.env.VUE_APP_API_URL || 'http://localhost:3000/api', // 기본 URL 설정
-    withCredentials: true, // 쿠키를 포함한 요청 허용
-    timeout: 10000 // 요청 타임아웃 설정
+const instance: AxiosInstance = axios.create({ // AxiosInstance 타입 명시
+    baseURL: process.env.VUE_APP_API_URL || 'http://localhost:3000/api',
+    withCredentials: true,
+    timeout: 10000
 });
 
-// 요청 인터셉터 - 모든 요청에 토큰 추가
+// 요청 인터셉터
 instance.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem('accessToken');
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`; // Authorization 헤더에 토큰 추가
-        }
+        // 세션 기반 인증에서는 별도의 토큰을 헤더에 추가하지 않습니다.
         return config;
     },
-    (error) => {
-        return Promise.reject(error); // 요청 오류 처리
-    }
+    (error) => Promise.reject(error)
 );
 
-// 응답 인터셉터 - 토큰 만료 등 에러 처리
+// 응답 인터셉터
 instance.interceptors.response.use(
-    (response) => response, // 응답 성공 시 그대로 반환
+    (response) => response,
     (error) => {
-        if (error.response?.status === 401) {
-            // 인증 오류 시 처리
-            localStorage.removeItem('accessToken');
-            localStorage.removeItem('userId');
-            localStorage.removeItem('nickname');
-            window.location.href = '/login'; // 로그인 페이지로 리다이렉트
-        }
-        return Promise.reject(error); // 응답 오류 처리
+        // 세션 기반 인증에서는 401 에러 처리를 컴포넌트 레벨에서 수행하는 것이 더 유연합니다.
+        return Promise.reject(error);
     }
 );
 
+export { isAxiosError };
 export default instance;

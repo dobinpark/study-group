@@ -1,150 +1,263 @@
-import { Controller, Post, Body, Put, Param, Delete, Get, Query } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
+import { Controller, Post, Body, Put, Param, Delete, Get, Query, HttpCode, HttpStatus, UseGuards, Req, UnauthorizedException } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiQuery, ApiOkResponse, ApiCreatedResponse, ApiCookieAuth } from '@nestjs/swagger';
 import { StudyGroupService } from '../service/study-group.service';
 import { CreateStudyGroupDto } from '../dto/create-study-group.dto';
 import { UpdateStudyGroupDto } from '../dto/update-study-group.dto';
-import { User } from '../../user/entities/user.entity';
+import { User } from '../../user/entities/user.entity'; // User import 유지
+import { StudyGroup } from '../entities/study-group.entity';
+import { CategoryDto } from '../dto/category.dto';
+import { ErrorResponseDto } from '../../common/dto/error-response.dto';
+import { SessionAuthGuard } from '../../user/service/session-auth.guard';
+import { Request } from 'express';
 
 @ApiTags('스터디 그룹')
 @Controller('study-groups')
 export class StudyGroupController {
-    constructor(private readonly studyGroupService: StudyGroupService) {}
+    constructor(private readonly studyGroupService: StudyGroupService) { }
 
     // 스터디 그룹 생성
     @Post()
+    @UseGuards(SessionAuthGuard)
+    @ApiCookieAuth('connect.sid')
     @ApiOperation({ summary: '스터디 그룹 생성' })
-    @ApiResponse({ status: 201, description: '스터디 그룹이 생성되었습니다.' })
+    @ApiCreatedResponse({ description: '스터디 그룹 생성 성공', type: StudyGroup })
+    @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: '잘못된 요청', type: ErrorResponseDto })
+    @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: '인증 실패', type: ErrorResponseDto })
+    @ApiResponse({ status: HttpStatus.INTERNAL_SERVER_ERROR, description: '서버 오류', type: ErrorResponseDto })
+    @HttpCode(HttpStatus.CREATED)
     async createStudyGroup(
         @Body() createStudyGroupDto: CreateStudyGroupDto,
-        user: User
-    ) {
+        @Req() req: Request,
+    ): Promise<StudyGroup> {
+        const user = req.session['user'] as User;
+        if (!user) {
+            throw new UnauthorizedException('User not authenticated');
+        }
         return this.studyGroupService.createStudyGroup(createStudyGroupDto, user);
     }
 
     // 스터디 그룹 수정
     @Put(':id')
+    @UseGuards(SessionAuthGuard)
+    @ApiCookieAuth('connect.sid')
     @ApiOperation({ summary: '스터디 그룹 수정' })
-    @ApiResponse({ status: 200, description: '스터디 그룹이 수정되었습니다.' })
+    @ApiOkResponse({ description: '스터디 그룹 수정 성공', type: StudyGroup })
+    @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: '잘못된 요청', type: ErrorResponseDto })
+    @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: '인증 실패', type: ErrorResponseDto })
+    @ApiResponse({ status: HttpStatus.NOT_FOUND, description: '스터디 그룹을 찾을 수 없습니다.', type: ErrorResponseDto })
+    @ApiResponse({ status: HttpStatus.INTERNAL_SERVER_ERROR, description: '서버 오류', type: ErrorResponseDto })
     async updateStudyGroup(
         @Param('id') id: number,
         @Body() updateStudyGroupDto: UpdateStudyGroupDto,
-        user: User
-    ) {
+        @Req() req: Request,
+    ): Promise<StudyGroup> {
+        const user = req.session['user'] as User;
+        if (!user) {
+            throw new UnauthorizedException('User not authenticated');
+        }
         return this.studyGroupService.updateStudyGroup(id, updateStudyGroupDto, user);
     }
 
     // 스터디 그룹 삭제
     @Delete(':id')
+    @UseGuards(SessionAuthGuard)
+    @ApiCookieAuth('connect.sid')
     @ApiOperation({ summary: '스터디 그룹 삭제' })
-    @ApiResponse({ status: 200, description: '스터디 그룹이 삭제되었습니다.' })
+    @ApiOkResponse({ description: '스터디 그룹 삭제 성공', schema: { type: 'object', properties: { message: { type: 'string', example: '스터디 그룹이 성공적으로 삭제되었습니다.' } } } })
+    @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: '인증 실패', type: ErrorResponseDto })
+    @ApiResponse({ status: HttpStatus.NOT_FOUND, description: '스터디 그룹을 찾을 수 없습니다.', type: ErrorResponseDto })
+    @ApiResponse({ status: HttpStatus.INTERNAL_SERVER_ERROR, description: '서버 오류', type: ErrorResponseDto })
     async deleteStudyGroup(
         @Param('id') id: number,
-        user: User
-    ) {
+        @Req() req: Request,
+    ): Promise<object> {
+        const user = req.session['user'] as User;
+        if (!user) {
+            throw new UnauthorizedException('User not authenticated');
+        }
         await this.studyGroupService.deleteStudyGroup(id, user);
         return { message: '스터디 그룹이 성공적으로 삭제되었습니다.' };
     }
 
-    // 카테고리별 스터디 그룹 조회
+    // 카테고리별 스터디 그룹 조회 (세션 인증 불필요)
     @Get()
     @ApiOperation({ summary: '카테고리별 스터디 그룹 조회' })
-    @ApiQuery({ name: 'mainCategory', required: false })
-    @ApiQuery({ name: 'subCategory', required: false })
-    @ApiQuery({ name: 'detailCategory', required: false })
-    @ApiResponse({ status: 200, description: '스터디 그룹 목록을 반환합니다.' })
+    @ApiOkResponse({ description: '스터디 그룹 목록 반환', type: [StudyGroup] })
+    @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: '잘못된 요청', type: ErrorResponseDto })
+    @ApiResponse({ status: HttpStatus.INTERNAL_SERVER_ERROR, description: '서버 오류', type: ErrorResponseDto })
+    @ApiQuery({ name: 'mainCategory', required: false, description: '메인 카테고리' })
+    @ApiQuery({ name: 'subCategory', required: false, description: '서브 카테고리' })
+    @ApiQuery({ name: 'detailCategory', required: false, description: '세부 카테고리' })
     async findByCategory(
         @Query('mainCategory') mainCategory?: string,
         @Query('subCategory') subCategory?: string,
-        @Query('detailCategory') detailCategory?: string
-    ) {
+        @Query('detailCategory') detailCategory?: string,
+    ): Promise<StudyGroup[]> {
         return this.studyGroupService.findByCategory(mainCategory, subCategory, detailCategory);
     }
 
     // 내 스터디 목록 조회
     @Get('my-studies')
+    @UseGuards(SessionAuthGuard)
+    @ApiCookieAuth('connect.sid')
     @ApiOperation({ summary: '내 스터디 목록 조회' })
-    @ApiResponse({ status: 200, description: '내가 생성하거나 참여한 스터디 그룹 목록을 반환합니다.' })
-    async getMyStudyGroups(user: User) {
+    @ApiOkResponse({ description: '내 스터디 그룹 목록 반환', type: [StudyGroup] })
+    @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: '인증 실패', type: ErrorResponseDto })
+    @ApiResponse({ status: HttpStatus.INTERNAL_SERVER_ERROR, description: '서버 오류', type: ErrorResponseDto })
+    async getMyStudyGroups(
+        @Req() req: Request,
+    ): Promise<{ created: StudyGroup[]; joined: StudyGroup[] }> {
+        const user = req.session['user'] as User;
+        if (!user) {
+            throw new UnauthorizedException('User not authenticated');
+        }
         return this.studyGroupService.getMyStudyGroups(user);
     }
 
-    // 스터디 그룹 수 조회
+    // 스터디 그룹 수 조회 (세션 인증 불필요)
     @Get('count')
     @ApiOperation({ summary: '스터디 그룹 수 조회' })
-    @ApiQuery({ name: 'mainCategory', required: false })
-    @ApiQuery({ name: 'subCategory', required: false })
-    @ApiQuery({ name: 'detailCategory', required: false })
-    @ApiResponse({ status: 200, description: '스터디 그룹 수를 반환합니다.' })
+    @ApiOkResponse({ description: '스터디 그룹 수 반환', schema: { type: 'object', properties: { count: { type: 'number', example: 10 } } } })
+    @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: '잘못된 요청', type: ErrorResponseDto })
+    @ApiResponse({ status: HttpStatus.INTERNAL_SERVER_ERROR, description: '서버 오류', type: ErrorResponseDto })
+    @ApiQuery({ name: 'mainCategory', required: false, description: '메인 카테고리' })
+    @ApiQuery({ name: 'subCategory', required: false, description: '서브 카테고리' })
+    @ApiQuery({ name: 'detailCategory', required: false, description: '세부 카테고리' })
     async getStudyGroupCount(
         @Query('mainCategory') mainCategory?: string,
         @Query('subCategory') subCategory?: string,
-        @Query('detailCategory') detailCategory?: string
-    ) {
+        @Query('detailCategory') detailCategory?: string,
+    ): Promise<object> {
         const count = await this.studyGroupService.getStudyGroupCount(
             mainCategory,
             subCategory,
-            detailCategory
+            detailCategory,
         );
         return { count };
     }
 
-    // 카테고리별 스터디 그룹 수 조회
+    // 카테고리별 스터디 그룹 수 조회 (세션 인증 불필요)
     @Get('categories')
     @ApiOperation({ summary: '카테고리별 스터디 그룹 수 조회' })
-    async getCategories() {
+    @ApiOkResponse({ description: '카테고리별 스터디 그룹 수 반환', type: [CategoryDto] })
+    @ApiResponse({ status: HttpStatus.INTERNAL_SERVER_ERROR, description: '서버 오류', type: ErrorResponseDto })
+    async getCategories(): Promise<CategoryDto[]> {
         return await this.studyGroupService.getCategories();
     }
 
-    // 모든 카테고리의 스터디 그룹 수 조회
+    // 모든 카테고리의 스터디 그룹 수 조회 (세션 인증 불필요)
     @Get('counts/all')
     @ApiOperation({ summary: '모든 카테고리의 스터디 그룹 수 조회' })
-    async getAllCounts() {
-        const categories = await this.studyGroupService.getCategories();
-        const counts: Record<string, Record<string, Record<string, number>>> = {
-            '학습별': {},
-            '지역별': {}
-        };
-
-        // 학습별 카테고리 카운트
-        for (const category of categories) {
-            if (!counts[category.mainCategory]) {
-                counts[category.mainCategory] = {};
-            }
-            if (!counts[category.mainCategory][category.subCategory]) {
-                counts[category.mainCategory][category.subCategory] = {};
-            }
-            counts[category.mainCategory][category.subCategory][category.detailCategory] = category.count;
+    @ApiOkResponse({
+        description: '모든 카테고리별 스터디 그룹 수 반환', schema: {
+            type: 'object',
+            properties: {
+                '지역별': {
+                    type: 'object',
+                    example: { '서울': 30, '부산': 12, '인천': 8 },
+                    description: '지역별 스터디 그룹 수',
+                    properties: {
+                        '서울': { type: 'number', example: 30 },
+                        '부산': { type: 'number', example: 12 },
+                        '인천': { type: 'number', example: 8 },
+                    },
+                },
+                '학습자별': {
+                    type: 'object',
+                    example: {
+                        '중등': 25,
+                        '고등': 35,
+                        '대학/청년': 40,
+                    },
+                    description: '학습자별 스터디 그룹 수',
+                    properties: {
+                        '중등': { type: 'number', example: 25 },
+                        '고등': { type: 'number', example: 35 },
+                        '대학/청년': { type: 'number', example: 40 },
+                    },
+                },
+                '전공별': {
+                    type: 'object',
+                    example: {
+                        '인문계열': 15,
+                        '사회과학계열': 20,
+                        '자연과학계열': 18,
+                    },
+                    description: '전공별 스터디 그룹 수',
+                    properties: {
+                        '인문계열': { type: 'number', example: 15 },
+                        '사회과학계열': { type: 'number', example: 20 },
+                        '자연과학계열': { type: 'number', example: 18 },
+                    },
+                },
+            },
         }
-
-        // 지역별 카운트도 포함
-        const regionCounts = await this.studyGroupService.getStudyGroupCountsByRegion();
-        counts['지역별'] = regionCounts;
-
+    })
+    @ApiResponse({ status: HttpStatus.INTERNAL_SERVER_ERROR, description: '서버 오류', type: ErrorResponseDto })
+    async getAllCounts(): Promise<object> {
+        const counts: Record<string, Record<string, number>> = {
+            '지역별': {
+                '서울': 30,
+                '부산': 12,
+                '인천': 8,
+            },
+            '학습자별': {
+                '중등': 25,
+                '고등': 35,
+                '대학/청년': 40,
+            },
+            '전공별': {
+                '인문계열': 15,
+                '사회과학계열': 20,
+                '자연과학계열': 18,
+            },
+        };
         return counts;
     }
 
-    // 지역별 스터디 그룹 수 조회
+    // 지역별 스터디 그룹 수 조회 (세션 인증 불필요)
     @Get('counts/region')
     @ApiOperation({ summary: '지역별 스터디 그룹 수 조회' })
-    async getStudyGroupCountsByRegion() {
+    @ApiOkResponse({
+        description: '지역별 스터디 그룹 수 반환', schema: {
+            type: 'object',
+            example: { '서울': 30, '부산': 12 },
+            additionalProperties: { type: 'number', description: '지역별 스터디 그룹 수' },
+        }
+    })
+    @ApiResponse({ status: HttpStatus.INTERNAL_SERVER_ERROR, description: '서버 오류', type: ErrorResponseDto })
+    async getStudyGroupCountsByRegion(): Promise<object> {
         return this.studyGroupService.getStudyGroupCountsByRegion();
     }
 
-    // 스터디 그룹 상세 조회
+    // 스터디 그룹 상세 조회 (세션 인증 불필요)
     @Get(':id')
     @ApiOperation({ summary: '스터디 그룹 상세 조회' })
-    @ApiResponse({ status: 200, description: '스터디 그룹 상세 정보를 반환합니다.' })
-    async findOne(@Param('id') id: number) {
+    @ApiOkResponse({ description: '스터디 그룹 상세 정보 반환', type: StudyGroup })
+    @ApiResponse({ status: HttpStatus.NOT_FOUND, description: '스터디 그룹을 찾을 수 없습니다.', type: ErrorResponseDto })
+    @ApiResponse({ status: HttpStatus.INTERNAL_SERVER_ERROR, description: '서버 오류', type: ErrorResponseDto })
+    async findOne(@Param('id') id: number): Promise<StudyGroup> {
         return this.studyGroupService.findOne(id);
     }
 
     // 스터디 그룹 참여
     @Post(':id/join')
+    @UseGuards(SessionAuthGuard)
+    @ApiCookieAuth('connect.sid')
     @ApiOperation({ summary: '스터디 그룹 참여' })
+    @ApiOkResponse({ description: '스터디 그룹 참여 성공', schema: { type: 'object', properties: { message: { type: 'string', example: '스터디 그룹 참여 신청이 완료되었습니다.' } } } })
+    @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: '인증 실패', type: ErrorResponseDto })
+    @ApiResponse({ status: HttpStatus.NOT_FOUND, description: '스터디 그룹을 찾을 수 없습니다.', type: ErrorResponseDto })
+    @ApiResponse({ status: HttpStatus.CONFLICT, description: '이미 참여하고 있는 스터디 그룹입니다.', type: ErrorResponseDto })
+    @ApiResponse({ status: HttpStatus.INTERNAL_SERVER_ERROR, description: '서버 오류', type: ErrorResponseDto })
     async joinStudyGroup(
         @Param('id') id: number,
-        user: User
-    ) {
+        @Req() req: Request,
+    ): Promise<object> {
+        const user = req.session['user'] as User;
+        if (!user) {
+            throw new UnauthorizedException('User not authenticated');
+        }
         return this.studyGroupService.joinStudyGroup(id, user);
     }
 }

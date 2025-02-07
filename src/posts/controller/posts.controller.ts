@@ -1,12 +1,16 @@
-import { Controller, Get, Post, Body, Param, Query, Put, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, Put, Delete, UseGuards, Req, UnauthorizedException, HttpCode, HttpStatus } from '@nestjs/common';
 import { PostsService } from '../service/posts.service';
 import { CreatePostDto } from '../dto/create-post.dto';
 import { User } from '../../user/entities/user.entity';
+import { Post as PostEntity } from '../entities/post.entity';
 import { PostCategory } from '../enum/post-category.enum';
 import { UpdatePostDto } from '../dto/update-post.dto';
-import { ApiOperation, ApiResponse, ApiTags, ApiQuery } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags, ApiQuery, ApiCookieAuth, ApiCreatedResponse, ApiOkResponse } from '@nestjs/swagger';
+import { SessionAuthGuard } from '../../user/service/session-auth.guard';
+import { Request } from 'express';
+import { ErrorResponseDto } from '../../common/dto/error-response.dto';
 
-@ApiTags('게시물')
+@ApiTags('게시판')
 @Controller('posts')
 export class PostsController {
     constructor(private readonly postsService: PostsService) {}
@@ -14,69 +18,111 @@ export class PostsController {
     // 카테고리별 게시물 조회
     @Get()
     @ApiOperation({ summary: '카테고리별 게시물 조회' })
-    @ApiQuery({ name: 'category', required: true })
-    @ApiQuery({ name: 'page', required: false })
-    @ApiQuery({ name: 'limit', required: false })
-    @ApiQuery({ name: 'search', required: false })
-    @ApiResponse({ status: 200, description: '게시물 목록을 반환합니다.' })
+    @ApiQuery({ name: 'category', required: true, description: '게시물 카테고리' })
+    @ApiQuery({ name: 'page', required: false, description: '페이지 번호', example: 1 })
+    @ApiQuery({ name: 'limit', required: false, description: '페이지당 게시물 수', example: 10 })
+    @ApiQuery({ name: 'search', required: false, description: '검색어' })
+    @ApiOkResponse({ description: '게시물 목록 조회 성공', type: [PostEntity] })
+    @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: '잘못된 요청', type: ErrorResponseDto })
+    @ApiResponse({ status: HttpStatus.INTERNAL_SERVER_ERROR, description: '서버 오류', type: ErrorResponseDto })
     async findByCategory(
         @Query('category') category: PostCategory,
         @Query('page') page: number = 1,
         @Query('limit') limit: number = 10,
         @Query('search') search?: string
     ) {
-        console.log('Controller received category:', category);
         return await this.postsService.findByCategory(category, page, limit, search);
     }
 
     // 게시물 생성
     @Post()
+    @UseGuards(SessionAuthGuard)
+    @ApiCookieAuth('connect.sid')
     @ApiOperation({ summary: '게시물 생성' })
-    @ApiResponse({ status: 201, description: '게시물이 생성되었습니다.' })
-    async createPost(@Body() createPostDto: CreatePostDto, user: User) {
+    @ApiCreatedResponse({ description: '게시물 생성 성공', type: PostEntity })
+    @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: '인증 실패', type: ErrorResponseDto })
+    @ApiResponse({ status: HttpStatus.INTERNAL_SERVER_ERROR, description: '서버 오류', type: ErrorResponseDto })
+    @HttpCode(HttpStatus.CREATED)
+    async createPost(
+        @Body() createPostDto: CreatePostDto,
+        @Req() req: Request,
+    ): Promise<PostEntity> {
+        const user = req.session['user'] as User;
+        if (!user) {
+            throw new UnauthorizedException('User not authenticated');
+        }
         return await this.postsService.createPost(createPostDto, user);
     }
 
     // 게시물 상세 조회
     @Get(':id')
     @ApiOperation({ summary: '게시물 상세 조회' })
-    @ApiResponse({ status: 200, description: '게시물 상세 정보를 반환합니다.' })
+    @ApiOkResponse({ description: '게시물 상세 정보 반환', type: PostEntity })
+    @ApiResponse({ status: HttpStatus.NOT_FOUND, description: '게시물을 찾을 수 없습니다.', type: ErrorResponseDto })
+    @ApiResponse({ status: HttpStatus.INTERNAL_SERVER_ERROR, description: '서버 오류', type: ErrorResponseDto })
     async findOne(@Param('id') id: number) {
-        console.log('Finding post with id:', id);
         return await this.postsService.findOne(id);
     }
 
     // 게시물 좋아요 토글
     @Post(':id/toggle-like')
+    @UseGuards(SessionAuthGuard)
+    @ApiCookieAuth('connect.sid')
     @ApiOperation({ summary: '게시물 좋아요 토글' })
-    @ApiResponse({ status: 200, description: '게시물의 좋아요 상태가 변경되었습니다.' })
+    @ApiOkResponse({ description: '게시물의 좋아요 상태 변경 성공', schema: { type: 'object', properties: { liked: { type: 'boolean' } } } })
+    @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: '인증 실패', type: ErrorResponseDto })
+    @ApiResponse({ status: HttpStatus.NOT_FOUND, description: '게시물을 찾을 수 없습니다.', type: ErrorResponseDto })
+    @ApiResponse({ status: HttpStatus.INTERNAL_SERVER_ERROR, description: '서버 오류', type: ErrorResponseDto })
     async toggleLike(
         @Param('id') id: number,
-        user: User
-    ) {
+        @Req() req: Request,
+    ): Promise<{ liked: boolean }> {
+        const user = req.session['user'] as User;
+        if (!user) {
+            throw new UnauthorizedException('User not authenticated');
+        }
         return await this.postsService.toggleLike(id, user.id);
     }
 
     // 게시물 수정
     @Put(':id')
+    @UseGuards(SessionAuthGuard)
+    @ApiCookieAuth('connect.sid')
     @ApiOperation({ summary: '게시물 수정' })
-    @ApiResponse({ status: 200, description: '게시물이 수정되었습니다.' })
+    @ApiOkResponse({ description: '게시물 수정 성공', type: PostEntity })
+    @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: '잘못된 요청', type: ErrorResponseDto })
+    @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: '인증 실패', type: ErrorResponseDto })
+    @ApiResponse({ status: HttpStatus.NOT_FOUND, description: '게시물을 찾을 수 없습니다.', type: ErrorResponseDto })
+    @ApiResponse({ status: HttpStatus.INTERNAL_SERVER_ERROR, description: '서버 오류', type: ErrorResponseDto })
     async updatePost(
         @Param('id') id: number,
         @Body() updatePostDto: UpdatePostDto,
-        user: User
-    ) {
+        @Req() req: Request,
+    ): Promise<PostEntity> {
+        const user = req.session['user'] as User;
+        if (!user) {
+            throw new UnauthorizedException('User not authenticated');
+        }
         return await this.postsService.updatePost(id, updatePostDto, user);
     }
 
     // 게시물 삭제
     @Delete(':id')
+    @UseGuards(SessionAuthGuard)
+    @ApiCookieAuth('connect.sid')
     @ApiOperation({ summary: '게시물 삭제' })
-    @ApiResponse({ status: 200, description: '게시물이 삭제되었습니다.' })
+    @ApiOkResponse({ description: '게시물 삭제 성공', schema: { type: 'object', properties: { message: { type: 'string', example: '게시물이 성공적으로 삭제되었습니다.' } } } })
+    @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: '인증 실패', type: ErrorResponseDto })
+    @ApiResponse({ status: HttpStatus.NOT_FOUND, description: '게시물을 찾을 수 없습니다.', type: ErrorResponseDto })
+    @ApiResponse({ status: HttpStatus.INTERNAL_SERVER_ERROR, description: '서버 오류', type: ErrorResponseDto })
     async deletePost(
         @Param('id') id: number,
-        user: User
+        @Req() req: Request,
     ): Promise<{ message: string }> {
+        const user = req.session['user'] as User;
+        if (!user) {
+            throw new UnauthorizedException('User not authenticated');
+        }
         await this.postsService.deletePost(id, user);
         return { message: '게시물이 성공적으로 삭제되었습니다.' };
     }

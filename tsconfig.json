@@ -24,6 +24,10 @@
       "./types"
     ]
   },
-  "include": ["src/**/*"],
+  "include": [
+    "src/**/*.ts",
+    "src/data-source.ts",
+    "src/types/express-session.d.ts"
+  ],
   "exclude": ["node_modules", "dist"]
 }

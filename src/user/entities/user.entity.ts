@@ -42,7 +42,7 @@ export class User {
     @UpdateDateColumn()
     updatedAt!: Date;
 
-    @OneToMany(() => Post, (post) => post.author)
+    @OneToMany(() => Post, post => post.author)
     posts!: Post[];
 
     @OneToMany(() => StudyGroup, studyGroup => studyGroup.creator)

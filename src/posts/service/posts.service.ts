@@ -60,7 +60,7 @@ export class PostsService {
         }
 
         const userLiked = post.likedBy.some(user => user.id === userId);
-        
+
         if (userLiked) {
             post.likedBy = post.likedBy.filter(user => user.id !== userId);
             post.likes -= 1;
@@ -87,14 +87,15 @@ export class PostsService {
             throw new NotFoundException('게시글을 찾을 수 없습니다.');
         }
 
-        if (post.author.id !== user.id) {
+        // **생성자 기반 권한 검사**: 게시글 작성자의 username, email 과 현재 사용자 정보 비교
+        if (post.author.username !== user.username || post.author.email !== user.email) {
             throw new UnauthorizedException('게시글을 수정할 권한이 없습니다.');
         }
 
         // Object.assign을 사용하여 업데이트
         Object.assign(post, updatePostDto);
 
-        return await this.postRepository.save(post);
+        return await this.postsRepository.save(post);
     }
 
     async deletePost(id: number, user: User): Promise<void> {
@@ -107,12 +108,13 @@ export class PostsService {
             throw new NotFoundException('게시글을 찾을 수 없습니다.');
         }
 
-        if (post.author.id !== user.id) {
+        // **생성자 기반 권한 검사**: 게시글 작성자의 username, email 과 현재 사용자 정보 비교
+        if (post.author.username !== user.username || post.author.email !== user.email) {
             throw new UnauthorizedException('게시글을 삭제할 권한이 없습니다.');
         }
 
         try {
-            await this.postRepository.remove(post);
+            await this.postsRepository.remove(post);
         } catch (error) {
             throw new InternalServerErrorException('게시글 삭제 중 오류가 발생했습니다.');
         }

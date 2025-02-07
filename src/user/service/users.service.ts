@@ -9,15 +9,18 @@ import * as bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
 import { Cache } from 'cache-manager';
 import { UserCredentialsDto } from '../dto/user-credentials.dto';
+import { LoginDto } from '../dto/login.dto';
+import { UserProfileResponseDto } from '../dto/user-profile.response.dto';
 
 @Injectable()
 export class UsersService {
-    private readonly USER_PROFILE_CACHE_TTL = 600; // 10분
-    private readonly USER_PROFILE_CACHE_PREFIX = 'user:profile:';
-    private readonly SALT_ROUNDS = 10;
+    private static readonly USER_PROFILE_CACHE_TTL = 600;
+    private static readonly USER_PROFILE_CACHE_PREFIX = 'user:profile:';
+    private static readonly SALT_ROUNDS = 10;
 
     constructor(
-        @Inject(CACHE_MANAGER) private cacheManager: Cache,
+        @Inject(CACHE_MANAGER)
+        private cacheManager: Cache,
         @InjectRepository(User)
         private userRepository: Repository<User>,
     ) { }
@@ -30,53 +33,52 @@ export class UsersService {
         }
 
         const existingUser = await this.userRepository.findOne({ where: { username } });
-
         if (existingUser) {
             throw new BadRequestException('Username already exists');
         }
 
-        const hashedPassword = await bcrypt.hash(password, this.SALT_ROUNDS);
-        await this.userRepository.save({
-            ...userCredentialsDto,
-            password: hashedPassword,
-        });
+        const hashedPassword = await bcrypt.hash(password, UsersService.SALT_ROUNDS);
+
+        try {
+            await this.userRepository.save({
+                ...userCredentialsDto,
+                password: hashedPassword,
+            });
+        } catch (error) {
+            console.error('회원 가입 중 데이터베이스 오류 발생:', error);
+            throw new InternalServerErrorException('Failed to sign up user');
+        }
     }
 
-    async login(userCredentialsDto: UserCredentialsDto): Promise<User> {
-        const { username, password } = userCredentialsDto;
+    async login(loginDto: LoginDto): Promise<User> { // User 엔티티 반환하도록 수정
+        const { username, password } = loginDto;
         return this.validateUser(username, password);
     }
 
-    private async validateUser(username: string, password: string): Promise<User> {
+    private async validateUser(username: string, password: string): Promise<User> { // User 엔티티 반환하도록 수정
         const user = await this.userRepository.findOne({ where: { username } });
 
-        if (!user || !(await bcrypt.compare(password, user.password))) {
+        if (!user) {
             throw new UnauthorizedException('Invalid credentials');
         }
 
-        return user;
-    }
-
-    async getUserProfile(username: string): Promise<Partial<User> | null> {
-        const cacheKey = this.getCacheKey(username);
-        const cachedProfile = await this.cacheManager.get<Partial<User>>(cacheKey);
-
-        if (cachedProfile) {
-            return cachedProfile;
+        const isPasswordMatch = await bcrypt.compare(password, user.password);
+        if (!isPasswordMatch) {
+            throw new UnauthorizedException('Invalid credentials');
         }
 
-        const user = await this.findUserByUsername(username);
-
-        if (!user) {
-            throw new NotFoundException(`User with username ${username} not found`);
-        }
-
-        const profile = this.excludeSensitiveFields(user);
-        await this.cacheManager.set(cacheKey, profile, this.USER_PROFILE_CACHE_TTL * 1000);
-        return profile;
+        return user; // User 엔티티 반환
     }
 
-    async updateUserProfile(username: string, updateUserDto: UpdateUserDto): Promise<Partial<User> | null> {
+    async getUserProfile(username: string): Promise<UserProfileResponseDto> {
+        const profile = await this.userRepository.findOne({ where: { username } });
+        if (!profile) {
+            throw new NotFoundException('User profile not found');
+        }
+        return this.excludeSensitiveFieldsToProfileDto(profile) as UserProfileResponseDto;
+    }
+
+    async updateUserProfile(username: string, updateUserDto: UpdateUserDto): Promise<UserProfileResponseDto | null> { // UserProfileResponseDto 반환하도록 수정
         const cacheKey = this.getCacheKey(username);
         const updatedProfile = await this._updateUserProfile(username, updateUserDto);
 
@@ -86,38 +88,65 @@ export class UsersService {
         return updatedProfile;
     }
 
-    private async _updateUserProfile(username: string, updateUserDto: UpdateUserDto): Promise<Partial<User> | null> {
+    private async _updateUserProfile(username: string, updateUserDto: UpdateUserDto): Promise<UserProfileResponseDto | null> { // UserProfileResponseDto 반환하도록 수정
         try {
             const user = await this.findUserByUsername(username);
             if (!user) {
-                throw new NotFoundException('User not found');
+                throw new NotFoundException(`User with username '${username}' not found`);
             }
 
-            const result = await this.userRepository.update(user.id, updateUserDto);
-            if (result.affected === 0) {
+            const updateData: Partial<User> = {}; // userRepository.update 에 사용할 객체 생성
+
+            // currentPassword 검증 로직 추가 (updateUserDto에 currentPassword가 있는 경우)
+            if (updateUserDto.currentPassword) {
+                const isPasswordMatch = await bcrypt.compare(updateUserDto.currentPassword, user.password);
+                if (!isPasswordMatch) {
+                    throw new BadRequestException('Invalid current password');
+                }
+                // 새 비밀번호 해싱 (newPassword가 제공된 경우에만)
+                if (updateUserDto.newPassword) {
+                    updateData.password = await bcrypt.hash(updateUserDto.newPassword, UsersService.SALT_ROUNDS); // updateData.password 에 해시된 비밀번호 저장
+                    // delete updateUserDto.newPassword; // 더 이상 필요 없으므로 삭제 (updateData 에 password 저장했으므로 updateUserDto 에서 삭제는 불필요)
+                }
+                // delete updateUserDto.currentPassword; // currentPassword는 더 이상 필요 없으므로 삭제 (updateData 에 currentPassword 관련 로직 없음)
+            }
+
+            // 나머지 필드 업데이트 (닉네임, 이메일, 전화번호)
+            if (updateUserDto.nickname !== undefined) {
+                updateData.nickname = updateUserDto.nickname;
+            }
+            if (updateUserDto.email !== undefined) {
+                updateData.email = updateUserDto.email;
+            }
+            if (updateUserDto.phoneNumber !== undefined) {
+                updateData.phoneNumber = updateUserDto.phoneNumber;
+            }
+
+            const updateResult = await this.userRepository.update(user.id, updateData); // updateData 를 사용하여 업데이트
+            if (updateResult.affected === 0) {
                 return null;
             }
 
             const updatedUser = await this.findUserByUsername(username);
-            return this.excludeSensitiveFields(updatedUser);
+            return this.excludeSensitiveFieldsToProfileDto(updatedUser); // DTO 변환 함수 사용
 
         } catch (error) {
-            console.error("Error updating user profile:", error);
+            console.error('사용자 프로필 업데이트 오류:', error);
             throw new InternalServerErrorException('Failed to update user profile');
         }
     }
 
     private getCacheKey(username: string): string {
-        return `${this.USER_PROFILE_CACHE_PREFIX}${username}`;
+        return `${UsersService.USER_PROFILE_CACHE_PREFIX}${username}`;
     }
 
-    private excludeSensitiveFields(user: User | undefined | null): Partial<User> | null {
+    private excludeSensitiveFieldsToProfileDto(user: User | undefined | null): UserProfileResponseDto | null {
         if (!user) return null;
         const { password, ...rest } = user;
-        return rest;
+        return rest as UserProfileResponseDto; // UserProfileResponseDto 로 타입 캐스팅하여 반환
     }
 
-    async findUserByUsername(username: string): Promise<User | null> {
+    private async findUserByUsername(username: string): Promise<User | null> {
         return this.userRepository.findOne({ where: { username } });
     }
 
@@ -126,28 +155,26 @@ export class UsersService {
             const { username, email } = findPasswordDto;
 
             const user = await this.userRepository.findOne({ where: { username, email } });
-
             if (!user) {
                 throw new NotFoundException('User not found');
             }
 
             const tempPassword = uuidv4().slice(0, 12);
 
-            const hashedPassword = await bcrypt.hash(tempPassword, this.SALT_ROUNDS);
+            const hashedPassword = await bcrypt.hash(tempPassword, UsersService.SALT_ROUNDS);
 
             await this.userRepository.update(user.id, { password: hashedPassword });
 
             return { tempPassword };
 
         } catch (error) {
-            console.error("Error finding or updating password:", error);
+            console.error('비밀번호 찾기 처리 오류:', error);
             throw new InternalServerErrorException('Failed to process password request');
         }
     }
 
     async logout(): Promise<void> {
-        // 로그아웃 로직을 여기에 추가합니다.
-        // 예를 들어, 클라이언트 측에서 토큰을 삭제하도록 안내할 수 있습니다.
-        // 서버 측에서 특별히 할 작업이 없다면 빈 메서드로 둘 수 있습니다.
+        // 세션 기반 인증에서는 서비스 레벨에서 로그아웃 로직이 필요 없음
+        // Controller 에서 req.session.destroy() 를 통해 세션 삭제
     }
 }

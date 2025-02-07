@@ -9,9 +9,8 @@ import { CacheModule } from '@nestjs/cache-manager';
 import * as redisStore from 'cache-manager-redis-store';
 import { PostsModule } from './posts/posts.module';
 import { validate } from './config/env.validation';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { RedisClientOptions } from 'redis';
+import { Session } from './user/entities/session.entity';
 
 config(); // .env 파일의 환경 변수를 로드합니다.
 
@@ -36,7 +35,7 @@ if (!process.env.DB_PORT) {
                 username: configService.get<string>('DB_USERNAME'),
                 password: configService.get<string>('DB_PASSWORD'),
                 database: configService.get<string>('DB_DATABASE'),
-                entities: [__dirname + '/**/*.entity{.ts,.js}'],
+                entities: [__dirname + '/**/*.entity{.ts,.js}', Session],
                 synchronize: true,
             }),
             inject: [ConfigService],
@@ -55,7 +54,7 @@ if (!process.env.DB_PORT) {
         }),
         PostsModule,
     ],
-    controllers: [AppController],
-    providers: [AppService],
+    controllers: [],
+    providers: [],
 })
 export class AppModule { }

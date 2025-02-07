@@ -103,7 +103,7 @@ const signup = async () => {
 		const formattedPhoneNumber = phoneNumber.value.replace(/-/g, '');
 
 		// 회원가입 요청
-		const response = await axios.post('/auth/signup', {
+		const response = await axios.post('/users/signup', {
 			username: username.value,
 			password: password.value,
 			confirmPassword: confirmPassword.value,
@@ -114,7 +114,7 @@ const signup = async () => {
 
 		console.log('회원가입 성공:', response.data);
 		alert('회원가입이 완료되었습니다.');
-		router.push('/login');
+		await router.push('/login');
 	} catch (error) {
 		console.error('회원가입 실패:', error.response?.data?.message || '회원가입 중 오류가 발생했습니다.');
 		alert(error.response?.data?.message || '회원가입 중 오류가 발생했습니다.');

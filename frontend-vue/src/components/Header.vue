@@ -1138,7 +1138,7 @@ onMounted(async () => {
 	fetchStudyGroupCounts();
 	// 스터디 그룹 생성/삭제 이벤트 감지
 	emitter.on('studyGroupCreated', () => {
-	fetchStudyGroupCounts();
+		fetchStudyGroupCounts();
 	});
 	emitter.on('studyGroupDeleted', () => {
 		fetchStudyGroupCounts();
@@ -1152,7 +1152,7 @@ const goToStudyList = (mainRegion: string, subRegion: string) => {
 	let mainCategory: string;
 
 	// 메인 카테고리 판별 로직 개선
-	if (['서울', '부산', '대구', '인천', '광주', '대전', '울산', '경기', '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주', '세종'].includes(mainRegion)) {
+	if (['서울', '인천', '부산', '대구', '광주', '대전', '울산', '경기', '세종', '충남', '충북', '경남', '경북', '전남', '전북', '강원', '제주'].includes(mainRegion)) {
 		mainCategory = '지역별';
 	} else if (['중등', '고등', '대학/청년', '취업준비/수험', '경력/이직', '취미/자기계발'].includes(mainRegion)) {
 		mainCategory = '학습자별';
@@ -1180,53 +1180,25 @@ const goToStudyList = (mainRegion: string, subRegion: string) => {
 };
 
 const checkLoginStatus = () => {
-	const token = localStorage.getItem('accessToken');
-	const nickname = localStorage.getItem('nickname');
-
-	if (token && nickname) {
-		isLoggedIn.value = true;
-		userNickname.value = nickname;
-	} else {
-		isLoggedIn.value = false;
-		userNickname.value = '';
-	}
+	// 로그인 상태를 확인하는 로직을 수정합니다.
+	isLoggedIn.value = !!user.value;
+	userNickname.value = user.value?.nickname || '';
 };
 
-const validateToken = async () => {
-	const token = localStorage.getItem('accessToken');
-	if (!token) return;
-
-	try {
-		const response = await axios.get('/users/profile', {
-				headers: {
-					Authorization: `Bearer ${token}`
-				}
-			});
-		console.log('토큰 검증 응답:', response.data);
-		if (response.data) {
-			isLoggedIn.value = true;
-			userNickname.value = response.data.nickname;
-			localStorage.setItem('nickname', response.data.nickname);
-		}
-	} catch (error) {
-		console.error('토큰 검증 실패:', error);
-				logout();
-	}
+const logout = async () => {
+  try {
+await userStore.logout();
+    isLoggedIn.value = false;
+    userNickname.value = '';
+    router.push('/login');
+  } catch (error) {
+    console.error('Logout failed:', error);
+  }
 };
 
-const logout = () => {
-	localStorage.removeItem('accessToken');
-	localStorage.removeItem('userId');
-	localStorage.removeItem('nickname');
-	isLoggedIn.value = false;
-	userNickname.value = '';
-	router.push('/login');
-};
-
-// 컴포넌트 마운트 시 로그인 상태 즉시 체크하고, 토큰 유효성은 비동기로 검증
+// 컴포넌트 마운트 시 로그인 상태 즉시 체크
 onMounted(() => {
-	checkLoginStatus();  // 즉시 로컬 스토리지 기반으로 상태 설정
-	validateToken();     // 비동기로 토큰 유효성 검증
+	checkLoginStatus();  // 즉시 상태 설정
 });
 
 // 라우트 변경 시 로그인 상태 체크

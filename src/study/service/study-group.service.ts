@@ -59,9 +59,9 @@ export class StudyGroupService {
             }
 
             await this.categoryRepository.save(category);
-            
+
             // 캐시 무효화
-            this.invalidateCache();
+            await this.invalidateCache();
 
             return savedStudyGroup;
         } catch (error) {
@@ -85,7 +85,8 @@ export class StudyGroupService {
             throw new NotFoundException('스터디 그룹을 찾을 수 없습니다.');
         }
 
-        if (studyGroup.leader.id !== user.id) {
+        // **권한 검사: 스터디 그룹 리더의 username, email 과 현재 사용자 정보 비교**
+        if (studyGroup.leader.username !== user.username || studyGroup.leader.email !== user.email) {
             throw new UnauthorizedException('스터디 그룹을 수정할 권한이 없습니다.');
         }
 
@@ -116,7 +117,8 @@ export class StudyGroupService {
             throw new NotFoundException('스터디 그룹을 찾을 수 없습니다.');
         }
 
-        if (studyGroup.leader.id !== user.id) {
+        // **권한 검사: 스터디 그룹 리더의 username, email 과 현재 사용자 정보 비교**
+        if (studyGroup.leader.username !== user.username || studyGroup.leader.email !== user.email) {
             throw new UnauthorizedException('스터디 그룹을 삭제할 권한이 없습니다.');
         }
 
@@ -137,7 +139,7 @@ export class StudyGroupService {
         await this.studyGroupRepository.remove(studyGroup);
 
         // 캐시 무효화
-        this.invalidateCache();
+        await this.invalidateCache();
     }
 
     // 카테고리별 스터디 그룹 찾기
@@ -154,11 +156,11 @@ export class StudyGroupService {
         if (mainCategory) {
             queryBuilder.andWhere('studyGroup.mainCategory = :mainCategory', { mainCategory });
         }
-        
+
         if (subCategory) {
             queryBuilder.andWhere('studyGroup.subCategory = :subCategory', { subCategory });
         }
-        
+
         if (detailCategory && detailCategory !== '전체') {
             queryBuilder.andWhere('studyGroup.detailCategory = :detailCategory', { detailCategory });
         }
@@ -230,7 +232,7 @@ export class StudyGroupService {
         if (mainCategory) {
             queryBuilder.andWhere('studyGroup.mainCategory = :mainCategory', { mainCategory });
         }
-        
+
         if (subCategory) {
             queryBuilder.andWhere('studyGroup.subCategory = :subCategory', { subCategory });
         }
@@ -258,11 +260,11 @@ export class StudyGroupService {
                     '전체': 0  // 각 중분류의 '전체' 카운트 초기화
                 };
             }
-            
+
             if (!counts[group.subCategory][group.detailCategory]) {
                 counts[group.subCategory][group.detailCategory] = 0;
             }
-            
+
             counts[group.subCategory][group.detailCategory]++;
             counts[group.subCategory]['전체']++;  // 해당 중분류의 '전체' 카운트 증가
         });
@@ -278,19 +280,19 @@ export class StudyGroupService {
     }) {
         const query = this.studyGroupRepository.createQueryBuilder('studyGroup')
             .leftJoinAndSelect('studyGroup.leader', 'leader');
-    
+
         if (params.mainCategory === '지역별') {
             query.where('studyGroup.mainCategory = :mainCategory', { mainCategory: params.mainCategory });
-            
+
             if (params.mainRegion) {
                 query.andWhere('studyGroup.subCategory = :mainRegion', { mainRegion: params.mainRegion });
-                
+
                 if (params.subRegion && params.subRegion !== '전체') {
                     query.andWhere('studyGroup.detailCategory = :subRegion', { subRegion: params.subRegion });
                 }
             }
         }
-    
+
         return await query.getMany();
     }
 
@@ -334,7 +336,7 @@ export class StudyGroupService {
     // 특정 스터디 그룹 찾기
     async findOne(id: number): Promise<StudyGroup> {
         const numericId = Number(id);
-        
+
         if (isNaN(numericId)) {
             throw new BadRequestException('유효하지 않은 ID입니다.');
         }
