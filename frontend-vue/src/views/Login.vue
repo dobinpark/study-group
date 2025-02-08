@@ -1,3 +1,4 @@
+<!-- eslint-disable vue/multi-word-component-names -->
 <template>
   <div class="login-container">
     <div class="login-content">
@@ -45,10 +46,15 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import axios from '../utils/axios';
-import { useUserStore, User } from '@/stores/user';
+import axios, { type AxiosError, isAxiosError } from 'axios';
+import { useUserStore, User } from '../stores/user';
 import FindPasswordModal from "@/components/FindPasswordModal.vue";
-import type { AxiosError, AxiosResponse } from 'axios';
+import type { AxiosResponse } from 'axios';
+
+// AxiosError 타입 가드 함수
+function isAxiosErrorType(error: unknown): error is AxiosError {
+  return isAxiosError(error);
+}
 
 const router = useRouter();
 const userStore = useUserStore();
@@ -88,22 +94,22 @@ const handleSubmit = async () => {
 
   } catch (error: unknown) {
     let errorMessageText = '로그인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
-    errorType.value = 'server'; // 기본적으로 서버 에러 타입으로 설정 (axios 에러인 경우 더 구체화)
+    errorType.value = 'server';
 
-    if (axios.isAxiosError(error)) {
+    if (isAxiosErrorType(error)) { // isAxiosError 를 직접 사용 (axios.js 에서 export 했으므로)
       if (error.response) {
         switch (error.response.status) {
-          case 400: // Bad Request
+          case 400:
             errorMessageText = '잘못된 요청입니다. 아이디 또는 비밀번호를 확인해주세요.';
             break;
-          case 401: // Unauthorized
+          case 401:
             errorMessageText = '아이디 또는 비밀번호가 일치하지 않습니다.';
             break;
-          case 500: // Internal Server Error
+          case 500:
             errorMessageText = '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
             break;
           default:
-            errorMessageText = error.response.data?.message || errorMessageText;
+            errorMessageText = (error.response.data as { message?: string })?.message || errorMessageText;
         }
       }
       console.error('Login failed:', error);
@@ -111,8 +117,6 @@ const handleSubmit = async () => {
       console.error('Login failed: An unknown error occurred', error);
     }
     errorMessage.value = errorMessageText;
-  } finally {
-    isLoading.value = false;
   }
 };
 

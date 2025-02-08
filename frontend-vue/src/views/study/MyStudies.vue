@@ -135,7 +135,7 @@ const fetchMyStudies = async () => {
     console.error('내 스터디 조회 실패:', axiosError);
     if (isAxiosError(axiosError) && axiosError.response?.status === 401 || axiosError.response?.status === 403) {
       alert('로그인이 필요한 서비스입니다.');
-      router.push('/login');
+      await router.push('/login');
     } else {
       alert('스터디 그룹 조회에 실패했습니다.');
     }

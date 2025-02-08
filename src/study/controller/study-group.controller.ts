@@ -79,7 +79,7 @@ export class StudyGroupController {
         return { message: '스터디 그룹이 성공적으로 삭제되었습니다.' };
     }
 
-    // 카테고리별 스터디 그룹 조회 (세션 인증 불필요)
+    // 카테고리별 스터디 그룹 조회
     @Get()
     @ApiOperation({ summary: '카테고리별 스터디 그룹 조회' })
     @ApiOkResponse({ description: '스터디 그룹 목록 반환', type: [StudyGroup] })
@@ -114,7 +114,7 @@ export class StudyGroupController {
         return this.studyGroupService.getMyStudyGroups(user);
     }
 
-    // 스터디 그룹 수 조회 (세션 인증 불필요)
+    // 스터디 그룹 수 조회
     @Get('count')
     @ApiOperation({ summary: '스터디 그룹 수 조회' })
     @ApiOkResponse({ description: '스터디 그룹 수 반환', schema: { type: 'object', properties: { count: { type: 'number', example: 10 } } } })
@@ -136,7 +136,7 @@ export class StudyGroupController {
         return { count };
     }
 
-    // 카테고리별 스터디 그룹 수 조회 (세션 인증 불필요)
+    // 카테고리별 스터디 그룹 수 조회
     @Get('categories')
     @ApiOperation({ summary: '카테고리별 스터디 그룹 수 조회' })
     @ApiOkResponse({ description: '카테고리별 스터디 그룹 수 반환', type: [CategoryDto] })
@@ -145,7 +145,7 @@ export class StudyGroupController {
         return await this.studyGroupService.getCategories();
     }
 
-    // 모든 카테고리의 스터디 그룹 수 조회 (세션 인증 불필요)
+    // 모든 카테고리의 스터디 그룹 수 조회
     @Get('counts/all')
     @ApiOperation({ summary: '모든 카테고리의 스터디 그룹 수 조회' })
     @ApiOkResponse({
@@ -215,7 +215,7 @@ export class StudyGroupController {
         return counts;
     }
 
-    // 지역별 스터디 그룹 수 조회 (세션 인증 불필요)
+    // 지역별 스터디 그룹 수 조회
     @Get('counts/region')
     @ApiOperation({ summary: '지역별 스터디 그룹 수 조회' })
     @ApiOkResponse({
@@ -230,7 +230,7 @@ export class StudyGroupController {
         return this.studyGroupService.getStudyGroupCountsByRegion();
     }
 
-    // 스터디 그룹 상세 조회 (세션 인증 불필요)
+    // 스터디 그룹 상세 조회
     @Get(':id')
     @ApiOperation({ summary: '스터디 그룹 상세 조회' })
     @ApiOkResponse({ description: '스터디 그룹 상세 정보 반환', type: StudyGroup })

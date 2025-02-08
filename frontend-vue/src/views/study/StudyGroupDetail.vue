@@ -91,7 +91,7 @@
 import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from '../../utils/axios';
-import { useUserStore } from '../../stores/user';
+import { useUserStore } from '@/stores/user';
 
 interface User {
   id: number;
@@ -163,7 +163,7 @@ const loadStudyGroup = async () => {
 
 const joinStudyGroup = async () => {
   if (!userStore.user) {
-    router.push('/login');
+    await router.push('/login');
     return;
   }
 
@@ -195,7 +195,7 @@ const handleDelete = async () => {
   try {
     await axios.delete(`/study-groups/${route.params.id}`);
     alert('스터디 그룹이 삭제되었습니다.');
-    router.push('/study-groups');
+    await router.push('/study-groups');
   } catch (error: any) {
     // 세션 기반 인증에서는 401 또는 403 에러가 인증 실패를 의미할 수 있습니다.
     if (error.response?.status === 401 || error.response?.status === 403) {

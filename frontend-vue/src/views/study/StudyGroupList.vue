@@ -119,7 +119,7 @@ const fetchStudyGroups = async () => {
   } catch (error: any) {
     if (error.response?.status === 401 || error.response?.status === 403) {
       alert('로그인이 필요합니다. 다시 로그인해주세요.');
-      router.push('/login');
+      await router.push('/login');
     } else {
       const apiError = handleApiError(error);
       console.error(apiError.message);
@@ -139,7 +139,7 @@ const fetchCategories = async () => {
   } catch (error: any) {
     if (error.response?.status === 401 || error.response?.status === 403) {
       alert('로그인이 필요합니다. 다시 로그인해주세요.');
-      router.push('/login');
+      await router.push('/login');
     } else {
       console.error('카테고리 조회 실패:', error);
       alert('카테고리 정보를 불러오는데 실패했습니다.');
