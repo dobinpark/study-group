@@ -27,7 +27,7 @@ async function bootstrap() {
     // 세션 미들웨어 설정
     app.use(
         session({
-            secret: configService.get<string>('SESSION_SECRET_KEY') || 'default_secret_key', // 기본값 제공
+            secret: process.env.SESSION_SECRET || 'default_secret_key', // 기본값 제공
             resave: false,
             saveUninitialized: false,
             store: sessionStore,
@@ -71,19 +71,21 @@ async function bootstrap() {
         crossOriginResourcePolicy: false, // 필요에 따라 Cross-Origin-Resource-Policy 설정
     }));
 
-    // CORS 설정 (환경 변수 사용, origin 함수 개선)
-    const allowedOrigins = configService.get<string>('CORS_ALLOWED_ORIGINS')?.split(',') || ['http://localhost:8080'];
+    // CORS 설정 (환경 변수 사용, origin 함수 개선, production 환경 분리)
+    const allowedOrigins = configService.get<string>('CORS_ALLOWED_ORIGINS')
+        ?.split(',')
+        .map(origin => origin.trim()) || ['http://localhost:8080'];
+
+    const isProduction = configService.get<string>('NODE_ENV') === 'production';
+
     app.enableCors({
-        origin: (origin, callback) => {
-            if (!origin || allowedOrigins.includes(origin)) { // origin이 없거나 허용된 origin 인 경우
-                callback(null, true);
-            } else {
-                callback(new Error('Not allowed by CORS'));
-            }
-        },
-        credentials: true, // 쿠키 허용
+        origin: [
+            'http://localhost:8080', // 프론트엔드 개발 서버 주소
+            'http://3.34.184.97', // 실제 프론트엔드 도메인 (배포 시)
+        ],
+        credentials: true, // 쿠키 전달 허용
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-        allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
+        allowedHeaders: ['Content-Type', 'Cookie'], // Authorization 헤더 제거 (세션 인증에 불필요)
     });
 
     // 전역 파이프 설정 (유효성 검사)
@@ -118,6 +120,6 @@ async function bootstrap() {
 
     // 포트 설정 (환경 변수 사용)
     const PORT = configService.get<number>('PORT') || 3000;
-    await app.listen(PORT);
+    await app.listen(configService.get<number>('PORT') || 3000);
 }
 bootstrap();

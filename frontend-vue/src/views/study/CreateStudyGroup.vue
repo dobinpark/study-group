@@ -179,7 +179,6 @@ const handleSubmit = async () => {
       await router.push('/study-groups');
     }
   } catch (error: any) {
-    // 세션 기반 인증에서는 401 또는 403 에러가 인증 실패를 의미할 수 있습니다.
     if (error.response?.status === 401 || error.response?.status === 403) {
       alert('로그인이 필요합니다. 다시 로그인해주세요.');
       await router.push('/login'); // 로그인 페이지로 리다이렉트

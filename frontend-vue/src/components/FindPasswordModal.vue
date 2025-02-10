@@ -1,157 +1,124 @@
 <template>
-    <div v-if="isOpen" class="modal-overlay">
-        <div class="modal-content">
-            <h2 class="modal-title">비밀번호 찾기</h2>
-            <form @submit.prevent="handleSubmit" class="modal-form">
-                <div class="form-group">
-                    <label for="username">아이디</label>
-                    <input type="text" id="username" v-model="username" required placeholder="아이디를 입력하세요" />
-                </div>
-                <div class="form-group">
-                    <label for="email">이메일</label>
-                    <input type="email" id="email" v-model="email" required placeholder="이메일을 입력하세요" />
-                </div>
-                <div class="button-group">
-                    <button type="submit" class="submit-button">확인</button>
-                    <button type="button" @click="close" class="cancel-button">취소</button>
-                </div>
-            </form>
-        </div>
+  <div v-if="isOpen" class="modal-overlay">
+    <div class="modal-content">
+      <header class="modal-header">
+        <h5 class="modal-title">비밀번호 찾기</h5>
+        <button type="button" class="close-button" @click="closeModal">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </header>
+      <div class="modal-body">
+        <p>비밀번호 찾기 기능을 구현해야 합니다.</p>
+        {/* 비밀번호 찾기 폼 또는 안내 내용 */}
+      </div>
+      <footer class="modal-footer">
+        <button type="button" class="btn btn-secondary" @click="closeModal">닫기</button>
+        {/* 필요하다면 추가 버튼 */}
+      </footer>
     </div>
+  </div>
 </template>
 
-<script setup>
-import { ref } from 'vue';
-import axios from '../utils/axios';
+<script setup lang="ts">
+import { defineProps, defineEmits } from 'vue';
 
 const props = defineProps({
-    isOpen: Boolean
+  isOpen: Boolean,
 });
 
 const emit = defineEmits(['close']);
 
-const username = ref('');
-const email = ref('');
-
-const handleSubmit = async () => {
-    try {
-        const response = await axios.post('/users/find-password', {
-            username: username.value,
-            email: email.value
-        });
-
-        alert(`임시 비밀번호가 발급되었습니다: ${response.data.password}\n로그인 후 반드시 비밀번호를 변경해주세요.`);
-        close();
-    } catch (error) {
-        if (error.response?.status === 404) {
-            alert('입력하신 아이디와 이메일이 일치하지 않습니다.');
-        } else {
-            alert('비밀번호 찾기 중 오류가 발생했습니다. 다시 시도해주세요.');
-        }
-    }
-};
-
-const close = () => {
-    username.value = '';
-    email.value = '';
-    emit('close');
+const closeModal = () => {
+  emit('close');
 };
 </script>
 
 <style scoped>
 .modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
 }
 
 .modal-content {
-    background: white;
-    padding: 2rem;
-    border-radius: 8px;
-    width: 90%;
-    max-width: 400px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.3);
+  width: 80%;
+  max-width: 500px;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #dee2e6;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .modal-title {
-    font-size: 1.5rem;
-    color: #2d3748;
-    text-align: center;
-    margin-bottom: 1.5rem;
-    font-weight: 600;
+  margin-bottom: 0;
+  line-height: 1.5;
+  font-size: 1.25rem;
+  font-weight: 500;
 }
 
-.modal-form {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
+.close-button {
+  padding: 0;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  float: right;
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1;
+  color: #000;
+  text-shadow: 0 1px 0 #fff;
+  opacity: .5;
 }
 
-.form-group {
-    margin-bottom: 1rem;
+.close-button:hover {
+  opacity: .75;
 }
 
-label {
-    display: block;
-    font-size: 0.875rem;
-    color: #4a5568;
-    margin-bottom: 0.5rem;
+.modal-body {
+  padding: 1.5rem;
+  flex-grow: 1;
 }
 
-input {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid #e2e8f0;
-    border-radius: 4px;
-    font-size: 0.875rem;
+.modal-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #dee2e6;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
 }
 
-input:focus {
-    outline: none;
-    border-color: #4A90E2;
+.btn {
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  font-size: 1rem;
+  border: 1px solid transparent;
 }
 
-.button-group {
-    display: flex;
-    gap: 1rem;
-    margin-top: 1.5rem;
+.btn-secondary {
+  color: #fff;
+  background-color: #6c757d;
+  border-color: #6c757d;
 }
 
-.submit-button,
-.cancel-button {
-    flex: 1;
-    padding: 0.75rem;
-    border: none;
-    border-radius: 4px;
-    font-size: 0.875rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background-color 0.2s;
+.btn-secondary:hover {
+  background-color: #5a6268;
+  border-color: #545b62;
 }
-
-.submit-button {
-    background-color: #4A90E2;
-    color: white;
-}
-
-.submit-button:hover {
-    background-color: #357abd;
-}
-
-.cancel-button {
-    background-color: #e2e8f0;
-    color: #4a5568;
-}
-
-.cancel-button:hover {
-    background-color: #cbd5e0;
-}
-</style>
+</style> 

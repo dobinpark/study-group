@@ -1,10 +1,27 @@
 /** @type {import('eslint').Linter.Config} */
 module.exports = {
-    extends: [
-        // 'next/core-web-vitals',
-        // 다른 ESLint 설정이 있다면 유지합니다.
+    root: true,
+    env: {
+        node: true,
+        browser: true,
+        es2021: true
+    },
+    'extends': [
+        'eslint:recommended',
+        'plugin:vue/vue3-essential',
+        // 필요하다면 다른 확장 설정 추가 (예: 'plugin:prettier/recommended')
     ],
-    parserOptions: {
-        sourceType: 'module' // 추가
-    }
+    'parserOptions': {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+        parser: '@typescript-eslint/parser'
+    },
+    plugins: [
+        'vue',
+        '@typescript-eslint'
+    ],
+    // rules: {
+    //     // 필요하다면 추가 규칙 설정
+    //     // 예시: 'no-console': 'warn', // console.log() 사용 시 경고
+    // }
 }

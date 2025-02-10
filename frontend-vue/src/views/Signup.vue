@@ -47,10 +47,10 @@
 	</div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import axios from '@/utils/axios';
+import axios from '../utils/axios';
 
 const router = useRouter();
 
@@ -109,13 +109,13 @@ const signup = async () => {
 			confirmPassword: confirmPassword.value,
 			nickname: nickname.value,
 			email: email.value,
-			phoneNumber: formattedPhoneNumber
+			phoneNumber: phoneNumber.value,
 		});
 
 		console.log('회원가입 성공:', response.data);
 		alert('회원가입이 완료되었습니다.');
 		await router.push('/login');
-	} catch (error) {
+	} catch (error: any) {
 		console.error('회원가입 실패:', error.response?.data?.message || '회원가입 중 오류가 발생했습니다.');
 		alert(error.response?.data?.message || '회원가입 중 오류가 발생했습니다.');
 	}

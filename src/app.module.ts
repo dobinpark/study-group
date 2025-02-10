@@ -12,9 +12,7 @@ import { validate } from './config/env.validation';
 import { RedisClientOptions } from 'redis';
 import { Session } from './user/entities/session.entity';
 
-config(); // .env 파일의 환경 변수를 로드합니다.
-
-console.log(process.env.DB_HOST); // 환경 변수가 제대로 로드되었는지 확인
+console.log(process.env.DB_PORT); // 환경 변수가 제대로 로드되었는지 확인
 
 if (!process.env.DB_PORT) {
     throw new Error('DB_PORT 환경 변수가 정의되지 않았습니다.');
@@ -24,7 +22,8 @@ if (!process.env.DB_PORT) {
     imports: [
         ConfigModule.forRoot({
             validate,
-            isGlobal: true,
+            envFilePath: `.env.${process.env.NODE_ENV || 'development'}`, // 환경 파일 경로 명시적 지정 (NODE_ENV 값에 따라 동적 설정)
+            ignoreEnvFile: false, // .env 파일 로드 활성화 (기본값: false)
         }),
         TypeOrmModule.forRootAsync({
             imports: [ConfigModule],

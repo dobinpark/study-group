@@ -1,29 +1,35 @@
-import axios, { type AxiosInstance, isAxiosError } from 'axios'; // isAxiosError 를 임포트에 추가
+import axios, { type AxiosInstance, isAxiosError } from 'axios';
 
 // Axios 인스턴스 생성
-const instance: AxiosInstance = axios.create({ // AxiosInstance 타입 명시
-    baseURL: process.env.VUE_APP_API_URL || 'http://localhost:3000/api',
-    withCredentials: true,
-    timeout: 10000
+const instance: AxiosInstance = axios.create({
+    baseURL: process.env.VUE_APP_API_URL || '/api', // 환경 변수 참조 또는 기본 경로
+    withCredentials: true, // 세션 쿠키 전달 설정
+    timeout: 10000,
 });
 
-// 요청 인터셉터
+// 요청 인터셉터 (필요시 추가)
 instance.interceptors.request.use(
     (config) => {
-        // 세션 기반 인증에서는 별도의 토큰을 헤더에 추가하지 않습니다.
+        // 요청 전에 처리할 로직 (예: 로딩 시작)
         return config;
     },
-    (error) => Promise.reject(error)
+    (error) => {
+        // 요청 에러 처리
+        return Promise.reject(error);
+    }
 );
 
-// 응답 인터셉터
+// 응답 인터셉터 (필요시 추가)
 instance.interceptors.response.use(
-    (response) => response,
+    (response) => {
+        // 응답 성공 시 처리 (예: 데이터 변환)
+        return response;
+    },
     (error) => {
-        // 세션 기반 인증에서는 401 에러 처리를 컴포넌트 레벨에서 수행하는 것이 더 유연합니다.
+        // 응답 에러 처리 (예: 401 에러 시 로그인 페이지로 리다이렉트)
         return Promise.reject(error);
     }
 );
 
 export { isAxiosError };
-export default instance;
+export default instance; 

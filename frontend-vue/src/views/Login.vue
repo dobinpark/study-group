@@ -3,33 +3,23 @@
   <div class="login-container">
     <div class="login-content">
       <h1 class="login-title">로그인</h1>
-      <form @submit.prevent="handleSubmit" class="login-form">
+      <form @submit.prevent="login" class="login-form">
         <div class="form-group">
           <label for="username">아이디</label>
-          <input
-              type="text"
-              id="username"
-              v-model="username"
-              required
-              placeholder="아이디를 입력하세요"
-              :class="{ 'error': errorType === 'validation' }"
-          />
+          <input type="text" id="username" v-model="username" required placeholder="아이디를 입력하세요"
+            :class="{ 'error': errorType === 'validation' }" />
         </div>
         <div class="form-group">
           <label for="password">비밀번호</label>
-          <input
-              type="password"
-              id="password"
-              v-model="password"
-              required
-              placeholder="비밀번호를 입력하세요"
-              :class="{ 'error': errorType === 'validation' }"
-          />
+          <input type="password" id="password" v-model="password" required placeholder="비밀번호를 입력하세요"
+            :class="{ 'error': errorType === 'validation' }" />
         </div>
-        <button type="submit" class="login-button" :disabled="isLoading">
-          로그인
-          <span v-if="isLoading" class="spinner"></span>
-        </button>
+        <div class="button-group">
+          <button type="submit" class="submit-button" :disabled="isLoading">
+            로그인
+            <span v-if="isLoading" class="spinner"></span>
+          </button>
+        </div>
         <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
         <div class="signup-link">
           계정이 없으신가요? <router-link to="/signup">회원가입</router-link>
@@ -45,58 +35,57 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import axios, { type AxiosError, isAxiosError } from 'axios';
-import { useUserStore, User } from '../stores/user';
+import { useUserStore, User } from '@/store/index';
 import FindPasswordModal from "@/components/FindPasswordModal.vue";
-import type { AxiosResponse } from 'axios';
 
-// AxiosError 타입 가드 함수
 function isAxiosErrorType(error: unknown): error is AxiosError {
   return isAxiosError(error);
 }
 
 const router = useRouter();
+const route = useRoute();
 const userStore = useUserStore();
 const username = ref('');
 const password = ref('');
 const isModalOpen = ref(false);
 const errorMessage = ref('');
 const isLoading = ref(false);
-const errorType = ref<'' | 'validation' | 'server'>(''); // 에러 타입 추가: 'validation', 'server', or '' (no error)
+const errorType = ref<'' | 'validation' | 'server'>('');
 
-onMounted(() => {
-  userStore.loadUserFromStorage();
-});
-
-const handleSubmit = async () => {
+const login = async () => {
   errorMessage.value = '';
-  errorType.value = ''; // 에러 타입 초기화
+  errorType.value = '';
   isLoading.value = true;
 
   try {
     if (!username.value || !password.value) {
       errorMessage.value = '아이디와 비밀번호를 모두 입력해주세요.';
-      errorType.value = 'validation'; // input validation 에러 타입 설정
+      errorType.value = 'validation';
       return;
     }
 
-    // 여기에서 유형 주석을 userStore.login의 실제 반환 유형과 일치하도록 변경하십시오.
-    const loginResponse = await userStore.login(username.value, password.value);
+    const loginPayload = {
+      username: username.value,
+      password: password.value,
+    };
+    const result = await userStore.login(loginPayload);
 
-    if (loginResponse.success) {
-      await router.push('/');
+    if (result.success) {
+      alert('로그인 성공!');
+      const redirect = route.query.redirect || '/';
+      router.push(redirect);
     } else {
-      // 로그인 실패 시, userStore 에서 message 를 받아와서 errorMessage 에 설정
-      errorMessage.value = loginResponse.message || '로그인에 실패했습니다.';
-      errorType.value = 'server'; // 서버 에러 타입 설정
+      errorMessage.value = result.message || '로그인에 실패했습니다.';
+      errorType.value = 'server';
     }
 
   } catch (error: unknown) {
     let errorMessageText = '로그인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
     errorType.value = 'server';
 
-    if (isAxiosErrorType(error)) { // isAxiosError 를 직접 사용 (axios.js 에서 export 했으므로)
+    if (isAxiosErrorType(error)) {
       if (error.response) {
         switch (error.response.status) {
           case 400:
@@ -117,6 +106,8 @@ const handleSubmit = async () => {
       console.error('Login failed: An unknown error occurred', error);
     }
     errorMessage.value = errorMessageText;
+  } finally {
+    isLoading.value = false;
   }
 };
 
@@ -187,11 +178,16 @@ input:focus {
 }
 
 input.error {
-  border-color: red; /* validation error 시 input 테두리 빨간색 */
+  border-color: red;
+  /* validation error 시 input 테두리 빨간색 */
 }
 
+.button-group {
+  margin-top: 1.5rem;
+  text-align: center;
+}
 
-.login-button {
+.submit-button {
   width: 100%;
   padding: 0.75rem;
   background-color: #4A90E2;
@@ -202,17 +198,13 @@ input.error {
   font-weight: 600;
   cursor: pointer;
   transition: background-color 0.2s;
-  margin-top: 1rem;
-  display: flex; /* Flexbox 레이아웃 적용 */
-  justify-content: center; /* 내용 중앙 정렬 */
-  align-items: center; /* 세로 중앙 정렬 */
 }
 
-.login-button:hover {
+.submit-button:hover {
   background-color: #357abd;
 }
 
-.login-button:disabled {
+.submit-button:disabled {
   cursor: not-allowed;
   opacity: 0.7;
 }
@@ -233,7 +225,6 @@ input.error {
     transform: rotate(360deg);
   }
 }
-
 
 .signup-link {
   text-align: center;
@@ -274,13 +265,14 @@ input.error {
 }
 
 .error-message.validation {
-  color: red; /* validation 에러 메시지 스타일 (현재는 .error-message 와 동일) */
+  color: red;
+  /* validation 에러 메시지 스타일 (현재는 .error-message 와 동일) */
 }
 
 .error-message.server {
-  color: orange; /* server 에러 메시지 스타일 */
+  color: orange;
+  /* server 에러 메시지 스타일 */
 }
-
 
 @media (max-width: 768px) {
   .login-content {

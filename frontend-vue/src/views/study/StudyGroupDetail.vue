@@ -91,7 +91,7 @@
 import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from '../../utils/axios';
-import { useUserStore } from '@/stores/user';
+import { useUserStore } from '@/store/user';
 
 interface User {
   id: number;

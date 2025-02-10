@@ -12,7 +12,7 @@
 					</div>
 					<div class="right-section">
 						<div class="auth-container">
-							<template v-if="isLoggedIn">
+							<template v-if="isLoggedIn && !loading">
 								<span class="welcome-text">{{ userNickname }}님, 환영합니다</span>
 								<div class="nav-buttons">
 									<router-link to="/my-studies" class="nav-button">
@@ -29,12 +29,15 @@
 									로그아웃
 								</button>
 							</template>
-							<template v-else>
+							<template v-else-if="!loading">
 								<span class="login-text">로그인 하세요</span>
 								<router-link to="/login">
 									<img src="@/assets/images/man.png" alt="로그인" class="login-icon" />
 								</router-link>
 							</template>
+              <template v-if="loading">
+                <span>로그인 상태 확인 중...</span>
+              </template>
 						</div>
 					</div>
 				</div>
@@ -1311,204 +1314,169 @@
 import { provide } from 'vue';
 import mitt from 'mitt';
 
-export const emitter = mitt(); // emitter 정의
-provide('emitter', emitter); // emitter를 provide
+export const emitter = mitt();
+provide('emitter', emitter);
 
 export default {
-	// eslint-disable-next-line vue/multi-word-component-names
-	name: 'Header',
+  name: 'MainHeader',
 };
 
-// 스터디 그룹 생성/삭제 이벤트 감지
-emitter.on('studyGroupCreated', () => {
-	// 필요한 로직 추가
-});
 </script>
 
 <script setup lang="ts">
-import { ref, onMounted, watch, onUnmounted } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
-import axios from '../utils/axios';
-import { useUserStore } from '../stores/user';
-import { storeToRefs } from 'pinia';
-import { Category } from '../types/category';
-
-type RegionCounts = {
-	[key: string]: {
-		[key: string]: number;
-	};
-};
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
 
 const router = useRouter();
 const route = useRoute();
 const userStore = useUserStore();
-const { user } = storeToRefs(userStore);
 
+const user = computed(() => userStore.getUser);
+const userNickname = computed(() => userStore.getUser?.nickname || '');
 const isLoggedIn = ref(false);
-const userNickname = ref('');
+const username = ref<string | null>(null);
 const isMobile = ref(false);
+const loading = ref(false);
+const categories = ref<Category[]>([]);
 
 const updateMobileStatus = () => {
-	isMobile.value = window.innerWidth <= 768;
+  isMobile.value = window.innerWidth <= 768;
 };
-
-onMounted(async () => {
-	await fetchCategories();
-	updateMobileStatus();
-	window.addEventListener('resize', updateMobileStatus);
-	checkLoginStatus();
-	fetchStudyGroupCounts();
-	// 스터디 그룹 생성/삭제 이벤트 감지
-	emitter.on('studyGroupCreated', () => {
-		fetchStudyGroupCounts();
-	});
-	emitter.on('studyGroupDeleted', () => {
-		fetchStudyGroupCounts();
-	});
-	// 주기적으로 카테고리 정보 업데이트 (선택사항)
-	const updateInterval = setInterval(fetchCategories, 30000); // 30초마다 업데이트
-	onUnmounted(() => clearInterval(updateInterval));
-});
 
 const goToStudyList = (mainRegion: string, subRegion: string) => {
-	let mainCategory: string;
+  let mainCategory: string;
 
-	// 메인 카테고리 판별 로직 개선
-	if (['서울', '인천', '부산', '대구', '광주', '대전', '울산', '경기', '세종', '충남', '충북', '경남', '경북', '전남', '전북', '강원', '제주'].includes(mainRegion)) {
-		mainCategory = '지역별';
-	} else if (['중등', '고등', '대학/청년', '취업준비/수험', '경력/이직', '취미/자기계발'].includes(mainRegion)) {
-		mainCategory = '학습자별';
-	} else if (['인문계열', '사회과학계열', '자연과학계열', '공학계열', '의학/보건학계열', '예체능계열'].includes(mainRegion)) {
-		mainCategory = '전공별';
-	} else {
-		console.error('유효하지 않은 메인 카테고리:', mainRegion);
-		return;
-	}
+  if (['서울', '인천', '부산', '대구', '광주', '대전', '울산', '경기', '세종', '충남', '충북', '경남', '경북', '전남', '전북', '강원', '제주'].includes(mainRegion)) {
+    mainCategory = '지역별';
+  } else if (['중등', '고등', '대학/청년', '취업준비/수험', '경력/이직', '취미/자기계발'].includes(mainRegion)) {
+    mainCategory = '학습자별';
+  } else if (['인문계열', '사회과학계열', '자연과학계열', '공학계열', '의학/보건학계열', '예체능계열'].includes(mainRegion)) {
+    mainCategory = '전공별';
+  } else {
+    console.error('유효하지 않은 메인 카테고리:', mainRegion);
+    return;
+  }
 
-	// 라우팅 정보 구성
-	const routeQuery = {
-		mainCategory,
-		subCategory: mainRegion,
-		detailCategory: subRegion === '전체' ? undefined : subRegion
-	};
+  const routeQuery = {
+    mainCategory,
+    subCategory: mainRegion,
+    detailCategory: subRegion === '전체' ? undefined : subRegion,
+  };
 
-	console.log('라우팅 정보:', routeQuery);
-
-	// 라우팅 실행
-	router.push({
-		name: 'StudyGroupList',
-		query: routeQuery
-	});
+  router.push({
+    name: 'StudyGroupList',
+    query: routeQuery,
+  });
 };
 
-const checkLoginStatus = () => {
-	// 로그인 상태를 확인하는 로직을 수정합니다.
-	isLoggedIn.value = !!user.value;
-	userNickname.value = user.value?.nickname || '';
+const checkLoginStatus = async () => {
+  loading.value = true;
+  try {
+    const response = await axios.get('/api/session');
+    if (response.status === 200) {
+      isLoggedIn.value = response.data.isLoggedIn; // 로그인 상태 업데이트
+      username.value = response.data.username; // 사용자 이름 업데이트
+    } else {
+      isLoggedIn.value = false;
+      username.value = null;
+    }
+  } catch (error) {
+    console.error('세션 확인 실패:', error);
+    isLoggedIn.value = false;
+    username.value = null;
+  } finally {
+    loading.value = false;
+  }
 };
 
 const logout = async () => {
-	try {
-		await userStore.logout();
-		isLoggedIn.value = false;
-		userNickname.value = '';
-		router.push('/login');
-	} catch (error) {
-		console.error('Logout failed:', error);
-	}
+  loading.value = true;
+  try {
+    await axios.post('/users/logout');
+    isLoggedIn.value = false;
+    username.value = null;
+    alert('로그아웃 되었습니다.');
+    await router.push('/login');
+  } catch (error) {
+    console.error('로그아웃 실패:', error);
+    alert('로그아웃에 실패했습니다. 잠시 후 다시 시도해주세요.');
+  } finally {
+    loading.value = false;
+  }
 };
 
-// 컴포넌트 마운트 시 로그인 상태 즉시 체크
-onMounted(() => {
-	checkLoginStatus();  // 즉시 상태 설정
-});
-
-// 라우트 변경 시 로그인 상태 체크
-watch(() => route.path, () => {
-	checkLoginStatus();
-});
+console.log('fetchStudyGroupCounts 함수 정의 시작 전');
 
 const fetchStudyGroupCounts = async () => {
-	try {
-		const response = await axios.get('/study-groups/categories');
-		categories.value = response.data;
-	} catch (error) {
-		console.error('카테고리 조회 실패:', error);
-	}
+  console.log('fetchStudyGroupCounts 함수 실행 시작');
+  try {
+    const response = await axios.get('/study-groups/categories');
+    categories.value = response.data;
+    console.log('fetchStudyGroupCounts API 호출 성공');
+  } catch (error) {
+    console.error('카테고리 조회 실패:', error);
+    console.log('fetchStudyGroupCounts API 호출 실패', error);
+  } finally {
+    console.log('fetchStudyGroupCounts finally 블록 실행');
+  }
+  console.log('fetchStudyGroupCounts 함수 실행 종료');
 };
 
-watch([() => route.path], async () => {
-	await fetchCategories();
-});
+console.log('fetchStudyGroupCounts 함수 정의 완료:', typeof fetchStudyGroupCounts);
 
-// 컴포넌트 언마운트 시 이벤트 리스너 제거
-onUnmounted(() => {
-	emitter.off('studyGroupCreated');
-	emitter.off('studyGroupDeleted');
-});
-
-// 카테고리 카운트를 위한 상태 추가
-const categories = ref<Category[]>([]);
-const loading = ref(false);
-
-// 카테고리 정보 가져오기 (프론트엔드 캐싱 적용)
 const fetchCategories = async () => {
-	try {
-		const response = await axios.get('/study-groups/categories');
-		console.log('카테고리 데이터:', response.data); // 데이터 확인용 로그
-		categories.value = response.data;
-	} catch (error) {
-		console.error('카테고리 조회 실패:', error);
-	}
+  try {
+    const response = await axios.get('/study-groups/categories');
+    categories.value = response.data;
+  } catch (error) {
+    console.error('카테고리 조회 실패:', error);
+  }
 };
 
-// 특정 카테고리의 카운트 계산
 const getCategoryCount = (mainCategory: string, subCategory: string, detailCategory?: string) => {
-
-	const matchingCategories = categories.value.filter(category => {
-		const mainMatch = category.mainCategory === mainCategory;
-		const subMatch = category.subCategory === subCategory;
-		const detailMatch = !detailCategory || category.detailCategory === detailCategory;
-
-		return mainMatch && subMatch && detailMatch;
-	});
-
-	const count = matchingCategories.reduce((sum, category) => sum + (category.count || 0), 0);
-
-	return count;
-};
-
-// 컴포넌트 마운트 시 카테고리 정보 즉시 가져오기
-onMounted(async () => {
-	await fetchCategories();
-	checkLoginStatus();
-});
-
-const startCategoryUpdateInterval = () => {
-	categoryUpdateInterval.value = window.setInterval(async () => {
-		await fetchCategories();
-	}, 30000);
+  const matchingCategories = categories.value.filter((category) => {
+    const mainMatch = category.mainCategory === mainCategory;
+    const subMatch = category.subCategory === subCategory;
+    const detailMatch = !detailCategory || category.detailCategory === detailCategory;
+    return mainMatch && subMatch && detailMatch;
+  });
+  const count = matchingCategories.reduce((sum, category) => sum + (category.count || 0), 0);
+  return count;
 };
 
 onMounted(async () => {
-	await fetchCategories();
-	checkLoginStatus();
-	startCategoryUpdateInterval();
+  updateMobileStatus();
+  window.addEventListener('resize', updateMobileStatus);
+  await fetchCategories();
+  // fetchStudyGroupCounts(); // onMounted 훅에서 호출 제거 (선택 사항)
+
+
+  // categoryUpdateInterval ref 대신 일반 변수 사용 (선택 사항)
+  const categoryUpdateInterval = window.setInterval(async () => {
+    await fetchCategories();
+  }, 30000);
+
+  onUnmounted(() => {
+    window.removeEventListener('resize', updateMobileStatus);
+    clearInterval(categoryUpdateInterval); // onUnmounted 훅에서 변수 직접 사용
+  });
 });
 
-onUnmounted(() => {
-	if (categoryUpdateInterval.value) {
-		clearInterval(categoryUpdateInterval.value);
-	}
-});
 
-// 라우트 변경 시 로그인 상태만 체크
-watch(() => route.path, () => {
-	checkLoginStatus();
-});
+// watch 훅 제거 (선택 사항)
+// watch(() => route.path, async () => {
+//   await checkLoginStatus();
+// });
 
-// 기존 코드 상단 부분에 추가
-const categoryUpdateInterval = ref<number>();
+console.log('emitter.on() 호출 직전:', typeof fetchStudyGroupCounts);
+
+emitter.on('studyGroupCreated', () => { // 이벤트 리스너 등록 (아래로 이동)
+  fetchStudyGroupCounts();
+  console.log('emitter.on(studyGroupCreated) 콜백 함수 실행 및 fetchStudyGroupCounts() 호출');
+});
+emitter.on('studyGroupDeleted', () => { // 이벤트 리스너 등록 (아래로 이동)
+  fetchStudyGroupCounts();
+  console.log('emitter.on(studyGroupDeleted) 콜백 함수 실행 및 fetchStudyGroupCounts() 호출');
+});
 </script>
 
 <style scoped>
