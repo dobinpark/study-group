@@ -1,4 +1,3 @@
-<!-- eslint-disable vue/multi-word-component-names -->
 <template>
   <div class="login-container">
     <div class="login-content">
@@ -7,7 +6,7 @@
         <div class="form-group">
           <label for="username">아이디</label>
           <input type="text" id="username" v-model="username" required placeholder="아이디를 입력하세요"
-            :class="{ 'error': errorType === 'validation' }" />
+            :class="{ 'error': errorType === 'validation' }" ref="usernameInputRef" />
         </div>
         <div class="form-group">
           <label for="password">비밀번호</label>
@@ -15,12 +14,13 @@
             :class="{ 'error': errorType === 'validation' }" />
         </div>
         <div class="button-group">
-          <button type="submit" class="submit-button" :disabled="isLoading">
+          <button type="submit" class="submit-button" :disabled="userStore.loading">
             로그인
-            <span v-if="isLoading" class="spinner"></span>
+            <span v-if="userStore.loading" class="spinner"></span>
+            <span v-if="userStore.loading" class="loading-text">로그인 중...</span>
           </button>
         </div>
-        <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
+        <div v-if="loginError" class="error-message">로그인 실패</div>
         <div class="signup-link">
           계정이 없으신가요? <router-link to="/signup">회원가입</router-link>
         </div>
@@ -34,11 +34,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, nextTick } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import axios, { type AxiosError, isAxiosError } from 'axios';
-import { useUserStore, User } from '@/store/index';
-import FindPasswordModal from "@/components/FindPasswordModal.vue";
+import { type AxiosError, isAxiosError } from 'axios';
+import { useUserStore } from '../store/index';
+import { Store } from 'pinia';
+import type { AuthState } from '../store/index';
+import FindPasswordModal from '../components/FindPasswordModal.vue';
+import type { User } from '../types/user';
 
 function isAxiosErrorType(error: unknown): error is AxiosError {
   return isAxiosError(error);
@@ -46,23 +49,36 @@ function isAxiosErrorType(error: unknown): error is AxiosError {
 
 const router = useRouter();
 const route = useRoute();
-const userStore = useUserStore();
+const userStore = useUserStore() as Store<'user', AuthState, {}, {
+  login: (credentials: any) => Promise<{ success: boolean; message?: string; accessToken: string }>;
+  logout: () => void;
+  checkAuth: () => Promise<boolean>;
+  setUser: (userData: User) => void;
+  clearUser: () => void;
+  loadUserFromStorage: () => void;
+}>;
 const username = ref('');
 const password = ref('');
 const isModalOpen = ref(false);
-const errorMessage = ref('');
-const isLoading = ref(false);
-const errorType = ref<'' | 'validation' | 'server'>('');
+const errorType = ref('');
+const usernameInputRef = ref<HTMLInputElement | null>(null);
+const loginError = ref(false);
+
+onMounted(() => {
+  nextTick(() => {
+    usernameInputRef.value?.focus();
+  });
+});
 
 const login = async () => {
-  errorMessage.value = '';
   errorType.value = '';
-  isLoading.value = true;
+  userStore.error = null;
+  loginError.value = false;
 
   try {
     if (!username.value || !password.value) {
-      errorMessage.value = '아이디와 비밀번호를 모두 입력해주세요.';
       errorType.value = 'validation';
+      userStore.error = '아이디와 비밀번호를 모두 입력해주세요.';
       return;
     }
 
@@ -73,17 +89,21 @@ const login = async () => {
     const result = await userStore.login(loginPayload);
 
     if (result.success) {
-      alert('로그인 성공!');
-      const redirect = route.query.redirect || '/';
-      router.push(redirect);
+      loginError.value = false;
+      localStorage.setItem('accessToken', result.accessToken);
+      const redirect = Array.isArray(route.query.redirect) ? route.query.redirect[0] : route.query.redirect;
+      const redirectTo = redirect || '/';
+      router.push(redirectTo);
     } else {
-      errorMessage.value = result.message || '로그인에 실패했습니다.';
       errorType.value = 'server';
+      userStore.error = result.message || '로그인에 실패했습니다.';
+      loginError.value = true;
     }
 
   } catch (error: unknown) {
     let errorMessageText = '로그인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
     errorType.value = 'server';
+    loginError.value = true;
 
     if (isAxiosErrorType(error)) {
       if (error.response) {
@@ -105,9 +125,7 @@ const login = async () => {
     } else {
       console.error('Login failed: An unknown error occurred', error);
     }
-    errorMessage.value = errorMessageText;
-  } finally {
-    isLoading.value = false;
+    userStore.error = errorMessageText;
   }
 };
 
@@ -123,6 +141,8 @@ const closeModal = () => {
 <style scoped>
 .login-container {
   width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
   min-height: calc(100vh - 140px);
   display: flex;
   justify-content: center;
@@ -130,7 +150,7 @@ const closeModal = () => {
 }
 
 .login-content {
-  width: 70%;
+  width: 100%;
   background: linear-gradient(135deg, #f5f7fa 0%, #e4e9f2 100%);
   padding: 3.5rem;
   border-radius: 8px;
@@ -272,6 +292,11 @@ input.error {
 .error-message.server {
   color: orange;
   /* server 에러 메시지 스타일 */
+}
+
+.loading-text {
+  margin-left: 8px;
+  color: white;
 }
 
 @media (max-width: 768px) {

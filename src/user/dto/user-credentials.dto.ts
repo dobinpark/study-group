@@ -1,5 +1,4 @@
 import { IsString, IsEmail, IsPhoneNumber, MinLength, Matches, IsNotEmpty } from 'class-validator';
-import { Match } from "@/src/common/decorators/match.decorator";
 import { ApiProperty } from '@nestjs/swagger';
 
 export class UserCredentialsDto {
@@ -21,7 +20,6 @@ export class UserCredentialsDto {
     @ApiProperty({ example: 'password123!', description: '비밀번호 재확인' })
     @IsString()
     @MinLength(8)
-    @Match('password')
     confirmPassword!: string;
 
     @ApiProperty({ example: 'nickName', description: '사용자 닉네임' })

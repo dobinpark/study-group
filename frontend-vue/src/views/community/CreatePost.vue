@@ -5,15 +5,14 @@
     <div class="form-container">
       <div class="form-group">
         <label for="title">제목</label>
-        <input type="text" id="title" v-model="title" placeholder="제목을 입력하세요"
-               :class="{ 'error': errors.title }">
+        <input type="text" id="title" v-model="title" placeholder="제목을 입력하세요" :class="{ 'error': errors.title }">
         <span class="error-message" v-if="errors.title">{{ errors.title }}</span>
       </div>
 
       <div class="form-group">
         <label for="content">내용</label>
         <textarea id="content" v-model="content" placeholder="내용을 입력하세요" rows="15"
-                  :class="{ 'error': errors.content }"></textarea>
+          :class="{ 'error': errors.content }"></textarea>
         <span class="error-message" v-if="errors.content">{{ errors.content }}</span>
       </div>
 
@@ -29,7 +28,7 @@
 import { ref, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from '../../utils/axios';
-import { PostCategoryKorean } from '@/types/post';
+import { PostCategoryKorean } from '../../types/post';
 
 const route = useRoute();
 const router = useRouter();
@@ -74,13 +73,14 @@ const submitPost = async () => {
 
   try {
     const category = getCategory(String(route.params.category));
-    console.log('Route params:', route.params);
-    console.log('Submitting post with category:', category);
-
     const response = await axios.post('/posts', {
       title: title.value,
       content: content.value,
       category: category
+    }, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+      }
     });
 
     window.alert('게시글이 성공적으로 작성되었습니다.');
@@ -91,10 +91,9 @@ const submitPost = async () => {
       }
     });
   } catch (error: any) {
-    // 세션 기반 인증에서는 401 또는 403 에러가 인증 실패를 의미할 수 있습니다.
     if (error.response?.status === 401 || error.response?.status === 403) {
       window.alert('로그인이 필요합니다. 다시 로그인해주세요.');
-      await router.push('/login'); // 로그인 페이지로 리다이렉트
+      await router.push('/login');
     } else {
       window.alert(error.response?.data?.message || '게시글 작성에 실패했습니다.');
     }
@@ -125,6 +124,7 @@ const getCategory = (category: string): string => {
 
 <style scoped>
 .create-post-container {
+  width: 100%;
   max-width: 1200px;
   margin: 2rem auto;
   padding: 0 1rem;

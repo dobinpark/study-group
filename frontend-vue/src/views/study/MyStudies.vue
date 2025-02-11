@@ -1,6 +1,6 @@
 <template>
   <div class="my-studies-container">
-    <div class="page-header">
+<div class="page-header">
       <h1>내 스터디</h1>
     </div>
 
@@ -122,7 +122,11 @@ const loading = ref(true);
 const fetchMyStudies = async () => {
   try {
     loading.value = true;
-    const response = await axios.get('/study-groups/my-studies');
+    const response = await axios.get('/study-groups/my-studies', {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+      }
+    });
 
     console.log('내 스터디 조회 응답:', response.data);
 

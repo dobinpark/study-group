@@ -2,7 +2,7 @@ import axios, { type AxiosInstance, isAxiosError } from 'axios';
 
 // Axios 인스턴스 생성
 const instance: AxiosInstance = axios.create({
-    baseURL: process.env.VUE_APP_API_URL || '/api', // 환경 변수 참조 또는 기본 경로
+    baseURL: process.env.VUE_APP_API_URL || 'http://localhost:3000/api', // 백엔드 서버 URL
     withCredentials: true, // 세션 쿠키 전달 설정
     timeout: 10000,
 });
@@ -10,7 +10,10 @@ const instance: AxiosInstance = axios.create({
 // 요청 인터셉터 (필요시 추가)
 instance.interceptors.request.use(
     (config) => {
-        // 요청 전에 처리할 로직 (예: 로딩 시작)
+        const token = localStorage.getItem('accessToken');
+        if (token) {
+            config.headers['Authorization'] = `Bearer ${token}`;
+        }
         return config;
     },
     (error) => {
@@ -32,4 +35,4 @@ instance.interceptors.response.use(
 );
 
 export { isAxiosError };
-export default instance; 
+export default instance;

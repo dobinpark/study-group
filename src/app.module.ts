@@ -10,7 +10,7 @@ import * as redisStore from 'cache-manager-redis-store';
 import { PostsModule } from './posts/posts.module';
 import { validate } from './config/env.validation';
 import { RedisClientOptions } from 'redis';
-import { Session } from './user/entities/session.entity';
+import { JwtModule } from '@nestjs/jwt';
 
 console.log(process.env.DB_PORT); // 환경 변수가 제대로 로드되었는지 확인
 
@@ -34,7 +34,7 @@ if (!process.env.DB_PORT) {
                 username: configService.get<string>('DB_USERNAME'),
                 password: configService.get<string>('DB_PASSWORD'),
                 database: configService.get<string>('DB_DATABASE'),
-                entities: [__dirname + '/**/*.entity{.ts,.js}', Session],
+                entities: [__dirname + '/**/*.entity{.ts,.js}'],
                 synchronize: true,
             }),
             inject: [ConfigService],
@@ -52,6 +52,14 @@ if (!process.env.DB_PORT) {
             ttl: 300,
         }),
         PostsModule,
+        JwtModule.registerAsync({
+            imports: [ConfigModule],
+            useFactory: async (configService: ConfigService) => ({
+                secret: configService.get<string>('JWT_SECRET'),
+                signOptions: { expiresIn: '1h' },
+            }),
+            inject: [ConfigService],
+        }),
     ],
     controllers: [],
     providers: [],

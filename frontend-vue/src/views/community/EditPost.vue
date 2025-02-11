@@ -105,10 +105,11 @@ const submitEdit = async () => {
       content: content.value.trim()
     };
 
-    const response = await axios.put(
-        `/posts/${route.params.id}`,
-        updateData
-    );
+    const response = await axios.put(`/posts/${route.params.id}`, updateData, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+      }
+    });
 
     if (response.data) {
       await router.push({
@@ -117,12 +118,10 @@ const submitEdit = async () => {
       });
     }
   } catch (error: any) {
-    // 세션 기반 인증에서는 401 또는 403 에러가 인증 실패를 의미할 수 있습니다.
     if (error.response?.status === 401 || error.response?.status === 403) {
       alert('로그인이 필요합니다. 다시 로그인해주세요.');
-      await router.push('/login'); // 로그인 페이지로 리다이렉트
+      await router.push('/login');
     } else {
-      console.error('게시글 수정 실패:', error.response?.data || error);
       alert(error.response?.data?.message || '게시글 수정에 실패했습니다.');
     }
   }

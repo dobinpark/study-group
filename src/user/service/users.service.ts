@@ -11,6 +11,7 @@ import { Cache } from 'cache-manager';
 import { UserCredentialsDto } from '../dto/user-credentials.dto';
 import { LoginDto } from '../dto/login.dto';
 import { UserProfileResponseDto } from '../dto/user-profile.response.dto';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class UsersService {
@@ -23,6 +24,7 @@ export class UsersService {
         private cacheManager: Cache,
         @InjectRepository(User)
         private userRepository: Repository<User>,
+        private jwtService: JwtService,
     ) { }
 
     async signUp(userCredentialsDto: UserCredentialsDto): Promise<void> {
@@ -50,12 +52,14 @@ export class UsersService {
         }
     }
 
-    async login(loginDto: LoginDto): Promise<User> { // User 엔티티 반환하도록 수정
-        const { username, password } = loginDto;
-        return this.validateUser(username, password);
+    async login(loginDto: LoginDto): Promise<{ accessToken: string }> {
+        const user = await this.validateUser(loginDto.username, loginDto.password);
+        const payload = { username: user.username, sub: user.id };
+        const accessToken = this.jwtService.sign(payload);
+        return { accessToken };
     }
 
-    private async validateUser(username: string, password: string): Promise<User> { // User 엔티티 반환하도록 수정
+    private async validateUser(username: string, password: string): Promise<User> {
         const user = await this.userRepository.findOne({ where: { username } });
 
         if (!user) {
@@ -67,7 +71,7 @@ export class UsersService {
             throw new UnauthorizedException('Invalid credentials');
         }
 
-        return user; // User 엔티티 반환
+        return user;
     }
 
     async getUserProfile(username: string): Promise<UserProfileResponseDto> {
@@ -78,7 +82,7 @@ export class UsersService {
         return this.excludeSensitiveFieldsToProfileDto(profile) as UserProfileResponseDto;
     }
 
-    async updateUserProfile(username: string, updateUserDto: UpdateUserDto): Promise<UserProfileResponseDto | null> { // UserProfileResponseDto 반환하도록 수정
+    async updateUserProfile(username: string, updateUserDto: UpdateUserDto): Promise<UserProfileResponseDto | null> {
         const cacheKey = this.getCacheKey(username);
         const updatedProfile = await this._updateUserProfile(username, updateUserDto);
 
@@ -88,30 +92,25 @@ export class UsersService {
         return updatedProfile;
     }
 
-    private async _updateUserProfile(username: string, updateUserDto: UpdateUserDto): Promise<UserProfileResponseDto | null> { // UserProfileResponseDto 반환하도록 수정
+    private async _updateUserProfile(username: string, updateUserDto: UpdateUserDto): Promise<UserProfileResponseDto | null> {
         try {
             const user = await this.findUserByUsername(username);
             if (!user) {
                 throw new NotFoundException(`User with username '${username}' not found`);
             }
 
-            const updateData: Partial<User> = {}; // userRepository.update 에 사용할 객체 생성
+            const updateData: Partial<User> = {};
 
-            // currentPassword 검증 로직 추가 (updateUserDto에 currentPassword가 있는 경우)
             if (updateUserDto.currentPassword) {
                 const isPasswordMatch = await bcrypt.compare(updateUserDto.currentPassword, user.password);
                 if (!isPasswordMatch) {
                     throw new BadRequestException('Invalid current password');
                 }
-                // 새 비밀번호 해싱 (newPassword가 제공된 경우에만)
                 if (updateUserDto.newPassword) {
-                    updateData.password = await bcrypt.hash(updateUserDto.newPassword, UsersService.SALT_ROUNDS); // updateData.password 에 해시된 비밀번호 저장
-                    // delete updateUserDto.newPassword; // 더 이상 필요 없으므로 삭제 (updateData 에 password 저장했으므로 updateUserDto 에서 삭제는 불필요)
+                    updateData.password = await bcrypt.hash(updateUserDto.newPassword, UsersService.SALT_ROUNDS);
                 }
-                // delete updateUserDto.currentPassword; // currentPassword는 더 이상 필요 없으므로 삭제 (updateData 에 currentPassword 관련 로직 없음)
             }
 
-            // 나머지 필드 업데이트 (닉네임, 이메일, 전화번호)
             if (updateUserDto.nickname !== undefined) {
                 updateData.nickname = updateUserDto.nickname;
             }
@@ -122,13 +121,13 @@ export class UsersService {
                 updateData.phoneNumber = updateUserDto.phoneNumber;
             }
 
-            const updateResult = await this.userRepository.update(user.id, updateData); // updateData 를 사용하여 업데이트
+            const updateResult = await this.userRepository.update(user.id, updateData);
             if (updateResult.affected === 0) {
                 return null;
             }
 
             const updatedUser = await this.findUserByUsername(username);
-            return this.excludeSensitiveFieldsToProfileDto(updatedUser); // DTO 변환 함수 사용
+            return this.excludeSensitiveFieldsToProfileDto(updatedUser);
 
         } catch (error) {
             console.error('사용자 프로필 업데이트 오류:', error);
@@ -143,7 +142,7 @@ export class UsersService {
     private excludeSensitiveFieldsToProfileDto(user: User | undefined | null): UserProfileResponseDto | null {
         if (!user) return null;
         const { password, ...rest } = user;
-        return rest as UserProfileResponseDto; // UserProfileResponseDto 로 타입 캐스팅하여 반환
+        return rest as UserProfileResponseDto;
     }
 
     private async findUserByUsername(username: string): Promise<User | null> {

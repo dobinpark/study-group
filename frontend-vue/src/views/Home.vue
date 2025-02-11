@@ -32,13 +32,15 @@ const handleCreateStudy = () => {
 <style scoped>
 .home-container {
     width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
     display: flex;
     justify-content: center;
     min-height: calc(100vh - 200px);
 }
 
 .home {
-    width: 70%;
+    width: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;

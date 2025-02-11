@@ -1,4 +1,3 @@
-<!-- eslint-disable vue/multi-word-component-names -->
 <template>
 	<div class="signup-container">
 		<div class="signup-content">
@@ -68,7 +67,7 @@ const cancel = () => {
 };
 
 // 비밀번호 유효성 검사
-const validatePassword = (password) => {
+const validatePassword = (password: string) => {
 	const passwordRegex = /^(?=.*[a-z])(?=.*[0-9])(?=.*[!@#$%^&*()\-_=+{};:,<.>])[a-z0-9!@#$%^&*()\-_=+{};:,<.>]{8,}$/;
 
 	if (!passwordRegex.test(password)) {
@@ -109,11 +108,15 @@ const signup = async () => {
 			confirmPassword: confirmPassword.value,
 			nickname: nickname.value,
 			email: email.value,
-			phoneNumber: phoneNumber.value,
+			phoneNumber: formattedPhoneNumber,
 		});
 
 		console.log('회원가입 성공:', response.data);
 		alert('회원가입이 완료되었습니다.');
+
+		// 액세스 토큰 저장
+		localStorage.setItem('accessToken', response.data.accessToken);
+
 		await router.push('/login');
 	} catch (error: any) {
 		console.error('회원가입 실패:', error.response?.data?.message || '회원가입 중 오류가 발생했습니다.');
@@ -125,6 +128,8 @@ const signup = async () => {
 <style scoped>
 .signup-container {
 	width: 100%;
+	max-width: 1200px; /* 네비게이션 바와 동일한 최대 너비 설정 */
+	margin: 0 auto;
 	min-height: calc(100vh - 140px);
 	display: flex;
 	justify-content: center;
@@ -132,7 +137,7 @@ const signup = async () => {
 }
 
 .signup-content {
-	width: 70%;
+	width: 100%;
 	background: linear-gradient(135deg, #f5f7fa 0%, #e4e9f2 100%);
 	padding: 3rem;
 	border-radius: 8px;

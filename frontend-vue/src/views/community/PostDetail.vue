@@ -95,7 +95,11 @@ const formattedContent = computed(() => {
 const fetchPost = async () => {
   try {
     loading.value = true;
-    const response = await axios.get(`/posts/${route.params.id}`);
+    const response = await axios.get(`/posts/${route.params.id}`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+      }
+    });
     post.value = response.data;
 
     if (response.data.category && !route.query.category) {
@@ -106,16 +110,11 @@ const fetchPost = async () => {
     }
 
   } catch (error: any) {
-    // 세션 기반 인증에서는 401 또는 403 에러가 인증 실패를 의미할 수 있습니다.
     if (error.response?.status === 401 || error.response?.status === 403) {
       alert('로그인이 필요합니다. 다시 로그인해주세요.');
-      await router.push('/login'); // 로그인 페이지로 리다이렉트
+      await router.push('/login');
     } else {
       console.error('게시글 조회 실패:', error);
-      await router.push({
-        path: '/posts',
-        query: {category: route.query.category}
-      });
     }
   } finally {
     loading.value = false;
@@ -202,9 +201,10 @@ onMounted(() => {
 
 <style scoped>
 .post-detail-container {
-  max-width: 1000px;
+  width: 100%;
+  max-width: 1200px;
   margin: 2rem auto;
-  padding: 2rem;
+  padding: 0 1rem;
   background: white;
   border-radius: 12px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);

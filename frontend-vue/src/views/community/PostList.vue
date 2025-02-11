@@ -8,24 +8,24 @@
       <div class="post-list">
         <table>
           <thead>
-          <tr>
-            <th>번호</th>
-            <th>제목</th>
-            <th>작성자</th>
-            <th>작성일</th>
-            <th>조회수</th>
-            <th>좋아요</th>
-          </tr>
+            <tr>
+              <th>번호</th>
+              <th>제목</th>
+              <th>작성자</th>
+              <th>작성일</th>
+              <th>조회수</th>
+              <th>좋아요</th>
+            </tr>
           </thead>
           <tbody>
-          <tr v-for="(post, index) in posts" :key="post.id" @click="viewPost(post.id)">
-            <td>{{ totalPosts - ((currentPage - 1) * itemsPerPage + index) }}</td>
-            <td class="title">{{ post.title }}</td>
-            <td>{{ post.author.nickname }}</td>
-            <td>{{ formatDate(post.createdAt) }}</td>
-            <td>{{ post.views }}</td>
-            <td>{{ post.likes }}</td>
-          </tr>
+            <tr v-for="(post, index) in posts" :key="post.id" @click="viewPost(post.id)">
+              <td>{{ totalPosts - ((currentPage - 1) * itemsPerPage + index) }}</td>
+              <td class="title">{{ post.title }}</td>
+              <td>{{ post.author.nickname }}</td>
+              <td>{{ formatDate(post.createdAt) }}</td>
+              <td>{{ post.views }}</td>
+              <td>{{ post.likes }}</td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -41,8 +41,8 @@
       <div class="pagination">
         <button :disabled="currentPage === 1" @click="changePage(currentPage - 1)">&lt;</button>
         <span v-for="page in totalPages" :key="page">
-                    <button :class="{ active: page === currentPage }" @click="changePage(page)">{{ page }}</button>
-                </span>
+          <button :class="{ active: page === currentPage }" @click="changePage(page)">{{ page }}</button>
+        </span>
         <button :disabled="currentPage === totalPages" @click="changePage(currentPage + 1)">&gt;</button>
       </div>
     </div>
@@ -53,7 +53,7 @@
 import { ref, onMounted, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from '../../utils/axios';
-import { PostCategory } from '@/types/post';
+import { PostCategory } from '../../types/post';
 
 interface Author {
   id: number;
@@ -114,6 +114,9 @@ const fetchPosts = async () => {
         page: currentPage.value,
         limit: itemsPerPage,
         search: searchQuery.value
+      },
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('accessToken')}`
       }
     });
 
@@ -123,10 +126,9 @@ const fetchPosts = async () => {
       totalPages.value = Math.ceil(response.data.total / itemsPerPage);
     }
   } catch (error: any) {
-    // 세션 기반 인증에서는 401 또는 403 에러가 인증 실패를 의미할 수 있습니다.
     if (error.response?.status === 401 || error.response?.status === 403) {
       alert('로그인이 필요합니다. 다시 로그인해주세요.');
-      await router.push('/login'); // 로그인 페이지로 리다이렉트
+      await router.push('/login');
     } else {
       console.error('게시글 조회 실패:', error);
     }

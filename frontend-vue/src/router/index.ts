@@ -12,7 +12,7 @@ import StudyGroupDetail from '../views/study/StudyGroupDetail.vue';
 import CreateStudyGroup from '../views/study/CreateStudyGroup.vue';
 import EditStudyGroup from '../views/study/EditStudyGroup.vue';
 import MyStudies from '../views/study/MyStudies.vue';
-import { useUserStore } from '../store/index.ts';
+import { useUserStore } from '../store/index';
 
 const router = createRouter({
     history: createWebHistory(process.env.BASE_URL),
@@ -101,16 +101,16 @@ router.beforeEach(async (to) => {
     const userStore = useUserStore();
 
     // public route 이거나 이미 인증된 경우 proceed
-    if (to.meta.public || userStore.isAuthenticated) {
+    if (to.meta.public || userStore.authChecked) {
         return true;
     }
 
     // 인증이 필요한 페이지에 접근 시 인증 상태 확인
-    if (to.meta.requiresAuth && !userStore.isAuthenticated) {
+    if (to.meta.requiresAuth && !userStore.authChecked) {
         // 로그인 페이지로 리다이렉트
         return {
             path: '/login',
-            query: { redirect: to.fullPath }, // 로그인 후 원래 페이지로 redirect 하기 위해 fullPath query parameter 추가
+            query: { redirect: to.path }, // 로그인 후 원래 페이지로 redirect 하기 위해 fullPath query parameter 추가
         };
     }
 

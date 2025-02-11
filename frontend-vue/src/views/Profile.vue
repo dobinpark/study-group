@@ -1,14 +1,13 @@
-<!-- eslint-disable vue/multi-word-component-names -->
 <template>
   <div class="min-h-full">
     <div class="py-10">
       <header>
-        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="header-container">
           <h1 class="text-3xl font-bold leading-tight tracking-tight text-gray-900">내 프로필</h1>
         </div>
       </header>
       <main>
-        <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
+        <div class="main-container">
           <div class="px-4 py-8 sm:px-0">
             <div class="bg-white px-4 py-5 shadow sm:rounded-lg sm:p-6">
               <div class="space-y-6">
@@ -119,11 +118,15 @@ const passwordChange = ref({
 // 프로필 정보 가져오기
 const getProfile = async () => {
   try {
-    const response = await axios.get('/users/profile');
+    const response = await axios.get('/users/profile', {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+      }
+    });
     profile.value = response.data;
   } catch (error) {
     console.error('프로필 조회 실패:', error);
-    if (error.response?.status === 401 || error.response?.status === 403) { // 세션 기반에서는 401 또는 403으로 상태 코드가 올 수 있습니다.
+    if (error.response?.status === 401 || error.response?.status === 403) {
       alert('로그인이 필요합니다.');
       await router.push('/login');
     }
@@ -139,13 +142,16 @@ const updateProfile = async () => {
       phoneNumber: profile.value.phoneNumber
     };
 
-    // 비밀번호 변경이 있는 경우
     if (passwordChange.value.currentPassword && passwordChange.value.newPassword) {
       updateData.currentPassword = passwordChange.value.currentPassword;
       updateData.newPassword = passwordChange.value.newPassword;
     }
 
-    await axios.put('/users/profile', updateData);
+    await axios.put('/users/profile', updateData, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+      }
+    });
 
     alert('프로필이 업데이트되었습니다.');
     passwordChange.value = { currentPassword: '', newPassword: '' };
@@ -160,3 +166,11 @@ onMounted(() => {
   getProfile();
 });
 </script>
+
+<style scoped>
+.header-container, .main-container {
+    max-width: 1200px; /* 네비게이션 바와 동일한 최대 너비 설정 */
+    margin: 0 auto;
+    padding: 0 20px;
+}
+</style>

@@ -72,9 +72,7 @@
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from '../../utils/axios';
-import type { Category } from '@/types/category';
-import { cachedFetch } from '@/utils/cache';
-import { handleApiError } from '@/utils/error-handler';
+import type { Category } from '../../types/category';
 
 // 사용자 인터페이스 정의
 interface User {
@@ -112,17 +110,17 @@ const currentSubCategory = computed(() => route.query.subCategory as string);
 const fetchStudyGroups = async () => {
   loading.value = true;
   try {
-    studyGroups.value = await cachedFetch('/study-groups', {
-      ttl: 5 * 60 * 1000, // 5 minutes cache
-      key: 'study-groups-list',
+    const response = await axios.get('/study-groups', {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+      }
     });
+    studyGroups.value = response.data;
   } catch (error: any) {
     if (error.response?.status === 401 || error.response?.status === 403) {
       alert('로그인이 필요합니다. 다시 로그인해주세요.');
       await router.push('/login');
     } else {
-      const apiError = handleApiError(error);
-      console.error(apiError.message);
       alert('스터디 그룹 목록을 불러오는데 실패했습니다.');
     }
   } finally {

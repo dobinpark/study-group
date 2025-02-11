@@ -4,7 +4,7 @@
     <form @submit.prevent="handleSubmit" class="study-form">
       <div class="form-group">
         <label for="name">스터디 그룹 이름</label>
-        <input type="text" id="name" v-model="studyGroup.name" required class="form-input" />
+<input type="text" id="name" v-model="studyGroup.name" required class="form-input" />
       </div>
 
       <div class="form-group">
@@ -171,7 +171,11 @@ const detailCategories = computed(() => {
 // 스터디 그룹 생성 처리
 const handleSubmit = async () => {
   try {
-    const response = await axios.post('/study-groups', studyGroup.value);
+    const response = await axios.post('/study-groups', studyGroup.value, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+      }
+    });
 
     if (response.status === 201) {
       emitter?.emit('studyGroupCreated');
@@ -181,7 +185,7 @@ const handleSubmit = async () => {
   } catch (error: any) {
     if (error.response?.status === 401 || error.response?.status === 403) {
       alert('로그인이 필요합니다. 다시 로그인해주세요.');
-      await router.push('/login'); // 로그인 페이지로 리다이렉트
+      await router.push('/login');
     } else {
       alert(error.response?.data?.message || '스터디 그룹 생성에 실패했습니다.');
     }
@@ -208,7 +212,8 @@ const fetchStudyGroupCounts = () => {
 
 <style scoped>
 .create-study-container {
-  max-width: 800px;
+  width: 100%;
+  max-width: 1200px;
   margin: 2rem auto;
   padding: 2rem;
   background: white;

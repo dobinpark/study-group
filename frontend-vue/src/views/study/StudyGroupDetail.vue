@@ -91,7 +91,7 @@
 import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from '../../utils/axios';
-import { useUserStore } from '@/store/user';
+import { useUserStore } from '../../store/index';
 
 interface User {
   id: number;
@@ -132,9 +132,11 @@ const loadStudyGroup = async () => {
   isLoading.value = true;
 
   try {
-    const response = await axios.get(`/study-groups/${route.params.id}`);
-    console.log('스터디 그룹 데이터:', response.data);
-    console.log('현재 로그인 상태:', userStore.user);
+    const response = await axios.get(`/study-groups/${route.params.id}`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+      }
+    });
 
     if (!response.data) {
       throw new Error('데이터가 없습니다.');
@@ -146,12 +148,7 @@ const loadStudyGroup = async () => {
       creator: response.data.creator || { id: 0, nickname: '알 수 없음' }
     };
 
-    console.log('스터디 그룹 생성자:', studyGroup.value?.creator);
-    console.log('현재 사용자:', userStore.user);
-    console.log('isCreator 값:', isCreator.value);
-
   } catch (err: any) {
-    console.error('스터디 그룹 로딩 실패:', err);
     error.value = '스터디 그룹 정보를 불러오는데 실패했습니다.';
     setTimeout(() => {
       router.push('/study-groups');
@@ -219,7 +216,8 @@ onMounted(async () => {
 
 <style scoped>
 .study-detail-container {
-  max-width: 1000px;
+  width: 100%;
+  max-width: 1200px;
   margin: 2rem auto;
   padding: 0 1rem;
 }

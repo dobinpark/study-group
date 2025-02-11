@@ -189,15 +189,18 @@ const handleSubmit = async () => {
       maxMembers: Number(studyGroup.value.maxMembers)
     };
 
-    await axios.put(`/study-groups/${route.params.id}`, updateData);
+    await axios.put(`/study-groups/${route.params.id}`, updateData, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+      }
+    });
 
     alert('스터디 그룹이 수정되었습니다.');
     await router.push(`/study-groups/${route.params.id}`);
   } catch (error: any) {
-    // 세션 기반 인증에서는 401 또는 403 에러가 인증 실패를 의미할 수 있습니다.
     if (error.response?.status === 401 || error.response?.status === 403) {
       alert('로그인이 필요합니다. 다시 로그인해주세요.');
-      await router.push('/login'); // 로그인 페이지로 리다이렉트
+      await router.push('/login');
     } else {
       alert(error.response?.data?.message || '스터디 그룹 수정에 실패했습니다.');
     }
@@ -217,7 +220,8 @@ onMounted(() => {
 
 <style scoped>
 .edit-study-container {
-  max-width: 800px;
+  width: 100%;
+  max-width: 1200px;
   margin: 2rem auto;
   padding: 0 1rem;
 }
