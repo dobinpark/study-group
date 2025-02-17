@@ -1,28 +1,58 @@
-import { IsNotEmpty, IsString, IsNumber, Min, Max } from 'class-validator';
+import { IsString, IsNumber, Min, Max, Length, IsNotEmpty } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateStudyGroupDto {
-    @IsNotEmpty()
+    @ApiProperty({
+        description: '스터디 그룹 이름',
+        minLength: 2,
+        maxLength: 50
+    })
     @IsString()
+    @IsNotEmpty()
+    @Length(2, 50, { message: '스터디 그룹 이름은 2-50자 사이여야 합니다.' })
     name!: string;
 
-    @IsNotEmpty()
+    @ApiProperty({
+        description: '대분류',
+        example: '지역별, 학습자별, 전공별'
+    })
     @IsString()
+    @IsNotEmpty()
     mainCategory!: string;
 
-    @IsNotEmpty()
+    @ApiProperty({
+        description: '중분류',
+        example: '서울, 고등, 공학계열'
+    })
     @IsString()
+    @IsNotEmpty()
     subCategory!: string;
 
-    @IsNotEmpty()
+    @ApiProperty({
+        description: '소분류',
+        example: '강남구, 3학년, 컴퓨터공학과'
+    })
     @IsString()
+    @IsNotEmpty()
     detailCategory!: string;
 
-    @IsNotEmpty()
+    @ApiProperty({
+        description: '스터디 그룹 설명',
+        minLength: 10,
+        maxLength: 1000
+    })
     @IsString()
+    @IsNotEmpty()
+    @Length(10, 1000, { message: '스터디 그룹 설명은 10-1000자 사이여야 합니다.' })
     content!: string;
 
+    @ApiProperty({
+        description: '최대 인원 수',
+        minimum: 2,
+        maximum: 100
+    })
     @IsNumber()
-    @Min(2)
-    @Max(100)
+    @Min(2, { message: '최소 2명 이상이어야 합니다.' })
+    @Max(100, { message: '최대 100명까지 가능합니다.' })
     maxMembers!: number;
 }

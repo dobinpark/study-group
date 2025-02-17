@@ -4,15 +4,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ScheduleModule } from '@nestjs/schedule';
 import { UserModule } from './user/user.module';
 import { StudyModule } from './study/study.module';
-import { config } from 'dotenv';
 import { CacheModule } from '@nestjs/cache-manager';
 import * as redisStore from 'cache-manager-redis-store';
 import { PostsModule } from './posts/posts.module';
 import { validate } from './config/env.validation';
 import { RedisClientOptions } from 'redis';
-import { JwtModule } from '@nestjs/jwt';
 
-console.log(process.env.DB_PORT); // 환경 변수가 제대로 로드되었는지 확인
+console.log(process.env.DB_PORT);
 
 if (!process.env.DB_PORT) {
     throw new Error('DB_PORT 환경 변수가 정의되지 않았습니다.');
@@ -22,8 +20,8 @@ if (!process.env.DB_PORT) {
     imports: [
         ConfigModule.forRoot({
             validate,
-            envFilePath: `.env.${process.env.NODE_ENV || 'development'}`, // 환경 파일 경로 명시적 지정 (NODE_ENV 값에 따라 동적 설정)
-            ignoreEnvFile: false, // .env 파일 로드 활성화 (기본값: false)
+            envFilePath: `.env.${process.env.NODE_ENV || 'development'}`,
+            ignoreEnvFile: false,
         }),
         TypeOrmModule.forRootAsync({
             imports: [ConfigModule],
@@ -52,14 +50,6 @@ if (!process.env.DB_PORT) {
             ttl: 300,
         }),
         PostsModule,
-        JwtModule.registerAsync({
-            imports: [ConfigModule],
-            useFactory: async (configService: ConfigService) => ({
-                secret: configService.get<string>('JWT_SECRET'),
-                signOptions: { expiresIn: '1h' },
-            }),
-            inject: [ConfigService],
-        }),
     ],
     controllers: [],
     providers: [],

@@ -16,4 +16,4 @@ export class Category {
 
     @Column({ default: 0 })
     count!: number;
-} 
+}

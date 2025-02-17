@@ -40,7 +40,8 @@
 
       <div class="form-group">
         <label for="maxMembers">모집 인원</label>
-        <input type="number" id="maxMembers" v-model="studyGroup.maxMembers" required min="2" max="100" class="form-input" />
+        <input type="number" id="maxMembers" v-model="studyGroup.maxMembers" required min="2" max="100"
+          class="form-input" />
         <small class="form-help">2명에서 100명까지 설정 가능합니다.</small>
       </div>
 
@@ -168,10 +169,10 @@ const detailCategories = computed(() => {
   return categoryData[studyGroup.value.mainCategory as keyof typeof categoryData]?.[studyGroup.value.subCategory] || [];
 });
 
-// 스터디 그룹 정보 로드
+// 스터디 그룹 상세 정보 로드
 const loadStudyGroup = async () => {
   try {
-    const response = await axios.get(`/study-groups/${route.params.id}`);
+    const response = await axios.get(`/study-groups-detail/${route.params.id}`);
     const { name, mainCategory, subCategory, detailCategory, content, maxMembers } = response.data;
     studyGroup.value = { name, mainCategory, subCategory, detailCategory, content, maxMembers };
   } catch (error) {
@@ -189,14 +190,14 @@ const handleSubmit = async () => {
       maxMembers: Number(studyGroup.value.maxMembers)
     };
 
-    await axios.put(`/study-groups/${route.params.id}`, updateData, {
+    await axios.put(`/study-groups-edit/${route.params.id}`, updateData, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem('accessToken')}`
       }
     });
 
     alert('스터디 그룹이 수정되었습니다.');
-    await router.push(`/study-groups/${route.params.id}`);
+    await router.push(`/study-groups-detail/${route.params.id}`);
   } catch (error: any) {
     if (error.response?.status === 401 || error.response?.status === 403) {
       alert('로그인이 필요합니다. 다시 로그인해주세요.');

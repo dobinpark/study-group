@@ -5,33 +5,27 @@
         "strict": true,
         "jsx": "preserve",
         "moduleResolution": "node",
-        "resolveJsonModule": true,
+        "skipLibCheck": true,
         "esModuleInterop": true,
         "allowSyntheticDefaultImports": true,
+        "forceConsistentCasingInFileNames": true,
+        "useDefineForClassFields": true,
+        "sourceMap": true,
         "baseUrl": ".",
+        "types": [
+            "webpack-env",
+            "node"
+        ],
         "paths": {
             "@/*": ["src/*"]
         },
-        "lib": ["esnext", "dom"],
-        "types": ["node", "webpack-env"],
-        "allowJs": true,
-        "skipLibCheck": true,
-        "forceConsistentCasingInFileNames": true,
-        "noImplicitThis": true,
-        "noUnusedLocals": true,
-        "noUnusedParameters": true,
-        "noImplicitReturns": true,
-        "noFallthroughCasesInSwitch": true
+        "lib": ["esnext", "dom", "dom.iterable", "scripthost"]
     },
     "include": [
         "src/**/*.ts",
-        "src/**/*.d.ts",
         "src/**/*.tsx",
-        "src/**/*.vue"
+        "src/**/*.vue",
+        "src/**/*.d.ts"
     ],
-    "exclude": [
-        "node_modules",
-        "vue.config.js",
-        "babel.config.js"
-    ]
+    "exclude": ["node_modules"]
 }

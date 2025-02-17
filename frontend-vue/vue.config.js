@@ -1,4 +1,7 @@
-module.exports = {
+const { defineConfig } = require('@vue/cli-service')
+const path = require('path')
+
+module.exports = defineConfig({
   // 개발 서버 설정
   devServer: {
     proxy: {
@@ -10,8 +13,14 @@ module.exports = {
   },
   // 웹팩 설정 커스터마이징
   configureWebpack: {
-    // 추가적인 웹팩 설정
+    resolve: {
+      alias: {
+        '@': path.resolve(__dirname, 'src')
+      },
+      extensions: ['.js', '.vue', '.json', '.ts']
+    }
   },
   // 기타 설정
   lintOnSave: false, // 저장 시 린트 비활성화
-};
+  transpileDependencies: true,
+})

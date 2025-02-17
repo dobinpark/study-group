@@ -93,7 +93,7 @@ const login = async () => {
       localStorage.setItem('accessToken', result.accessToken);
       const redirect = Array.isArray(route.query.redirect) ? route.query.redirect[0] : route.query.redirect;
       const redirectTo = redirect || '/';
-      router.push(redirectTo);
+      await router.push(redirectTo);
     } else {
       errorType.value = 'server';
       userStore.error = result.message || '로그인에 실패했습니다.';

@@ -5,10 +5,13 @@ import {
     CreateDateColumn,
     UpdateDateColumn,
     OneToMany,
+    ManyToMany,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
 import { Post } from '@/src/posts/entities/post.entity';
 import { StudyGroup } from '@/src/study/entities/study-group.entity';
+import { RefreshToken } from '../../auth/entities/refresh-token.entity';
+import { ApiProperty } from '@nestjs/swagger';
 
 export enum UserRole {
     USER = 'user',
@@ -20,21 +23,42 @@ export class User {
     @PrimaryGeneratedColumn()
     id!: number;
 
-    @Column()
+    @Column({ unique: true })
     username!: string;
 
     @Column()
     @Exclude()
     password!: string;
 
-    @Column({ unique: true })
+    @Column()
     nickname!: string;
 
-    @Column({ unique: true })
+    @Column()
     email!: string;
 
-    @Column({ unique: true })
+    @Column()
     phoneNumber!: string;
+
+    @OneToMany(() => Post, post => post.author)
+    posts!: Post[];
+
+    @ApiProperty({ 
+        description: '생성한 스터디 그룹',
+        type: () => [StudyGroup]  // 배열 타입으로 지정
+    })
+    @OneToMany(() => StudyGroup, studyGroup => studyGroup.creator, {
+        cascade: true
+    })
+    createdStudyGroups!: StudyGroup[];
+
+    @ApiProperty({ 
+        description: '참여한 스터디 그룹',
+        type: () => [StudyGroup]  // 배열 타입으로 지정
+    })
+    @ManyToMany(() => StudyGroup, studyGroup => studyGroup.members, {
+        cascade: true
+    })
+    joinedStudyGroups!: StudyGroup[];
 
     @CreateDateColumn()
     createdAt!: Date;
@@ -42,16 +66,13 @@ export class User {
     @UpdateDateColumn()
     updatedAt!: Date;
 
-    @OneToMany(() => Post, post => post.author)
-    posts!: Post[];
-
-    @OneToMany(() => StudyGroup, studyGroup => studyGroup.creator)
-    studyGroups!: StudyGroup[];
-
     @Column({
         type: 'enum',
         enum: UserRole,
         default: UserRole.USER,
     })
     role!: UserRole;
+
+    @OneToMany(() => RefreshToken, refreshToken => refreshToken.user)
+    refreshTokens?: RefreshToken[];
 }

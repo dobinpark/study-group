@@ -1,24 +1,32 @@
 <template>
-  <div class="create-post-container">
-    <h2 class="page-title">{{ categoryTitle }} 글쓰기</h2>
+  <div class="page-container">
+    <div class="page-inner">
+      <div class="content-card">
+        <header class="page-header">
+          <h1>{{ categoryTitle }} 글쓰기</h1>
+        </header>
 
-    <div class="form-container">
-      <div class="form-group">
-        <label for="title">제목</label>
-        <input type="text" id="title" v-model="title" placeholder="제목을 입력하세요" :class="{ 'error': errors.title }">
-        <span class="error-message" v-if="errors.title">{{ errors.title }}</span>
-      </div>
+        <main class="page-content">
+          <form @submit.prevent="handleSubmit" class="post-form">
+            <div class="form-group">
+              <label for="title">제목</label>
+              <input type="text" id="title" v-model="title" placeholder="제목을 입력하세요" :class="{ 'error': errors.title }">
+              <span class="error-message" v-if="errors.title">{{ errors.title }}</span>
+            </div>
 
-      <div class="form-group">
-        <label for="content">내용</label>
-        <textarea id="content" v-model="content" placeholder="내용을 입력하세요" rows="15"
-          :class="{ 'error': errors.content }"></textarea>
-        <span class="error-message" v-if="errors.content">{{ errors.content }}</span>
-      </div>
+            <div class="form-group">
+              <label for="content">내용</label>
+              <textarea id="content" v-model="content" rows="15" placeholder="내용을 입력하세요"
+                :class="{ 'error': errors.content }"></textarea>
+              <span class="error-message" v-if="errors.content">{{ errors.content }}</span>
+            </div>
 
-      <div class="button-group">
-        <button class="cancel-button" @click="cancel">취소</button>
-        <button class="submit-button" @click="submitPost">등록</button>
+            <div class="button-group">
+              <button type="button" @click="goBack" class="btn btn-secondary">취소</button>
+              <button type="submit" class="btn btn-primary">등록</button>
+            </div>
+          </form>
+        </main>
       </div>
     </div>
   </div>
@@ -29,6 +37,7 @@ import { ref, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from '../../utils/axios';
 import { PostCategoryKorean } from '../../types/post';
+import { useUserStore } from '../../store';
 
 const route = useRoute();
 const router = useRouter();
@@ -72,23 +81,24 @@ const submitPost = async () => {
   if (!validateForm()) return;
 
   try {
-    const category = getCategory(String(route.params.category));
-    const response = await axios.post('/posts', {
+    const userStore = useUserStore();
+    if (!userStore.user?.id) {
+      window.alert('로그인이 필요합니다.');
+      await router.push('/login');
+      return;
+    }
+
+    const response = await axios.post('/create-post', {
       title: title.value,
       content: content.value,
-      category: category
-    }, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('accessToken')}`
-      }
+      category: getCategory(String(route.params.category)),
+      authorId: userStore.user.id
     });
 
     window.alert('게시글이 성공적으로 작성되었습니다.');
     await router.push({
-      path: `/posts/${response.data.id}`,
-      query: {
-        category: category
-      }
+      path: `/post-detail/${response.data.id}`,
+      query: { category: response.data.category }
     });
   } catch (error: any) {
     if (error.response?.status === 401 || error.response?.status === 403) {
@@ -103,7 +113,7 @@ const submitPost = async () => {
 // 취소 버튼 클릭 시
 const cancel = () => {
   router.push({
-    path: '/posts',
+    path: '/post-list',
     query: { category: getCategory(String(route.params.category)) }
   });
 };
@@ -120,99 +130,35 @@ const getCategory = (category: string): string => {
   console.log('Category mapping:', { original: category, mapped: mappedCategory });
   return mappedCategory || 'FREE';
 };
+
+const handleSubmit = () => {
+  // 폼 유효성 검사 및 게시글 제출 로직
+  submitPost();
+};
+
+const goBack = () => {
+  cancel();
+};
 </script>
 
 <style scoped>
-.create-post-container {
-  width: 100%;
-  max-width: 1200px;
-  margin: 2rem auto;
-  padding: 0 1rem;
-}
-
-.page-title {
-  font-size: 2rem;
-  color: #2c3e50;
-  margin-bottom: 2rem;
-  text-align: center;
-}
-
-.form-container {
-  background-color: white;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.form-group {
-  margin-bottom: 1.5rem;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: bold;
-  color: #2c3e50;
-}
-
-.form-group input,
-.form-group textarea {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 1rem;
-}
-
-.form-group input:focus,
-.form-group textarea:focus {
-  outline: none;
-  border-color: #4A90E2;
-}
-
-.form-group input.error,
-.form-group textarea.error {
-  border-color: #dc3545;
-}
-
+/* 페이지별 고유한 스타일만 추가 */
 .error-message {
-  color: #dc3545;
+  color: #e53e3e;
   font-size: 0.875rem;
-  margin-top: 0.25rem;
+  margin-top: 0.5rem;
 }
 
-.button-group {
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-  margin-top: 2rem;
+.error {
+  border-color: #e53e3e !important;
 }
 
-.cancel-button,
-.submit-button {
-  padding: 0.75rem 2rem;
-  border: none;
-  border-radius: 4px;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background-color 0.2s;
+.error:focus {
+  box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.1) !important;
 }
 
-.cancel-button {
-  background-color: #6c757d;
-  color: white;
-}
-
-.submit-button {
-  background-color: #4A90E2;
-  color: white;
-}
-
-.cancel-button:hover {
-  background-color: #5a6268;
-}
-
-.submit-button:hover {
-  background-color: #357ABD;
+textarea {
+  resize: vertical;
+  min-height: 200px;
 }
 </style>

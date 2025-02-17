@@ -1,48 +1,27 @@
 <template>
   <div class="study-list-container">
     <h1 class="title">스터디 그룹 목록</h1>
-    <div class="category-path" v-if="route.query.mainCategory">
-      <span class="path-item">{{ route.query.mainCategory }}</span>
-      <span class="path-separator" v-if="route.query.subCategory">></span>
-      <span class="path-item" v-if="route.query.subCategory">{{
-          route.query.subCategory
-        }}</span>
-      <span class="path-separator" v-if="route.query.detailCategory"
-      >></span
-      >
-      <span class="path-item" v-if="route.query.detailCategory">{{
-          route.query.detailCategory
-        }}</span>
+    <div v-if="route.query.mainCategory" class="category-path">
+      <span class="main-category">{{ route.query.mainCategory }}</span>
+      <span v-if="route.query.subCategory" class="path-separator"> > </span>
+      <span v-if="route.query.subCategory" class="sub-category">{{ route.query.subCategory }}</span>
     </div>
     <div v-if="loading" class="loading">로딩 중...</div>
-    <div
-        v-else-if="studyGroups && studyGroups.length > 0"
-        class="study-groups"
-    >
-      <div
-          v-for="studyGroup in studyGroups"
-          :key="studyGroup.id"
-          class="study-group-card"
-          @click="goToDetail(studyGroup.id)"
-      >
+    <div v-else-if="studyGroups && studyGroups.length > 0" class="study-groups">
+      <div v-for="studyGroup in studyGroups" :key="studyGroup.id" class="study-group-card"
+        @click="goToDetail(studyGroup.id)">
         <h2 class="study-group-title">{{ studyGroup.name }}</h2>
         <div class="study-group-meta">
-                    <span class="category"
-                    >{{ studyGroup.mainCategory }} >
-                        {{ studyGroup.subCategory }} >
-                        {{ studyGroup.detailCategory }}</span
-                    >
-          <span class="creator"
-          >작성자: {{ studyGroup.creator?.nickname }}</span
-          >
-          <span class="members"
-          >참여 인원: {{ studyGroup.members?.length || 0 }}/{{
-              studyGroup.maxMembers
-            }}</span
-          >
+          <span class="category">{{ studyGroup.mainCategory }} >
+            {{ studyGroup.subCategory }} >
+            {{ studyGroup.detailCategory }}</span>
+          <span class="creator">작성자: {{ studyGroup.creator?.nickname }}</span>
+          <span class="members">참여 인원: {{ studyGroup.members?.length || 0 }}/{{
+            studyGroup.maxMembers
+          }}</span>
           <span class="date">{{
-              formatDate(studyGroup.createdAt)
-            }}</span>
+            formatDate(studyGroup.createdAt)
+          }}</span>
         </div>
         <p class="study-group-content">
           {{ truncateContent(studyGroup?.description) }}
@@ -53,12 +32,7 @@
 
     <div class="action-bar">
       <div class="search-box">
-        <input
-            type="text"
-            v-model="searchQuery"
-            placeholder="스터디 그룹 검색"
-            @keyup.enter="search"
-        />
+        <input type="text" v-model="searchQuery" placeholder="스터디 그룹 검색" @keyup.enter="search" />
         <button @click="search" class="search-button">검색</button>
       </div>
       <button @click="createStudyGroup" class="create-button">
@@ -131,7 +105,7 @@ const fetchStudyGroups = async () => {
 // 카테고리 목록 가져오기
 const fetchCategories = async () => {
   try {
-    const response = await axios.get('/study-groups/categories');
+    const response = await axios.get('/study-groups-categories');
     categories.value = response.data;
     console.log('카테고리 데이터:', response.data);
   } catch (error: any) {
@@ -151,12 +125,12 @@ const goToDetail = (id: number) => {
     console.error('유효하지 않은 스터디 그룹 ID:', id);
     return;
   }
-  router.push(`/study-groups/${id}`);
+  router.push(`/study-group-detail?id=${id}`);
 };
 
 // 스터디 그룹 생성 페이지로 이동
 const createStudyGroup = () => {
-  router.push('/create-study');
+  router.push('/study-group-create');
 };
 
 // 날짜 형식 변환
@@ -194,11 +168,11 @@ onMounted(() => {
 
 // 라우트 쿼리가 변경될 때마다 스터디 그룹 목록 새로 가져오기
 watch(
-    () => route.query,
-    () => {
-      fetchStudyGroups();
-    },
-    { deep: true },
+  () => route.query,
+  () => {
+    fetchStudyGroups();
+  },
+  { deep: true },
 );
 
 // 스터디 그룹 목록이 변경될 때마다 카테고리 목록 새로 가져오기
@@ -209,28 +183,28 @@ watch(studyGroups, () => {
 // 현재 선택된 메인/서브 카테고리에 해당하는 카테고리만 필터링
 const filteredCategories = computed(() => {
   return categories.value.filter(
-      (category) =>
-          category.mainCategory === currentMainCategory.value &&
-          category.subCategory === currentSubCategory.value,
+    (category) =>
+      category.mainCategory === currentMainCategory.value &&
+      category.subCategory === currentSubCategory.value,
   );
 });
 
 // 카테고리 데이터가 변경될 때마다 로그 출력
 watch(
-    categories,
-    (newCategories) => {
-      console.log('Categories updated:', newCategories);
-    },
-    { deep: true },
+  categories,
+  (newCategories) => {
+    console.log('Categories updated:', newCategories);
+  },
+  { deep: true },
 );
 
 // 스터디 그룹이나 카테고리가 변경될 때마다 카테고리 정보 새로 로드
 watch(
-    [studyGroups, route.query],
-    () => {
-      fetchCategories();
-    },
-    { deep: true },
+  [studyGroups, route.query],
+  () => {
+    fetchCategories();
+  },
+  { deep: true },
 );
 </script>
 
@@ -332,6 +306,7 @@ watch(
   font-weight: 500;
   border-radius: 6px;
   font-size: 0.95rem;
+  width: 80px;
 }
 
 .search-button:hover {
@@ -379,7 +354,7 @@ watch(
   color: #4a5568;
 }
 
-.path-item {
+.main-category {
   font-weight: 600;
   color: #4a90e2;
 }
@@ -387,6 +362,11 @@ watch(
 .path-separator {
   margin: 0 0.5rem;
   color: #718096;
+}
+
+.sub-category {
+  font-weight: 600;
+  color: #4a90e2;
 }
 
 .category-section {

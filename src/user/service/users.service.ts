@@ -52,28 +52,6 @@ export class UsersService {
         }
     }
 
-    async login(loginDto: LoginDto): Promise<{ accessToken: string }> {
-        const user = await this.validateUser(loginDto.username, loginDto.password);
-        const payload = { username: user.username, sub: user.id };
-        const accessToken = this.jwtService.sign(payload);
-        return { accessToken };
-    }
-
-    private async validateUser(username: string, password: string): Promise<User> {
-        const user = await this.userRepository.findOne({ where: { username } });
-
-        if (!user) {
-            throw new UnauthorizedException('Invalid credentials');
-        }
-
-        const isPasswordMatch = await bcrypt.compare(password, user.password);
-        if (!isPasswordMatch) {
-            throw new UnauthorizedException('Invalid credentials');
-        }
-
-        return user;
-    }
-
     async getUserProfile(username: string): Promise<UserProfileResponseDto> {
         const profile = await this.userRepository.findOne({ where: { username } });
         if (!profile) {
@@ -145,7 +123,7 @@ export class UsersService {
         return rest as UserProfileResponseDto;
     }
 
-    private async findUserByUsername(username: string): Promise<User | null> {
+    async findUserByUsername(username: string): Promise<User | null> {
         return this.userRepository.findOne({ where: { username } });
     }
 
@@ -162,7 +140,7 @@ export class UsersService {
 
             const hashedPassword = await bcrypt.hash(tempPassword, UsersService.SALT_ROUNDS);
 
-            await this.userRepository.update(user.id, { password: hashedPassword });
+await this.userRepository.update(user.id, { password: hashedPassword });
 
             return { tempPassword };
 

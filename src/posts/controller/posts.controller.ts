@@ -6,8 +6,10 @@ import { Post as PostEntity } from '../entities/post.entity';
 import { PostCategory } from '../enum/post-category.enum';
 import { UpdatePostDto } from '../dto/update-post.dto';
 import { ApiOperation, ApiResponse, ApiTags, ApiQuery, ApiBearerAuth, ApiCreatedResponse, ApiOkResponse } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../../user/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { Request } from 'express';
+import { AuthGuard } from '@nestjs/passport';
+import { GetUser } from '../../auth/decorators/get-user.decorator';
 
 @ApiTags('게시판')
 @Controller('posts')
@@ -32,21 +34,21 @@ export class PostsController {
     }
 
     // 게시물 생성
-    @Post()
-    @UseGuards(JwtAuthGuard)
+    @Post('create-post')
+    @UseGuards(AuthGuard())
     @ApiBearerAuth()
     @ApiOperation({ summary: '게시물 생성' })
     @ApiCreatedResponse({ description: '게시물 생성 성공', type: PostEntity })
     @HttpCode(HttpStatus.CREATED)
     async createPost(
         @Body() createPostDto: CreatePostDto,
-        @Req() req: Request,
+        @GetUser() user: User
     ): Promise<PostEntity> {
-        const user = req.user as User;
-        if (!user) {
-            throw new UnauthorizedException('User not authenticated');
-        }
-        return await this.postsService.createPost(createPostDto, user);
+        const postData = {
+            ...createPostDto,
+            authorId: user.id
+        };
+        return await this.postsService.createPost(postData);
     }
 
     // 게시물 상세 조회

@@ -20,18 +20,18 @@
           <div class="info-header">
             <h2>스터디 정보</h2>
             <div class="meta-info">
-                            <span class="creator">
-                                <i class="fas fa-user"></i>
-                                개설자: {{ studyGroup.creator?.nickname }}
-                            </span>
+              <span class="creator">
+                <i class="fas fa-user"></i>
+                개설자: {{ studyGroup.creator?.nickname }}
+              </span>
               <span class="date">
-                                <i class="fas fa-calendar"></i>
-                                개설일: {{ formatDate(studyGroup.createdAt) }}
-                            </span>
+                <i class="fas fa-calendar"></i>
+                개설일: {{ formatDate(studyGroup.createdAt) }}
+              </span>
               <span class="members">
-                                <i class="fas fa-users"></i>
-                                참여인원: {{ studyGroup.members?.length || 0 }}/{{ studyGroup.maxMembers }}
-                            </span>
+                <i class="fas fa-users"></i>
+                참여인원: {{ studyGroup.members?.length || 0 }}/{{ studyGroup.maxMembers }}
+              </span>
             </div>
           </div>
           <div class="description">
@@ -45,9 +45,9 @@
             <div v-for="member in studyGroup.members" :key="member.id" class="member-item">
               <div class="member-avatar">{{ member.nickname[0] }}</div>
               <span class="member-name">
-                                {{ member.nickname }}
-                                <span v-if="member.id === studyGroup.creator?.id" class="creator-badge">방장</span>
-                            </span>
+                {{ member.nickname }}
+                <span v-if="member.id === studyGroup.creator?.id" class="creator-badge">방장</span>
+              </span>
             </div>
           </div>
           <div v-else class="no-members">
@@ -56,12 +56,8 @@
         </div>
 
         <div class="action-buttons">
-          <button
-              v-if="userStore.user && studyGroup"
-              @click="joinStudyGroup"
-              class="join-button"
-              :disabled="isLoading || isAlreadyMember || isCreator"
-          >
+          <button v-if="userStore.user && studyGroup" @click="joinStudyGroup" class="join-button"
+            :disabled="isLoading || isAlreadyMember || isCreator">
             <i class="fas fa-sign-in-alt"></i>
             <span v-if="isCreator">내가 만든 스터디입니다</span>
             <span v-else-if="isAlreadyMember">이미 참여하였습니다</span>
@@ -127,12 +123,13 @@ const isAlreadyMember = computed(() => {
   return studyGroup.value?.members.some(m => m.id === userStore.user?.id);
 });
 
+// 스터디 그룹 상세 정보 로드
 const loadStudyGroup = async () => {
   error.value = null;
   isLoading.value = true;
 
   try {
-    const response = await axios.get(`/study-groups/${route.params.id}`, {
+    const response = await axios.get(`/study-groups-detail/${route.params.id}`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem('accessToken')}`
       }
@@ -158,6 +155,7 @@ const loadStudyGroup = async () => {
   }
 };
 
+// 스터디 그룹 참여
 const joinStudyGroup = async () => {
   if (!userStore.user) {
     await router.push('/login');
@@ -182,10 +180,12 @@ const joinStudyGroup = async () => {
   }
 };
 
+// 스터디 그룹 수정
 const handleEdit = () => {
-  router.push(`/study-groups/${route.params.id}/edit`);
+  router.push(`/study-group-edit?id=${route.params.id}`);
 };
 
+// 스터디 그룹 삭제
 const handleDelete = async () => {
   if (!confirm('정말로 삭제하시겠습니까?')) return;
 
@@ -204,11 +204,13 @@ const handleDelete = async () => {
   }
 };
 
+// 날짜 형식 변환
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);
   return date.toLocaleDateString('ko-KR');
 };
 
+// 컴포넌트가 마운트될 때 스터디 그룹 상세 정보 로드
 onMounted(async () => {
   await loadStudyGroup();
 });
@@ -430,8 +432,13 @@ onMounted(async () => {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 @media (max-width: 768px) {

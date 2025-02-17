@@ -1,38 +1,68 @@
-import axios, { type AxiosInstance, isAxiosError } from 'axios';
+import axiosLib from 'axios';
+import { useUserStore } from '@/store';
 
-// Axios 인스턴스 생성
-const instance: AxiosInstance = axios.create({
-    baseURL: process.env.VUE_APP_API_URL || 'http://localhost:3000/api', // 백엔드 서버 URL
-    withCredentials: true, // 세션 쿠키 전달 설정
-    timeout: 10000,
+const instance = axiosLib.create({
+    baseURL: '/api',
+    withCredentials: true,
 });
 
-// 요청 인터셉터 (필요시 추가)
 instance.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem('accessToken');
-        if (token) {
-            config.headers['Authorization'] = `Bearer ${token}`;
+        const userStore = useUserStore();
+        const accessToken = userStore.accessToken;
+
+        console.log('axios 인터셉터 - 요청 시작');
+        console.log('axios 인터셉터 - accessToken:', accessToken);
+
+        if (accessToken) {
+            config.headers.Authorization = `Bearer ${accessToken}`;
+            console.log('axios 인터셉터 - Authorization 헤더 설정:', config.headers.Authorization);
+        } else {
+            console.log('axios 인터셉터 - accessToken 없음 - Authorization 헤더 미설정');
         }
         return config;
     },
     (error) => {
-        // 요청 에러 처리
+        console.error('axios 인터셉터 - 요청 에러:', error);
         return Promise.reject(error);
     }
 );
 
-// 응답 인터셉터 (필요시 추가)
 instance.interceptors.response.use(
     (response) => {
-        // 응답 성공 시 처리 (예: 데이터 변환)
+        console.log('axios 인터셉터 - 응답 성공:', response);
         return response;
     },
-    (error) => {
-        // 응답 에러 처리 (예: 401 에러 시 로그인 페이지로 리다이렉트)
+    async (error) => {
+        console.error('axios 인터셉터 - 응답 에러:', error);
+
+        const originalRequest = error.config;
+
+        if (error.response?.status === 401 && !originalRequest._retry) {
+            console.warn('axios 인터셉터 - 401 에러 감지 - 토큰 갱신 시도');
+            originalRequest._retry = true;
+
+            const userStore = useUserStore();
+
+            try {
+                const refreshResult = await userStore.refreshTokenAction();
+                if (refreshResult) {
+                    console.log('axios 인터셉터 - 토큰 갱신 성공 - API 요청 재시도');
+                    return instance(originalRequest); // instance 사용
+                } else {
+                    console.warn('axios 인터셉터 - 토큰 갱신 실패 - 로그아웃 처리');
+                    userStore.clearUser();
+                    return Promise.reject(error);
+                }
+            } catch (refreshError) {
+                console.error('axios 인터셉터 - 토큰 갱신 에러 (catch):', refreshError);
+                userStore.clearUser();
+                return Promise.reject(error);
+            }
+        }
+
         return Promise.reject(error);
     }
 );
 
-export { isAxiosError };
 export default instance;

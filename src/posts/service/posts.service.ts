@@ -17,19 +17,31 @@ export class PostsService {
         private readonly postRepository: Repository<Post>,
         @InjectRepository(User)
         private readonly userRepository: Repository<User>
-    ) {}
+    ) { }
 
     async findByCategory(category: PostCategory, page: number, limit: number, search?: string) {
         console.log('Service finding posts for category:', category);
         return await this.postsRepository.findByCategory(category, page, limit, search);
     }
 
-    async createPost(createPostDto: CreatePostDto, user: User): Promise<Post> {
-        const post = this.postRepository.create({
-            ...createPostDto,
-            author: user
+    async createPost(createPostDto: CreatePostDto) {
+        const { title, content, category, authorId } = createPostDto;
+
+        // authorId가 없는 경우 에러 처리
+        if (!authorId) {
+            throw new UnauthorizedException('Author ID is required');
+        }
+
+        const post = this.postRepository.save({
+            title,
+            content,
+            category,
+            authorId,
+            views: 0,
+            likes: 0
         });
-        return await this.postsRepository.createPost(post);
+
+        return await this.postRepository.save(post);
     }
 
     async findOne(id: number): Promise<Post> {

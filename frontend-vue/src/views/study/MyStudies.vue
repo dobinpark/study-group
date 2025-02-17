@@ -1,87 +1,67 @@
 <template>
-  <div class="my-studies-container">
-<div class="page-header">
-      <h1>내 스터디</h1>
-    </div>
+  <div class="page-container">
+    <div class="page-inner">
+      <div class="content-card">
+        <header class="page-header">
+          <h1>내 스터디</h1>
+        </header>
 
-    <div v-if="loading" class="loading">
-      <div class="loading-spinner"></div>
-      로딩 중...
-    </div>
-
-    <div v-else>
-      <div class="study-section">
-        <h2>내가 만든 스터디</h2>
-        <div v-if="createdStudies.length" class="study-grid">
-          <div v-for="study in createdStudies" :key="study.id" class="study-card">
-            <div class="study-card-header">
-              <h3>{{ study.name }}</h3>
-              <div class="category-path">
-                {{ study.mainCategory }} > {{ study.subCategory }} > {{ study.detailCategory }}
-              </div>
-            </div>
-            <div class="study-card-content">
-              <div class="meta-info">
-                                <span class="members">
-                                    <i class="fas fa-users"></i>
-                                    {{ study.members.length }}/{{ study.maxMembers }}명
-                                </span>
-                <span class="date">
-                                    <i class="fas fa-calendar"></i>
-                                    {{ formatDate(study.createdAt) }}
-                                </span>
-              </div>
-              <p class="description">{{ truncateText(study.content, 100) }}</p>
-            </div>
-            <div class="study-card-footer">
-              <button @click="goToStudyDetail(study.id)" class="view-button">
-                자세히 보기
-              </button>
-            </div>
+        <main class="page-content">
+          <div v-if="loading" class="loading">
+            <div class="loading-spinner"></div>
+            로딩 중...
           </div>
-        </div>
-        <div v-else class="empty-message">
-          아직 생성한 스터디가 없습니다.
-        </div>
-      </div>
 
-      <div class="study-section">
-        <h2>참여중인 스터디</h2>
-        <div v-if="joinedStudies.length" class="study-grid">
-          <div v-for="study in joinedStudies" :key="study.id" class="study-card">
-            <div class="study-card-header">
-              <h3>{{ study.name }}</h3>
-              <div class="category-path">
-                {{ study.mainCategory }} > {{ study.subCategory }} > {{ study.detailCategory }}
+          <div v-else>
+            <section class="study-section">
+              <h2>내가 만든 스터디</h2>
+              <div class="study-grid">
+                <div v-for="study in createdStudies" :key="study.id" class="study-card">
+                  <div class="study-card-header">
+                    <h3>{{ study.name }}</h3>
+                    <div class="category-path">
+                      {{ study.mainCategory }} > {{ study.subCategory }} > {{ study.detailCategory }}
+                    </div>
+                  </div>
+                  <div class="study-card-content">
+                    <p>{{ study.content }}</p>
+                    <div class="study-meta">
+                      <span>참여 인원: {{ study.members?.length || 0 }}/{{ study.maxMembers }}</span>
+                    </div>
+                  </div>
+                  <div class="study-card-footer">
+                    <button @click="goToDetail(study.id)" class="btn btn-primary">상세보기</button>
+                    <button @click="goToEdit(study.id)" class="btn btn-secondary">수정</button>
+                  </div>
+                </div>
               </div>
-            </div>
-            <div class="study-card-content">
-              <div class="meta-info">
-                                <span class="creator">
-                                    <i class="fas fa-user"></i>
-                                    {{ study.creator.nickname }}
-                                </span>
-                <span class="members">
-                                    <i class="fas fa-users"></i>
-                                    {{ study.members.length }}/{{ study.maxMembers }}명
-                                </span>
-                <span class="date">
-                                    <i class="fas fa-calendar"></i>
-                                    {{ formatDate(study.createdAt) }}
-                                </span>
+            </section>
+
+            <section class="study-section">
+              <h2>참여 중인 스터디</h2>
+              <div class="study-grid">
+                <div v-for="study in joinedStudies" :key="study.id" class="study-card">
+                  <div class="study-card-header">
+                    <h3>{{ study.name }}</h3>
+                    <div class="category-path">
+                      {{ study.mainCategory }} > {{ study.subCategory }} > {{ study.detailCategory }}
+                    </div>
+                  </div>
+                  <div class="study-card-content">
+                    <p>{{ study.content }}</p>
+                    <div class="study-meta">
+                      <span>참여 인원: {{ study.members?.length || 0 }}/{{ study.maxMembers }}</span>
+                    </div>
+                  </div>
+                  <div class="study-card-footer">
+                    <button @click="goToDetail(study.id)" class="btn btn-primary">상세보기</button>
+                    <button @click="leaveStudy(study.id)" class="btn btn-danger">탈퇴</button>
+                  </div>
+                </div>
               </div>
-              <p class="description">{{ truncateText(study.content, 100) }}</p>
-            </div>
-            <div class="study-card-footer">
-              <button @click="goToStudyDetail(study.id)" class="view-button">
-                자세히 보기
-              </button>
-            </div>
+            </section>
           </div>
-        </div>
-        <div v-else class="empty-message">
-          아직 참여중인 스터디가 없습니다.
-        </div>
+        </main>
       </div>
     </div>
   </div>
@@ -163,7 +143,7 @@ const truncateText = (text: string, maxLength: number) => {
 // 스터디 상세 페이지로 이동
 const goToStudyDetail = (studyId: number) => {
   if (!studyId) return;
-  router.push(`/study-groups/${studyId}`);
+  router.push(`/study-groups-detail/${studyId}`);
 };
 
 // 컴포넌트가 마운트될 때 내 스터디 목록 가져오기
@@ -173,33 +153,15 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.my-studies-container {
-  max-width: 1200px;
-  margin: 2rem auto;
-  padding: 0 1rem;
-}
-
-.page-header {
-  margin-bottom: 2rem;
-  text-align: center;
-}
-
-.page-header h1 {
-  font-size: 2.5rem;
-  color: #2d3748;
-  font-weight: 700;
-}
-
+/* 페이지별 고유한 스타일만 추가 */
 .study-section {
   margin-bottom: 3rem;
 }
 
 .study-section h2 {
-  font-size: 1.8rem;
+  font-size: 1.5rem;
   color: #2d3748;
   margin-bottom: 1.5rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 2px solid #e2e8f0;
 }
 
 .study-grid {
@@ -210,107 +172,66 @@ onMounted(() => {
 
 .study-card {
   background: white;
-  border-radius: 12px;
+  border-radius: 15px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   overflow: hidden;
-  transition: transform 0.2s;
+  transition: transform 0.2s ease;
 }
 
 .study-card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-5px);
 }
 
 .study-card-header {
-  background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
-  color: white;
   padding: 1.5rem;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .study-card-header h3 {
-  font-size: 1.4rem;
-  margin-bottom: 0.5rem;
+  font-size: 1.25rem;
   font-weight: 600;
+  color: #2d3748;
+  margin-bottom: 0.5rem;
 }
 
 .category-path {
-  font-size: 0.9rem;
-  opacity: 0.9;
+  font-size: 0.875rem;
+  color: #718096;
 }
 
 .study-card-content {
   padding: 1.5rem;
 }
 
-.meta-info {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  margin-bottom: 1rem;
-  color: #4a5568;
-  font-size: 0.9rem;
-}
-
-.meta-info span {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.description {
-  color: #4a5568;
-  line-height: 1.6;
-  margin-bottom: 1rem;
+.study-meta {
+  margin-top: 1rem;
+  font-size: 0.875rem;
+  color: #718096;
 }
 
 .study-card-footer {
   padding: 1rem 1.5rem;
   background: #f8fafc;
-  border-top: 1px solid #e2e8f0;
-}
-
-.view-button {
-  width: 100%;
-  padding: 0.75rem;
-  background: #4A90E2;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.view-button:hover {
-  background: #357ABD;
-}
-
-.empty-message {
-  text-align: center;
-  padding: 3rem;
-  color: #718096;
-  background: #f8fafc;
-  border-radius: 12px;
-  font-size: 1.1rem;
-}
-
-.loading {
-  text-align: center;
-  padding: 4rem;
-  color: #4a5568;
-  font-size: 1.1rem;
   display: flex;
-  flex-direction: column;
-  align-items: center;
   gap: 1rem;
 }
 
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
 .loading-spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #4A90E2;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #3498db;
   border-radius: 50%;
+  width: 30px;
+  height: 30px;
   animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
 }
 
 @keyframes spin {
@@ -328,12 +249,8 @@ onMounted(() => {
     grid-template-columns: 1fr;
   }
 
-  .page-header h1 {
-    font-size: 2rem;
-  }
-
-  .study-section h2 {
-    font-size: 1.5rem;
+  .study-card-footer {
+    flex-direction: column;
   }
 }
 </style>

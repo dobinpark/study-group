@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsEnum } from 'class-validator';
+import { IsString, IsNotEmpty, IsEnum, IsNumber } from 'class-validator';
 import { PostCategory } from '../enum/post-category.enum';
 
 export class CreatePostDto {
@@ -13,4 +13,7 @@ export class CreatePostDto {
     @IsEnum(PostCategory)
     @IsNotEmpty({ message: '게시판 종류를 선택해주세요.' })
     category!: PostCategory;
+
+    @IsNumber()
+    authorId: number;
 } 

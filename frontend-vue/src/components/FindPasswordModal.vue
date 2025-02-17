@@ -32,6 +32,12 @@
   </div>
 </template>
 
+<script lang="ts">
+export default {
+    name: 'FindPasswordModal'
+};
+</script>
+
 <script setup lang="ts">
 import { defineProps, defineEmits, ref } from 'vue';
 import axios from '../utils/axios';

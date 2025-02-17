@@ -1,49 +1,58 @@
 <template>
-  <div class="post-list-container">
-    <h2 class="board-title">{{ categoryTitle }}</h2>
-    <div v-if="loading" class="loading">
-      로딩 중...
-    </div>
-    <div v-else>
-      <div class="post-list">
-        <table>
-          <thead>
-            <tr>
-              <th>번호</th>
-              <th>제목</th>
-              <th>작성자</th>
-              <th>작성일</th>
-              <th>조회수</th>
-              <th>좋아요</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(post, index) in posts" :key="post.id" @click="viewPost(post.id)">
-              <td>{{ totalPosts - ((currentPage - 1) * itemsPerPage + index) }}</td>
-              <td class="title">{{ post.title }}</td>
-              <td>{{ post.author.nickname }}</td>
-              <td>{{ formatDate(post.createdAt) }}</td>
-              <td>{{ post.views }}</td>
-              <td>{{ post.likes }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+  <div class="page-container">
+    <div class="page-inner">
+      <div class="content-card">
+        <header class="page-header">
+          <h2 class="board-title">{{ categoryTitle }}</h2>
+        </header>
 
-      <div class="action-bar">
-        <div class="search-box">
-          <input type="text" v-model="searchQuery" placeholder="검색어를 입력하세요" @keyup.enter="search">
-          <button @click="search" class="search-button">검색</button>
-        </div>
-        <button @click="createPost" class="write-button">글쓰기</button>
-      </div>
+        <main class="page-content">
+          <div v-if="loading" class="loading">
+            로딩 중...
+          </div>
+          <div v-else>
+            <div class="post-list">
+              <table>
+                <thead>
+                  <tr>
+                    <th>번호</th>
+                    <th>제목</th>
+                    <th>작성자</th>
+                    <th>작성일</th>
+                    <th>조회수</th>
+                    <th>좋아요</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(post, index) in posts" :key="post.id" @click="viewPost(post.id)">
+                    <td>{{ totalPosts - ((currentPage - 1) * itemsPerPage + index) }}</td>
+                    <td class="title">{{ post.title }}</td>
+                    <td>{{ post.author.nickname }}</td>
+                    <td>{{ formatDate(post.createdAt) }}</td>
+                    <td>{{ post.views }}</td>
+                    <td>{{ post.likes }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
 
-      <div class="pagination">
-        <button :disabled="currentPage === 1" @click="changePage(currentPage - 1)">&lt;</button>
-        <span v-for="page in totalPages" :key="page">
-          <button :class="{ active: page === currentPage }" @click="changePage(page)">{{ page }}</button>
-        </span>
-        <button :disabled="currentPage === totalPages" @click="changePage(currentPage + 1)">&gt;</button>
+            <div class="action-bar">
+              <div class="search-box">
+                <input type="text" v-model="searchQuery" placeholder="검색어를 입력하세요" @keyup.enter="search">
+                <button @click="search" class="search-button">검색</button>
+              </div>
+              <button @click="createPost" class="write-button">글쓰기</button>
+            </div>
+
+            <div class="pagination">
+              <button :disabled="currentPage === 1" @click="changePage(currentPage - 1)">&lt;</button>
+              <span v-for="page in totalPages" :key="page">
+                <button :class="{ active: page === currentPage }" @click="changePage(page)">{{ page }}</button>
+              </span>
+              <button :disabled="currentPage === totalPages" @click="changePage(currentPage + 1)">&gt;</button>
+            </div>
+          </div>
+        </main>
       </div>
     </div>
   </div>
@@ -109,14 +118,12 @@ const fetchPosts = async () => {
     const category = (route.query.category as string || props.category || 'FREE').toUpperCase();
     console.log('Fetching posts for category:', category);
 
-    const response = await axios.get(`/posts/category/${category}`, {
+    const response = await axios.get('/post-list', {
       params: {
+        category: category,
         page: currentPage.value,
         limit: itemsPerPage,
         search: searchQuery.value
-      },
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('accessToken')}`
       }
     });
 
@@ -151,12 +158,12 @@ const search = () => {
 
 // 글쓰기 페이지로 이동
 const createPost = () => {
-  router.push('/posts/create');
+  router.push('/create-post');
 };
 
 // 게시글 상세 페이지로 이동
 const viewPost = (id: number) => {
-  router.push(`/posts/${id}`);
+  router.push(`/post-detail/${id}`);
 };
 
 // 페이지 변경
@@ -179,15 +186,29 @@ watch(() => route.query.category, () => {
 </script>
 
 <style scoped>
+/* 페이지별 고유한 스타일만 추가 */
+.category-path {
+  margin-top: 1rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* 테이블 스타일 등 페이지별 특수한 스타일 */
 .post-list-container {
   max-width: 1200px;
   margin: 2rem auto;
   padding: 0 1rem;
 }
 
+.title {
+  font-size: 2rem;
+  color: #2d3748;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
 .board-title {
   font-size: 2rem;
-  color: #2c3e50;
+  color: white;
   margin-bottom: 2rem;
   text-align: center;
 }
