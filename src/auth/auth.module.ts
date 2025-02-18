@@ -15,12 +15,14 @@ import { RefreshTokenService } from './service/refresh-token.service';
     imports: [
         ConfigModule,
         forwardRef(() => UserModule),
-        PassportModule,
+        PassportModule.register({ defaultStrategy: 'jwt' }),
         JwtModule.registerAsync({
             imports: [ConfigModule],
             useFactory: async (configService: ConfigService) => ({
                 secret: configService.get<string>('JWT_SECRET'),
-                verifyOptions: { ignoreExpiration: false },
+                signOptions: {
+                    expiresIn: configService.get<string>('JWT_EXPIRATION_TIME'),
+                },
             }),
             inject: [ConfigService],
         }),

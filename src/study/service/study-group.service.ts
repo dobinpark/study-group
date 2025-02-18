@@ -52,13 +52,13 @@ export class StudyGroupService {
         try {
             const studyGroup = new StudyGroup();
             Object.assign(studyGroup, {
-                ...createStudyGroupDto,
+            ...createStudyGroupDto,
                 creator,
                 members: [creator],
                 currentMembers: 1
-            });
+        });
 
-            return await this.studyGroupRepository.save(studyGroup);
+        return await this.studyGroupRepository.save(studyGroup);
         } catch (error) {
             throw new InternalServerErrorException('스터디 그룹 생성 중 오류가 발생했습니다.');
         }
@@ -67,14 +67,14 @@ export class StudyGroupService {
     // 스터디 그룹 상세 조회
     async findStudyGroupById(id: number): Promise<StudyGroup> {
         try {
-            const studyGroup = await this.studyGroupRepository.findOne({
-                where: { id },
+        const studyGroup = await this.studyGroupRepository.findOne({
+            where: { id },
                 relations: ['creator', 'members']
-            });
+        });
 
-            if (!studyGroup) {
-                throw new NotFoundException('스터디 그룹을 찾을 수 없습니다.');
-            }
+        if (!studyGroup) {
+            throw new NotFoundException('스터디 그룹을 찾을 수 없습니다.');
+        }
 
             return studyGroup;
         } catch (error) {
@@ -91,9 +91,9 @@ export class StudyGroupService {
             const studyGroup = await this.findStudyGroupById(id);
             
             // 수정할 필드들을 업데이트
-            Object.assign(studyGroup, updateStudyGroupDto);
+        Object.assign(studyGroup, updateStudyGroupDto);
             
-            return await this.studyGroupRepository.save(studyGroup);
+        return await this.studyGroupRepository.save(studyGroup);
         } catch (error) {
             throw new InternalServerErrorException('스터디 그룹 수정 중 오류가 발생했습니다.');
         }
@@ -104,8 +104,8 @@ export class StudyGroupService {
         try {
             const result = await this.studyGroupRepository.delete(id);
             if (result.affected === 0) {
-                throw new NotFoundException('스터디 그룹을 찾을 수 없습니다.');
-            }
+            throw new NotFoundException('스터디 그룹을 찾을 수 없습니다.');
+        }
         } catch (error) {
             if (error instanceof NotFoundException) {
                 throw error;

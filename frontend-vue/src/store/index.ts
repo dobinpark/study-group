@@ -10,16 +10,18 @@ interface AuthState {
     loading: boolean;
     error: Error | null;
     authChecked: boolean;
+    isLoggedIn: boolean;
 }
 
 export const useUserStore = defineStore('user', {
     state: (): AuthState => ({
-        accessToken: localStorage.getItem('accessToken'),
+        accessToken: null,
         refreshToken: null,
         user: null,
         loading: false,
         error: null,
         authChecked: false,
+        isLoggedIn: false,
     }),
     persist: {
         enabled: true,
@@ -27,12 +29,11 @@ export const useUserStore = defineStore('user', {
             {
                 key: 'user',
                 storage: localStorage,
-                paths: ['user', 'accessToken']
+                paths: ['user', 'accessToken', 'isLoggedIn']
             }
         ]
     },
     getters: {
-        isLoggedIn: (state) => !!state.accessToken,
         getUser: (state) => state.user,
         isLoading: (state) => state.loading,
         getErrorMessage: (state) => state.error?.message,
@@ -40,66 +41,91 @@ export const useUserStore = defineStore('user', {
         getRefreshToken: (state) => state.refreshToken,
     },
     actions: {
+        initialize() {
+            const token = localStorage.getItem('accessToken');
+            console.log('initialize - stored token:', token);
+            if (token && token !== 'undefined' && token !== 'null' && token !== 'null') {
+                this.accessToken = token;
+                axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+                const savedUser = localStorage.getItem('user');
+                if (savedUser) {
+                    try {
+                        this.user = JSON.parse(savedUser);
+                        this.isLoggedIn = true;
+                    } catch (error) {
+                        console.error('Failed to parse saved user:', error);
+                        this.clearUser();
+                    }
+                }
+            } else {
+                this.clearUser();
+            }
+        },
         setLoading(isLoading: boolean): void {
             console.log('useUserStore.ts - setLoading - isLoading:', isLoading);
             this.loading = isLoading;
         },
-        setUser(userData: User): void {
-            console.log('useUserStore.ts - setUser - 시작 - userData:', userData);
-            this.user = userData;
+        setUser(user: User): void {
+            this.user = user;
             this.error = null;
-            console.log('useUserStore.ts - setUser - 완료 - user:', this.user);
-            localStorage.setItem('user', JSON.stringify(userData));
+            localStorage.setItem('user', JSON.stringify(user));
+            this.isLoggedIn = true;
+            if (this.accessToken && this.accessToken !== 'undefined' && this.accessToken !== 'null') {
+                axios.defaults.headers.common['Authorization'] = `Bearer ${this.accessToken}`;
+            }
         },
         clearUser(): void {
+            delete axios.defaults.headers.common['Authorization'];
+            
             this.user = null;
             this.accessToken = null;
             this.refreshToken = null;
+            this.isLoggedIn = false;
+            
             localStorage.removeItem('accessToken');
             localStorage.removeItem('user');
+            
             this.error = null;
             this.setLoading(false);
-            console.log('useUserStore.ts - clearUser - 로그아웃 완료');
         },
         async login(credentials: any): Promise<{ success: boolean; message?: string }> {
             this.setLoading(true);
-            this.error = null;
             try {
                 const response = await axios.post('/auth/login', credentials);
-                console.log('useUserStore.ts - login - API 응답 성공 - response:', response);
-                console.log('useUserStore.ts - login - response.data:', response.data);
-
                 if (response.status === 201 || response.status === 200) {
-                    const accessToken = response.data.accessToken;
-                    const refreshToken = response.data.refreshToken;
-                    const userData = response.data.user;
-
-                    console.log('useUserStore.ts - login - accessToken 추출 직후 - accessToken:', accessToken);
-                    console.log('useUserStore.ts - login - refreshToken 추출 직후 - refreshToken:', refreshToken);
-
+                    const { accessToken, refreshToken, user } = response.data;
+                    
                     this.accessToken = accessToken;
                     this.refreshToken = refreshToken;
+                    axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+                    
                     localStorage.setItem('accessToken', accessToken);
-                    console.log('useUserStore.ts - login - 엑세스 토큰 저장 직후 - 스토어 accessToken:', this.accessToken);
-                    console.log('useUserStore.ts - login - 리프레시 토큰 저장 직후 - 스토어 refreshToken:', this.refreshToken);
-                    console.log('useUserStore.ts - login - 엑세스 토큰 저장 직후 - localStorage accessToken:', localStorage.getItem('accessToken'));
-                    console.log('useUserStore.ts - login - 리프레시 토큰 localStorage 저장 X');
-                    this.setUser(userData);
+                    localStorage.setItem('user', JSON.stringify(user));
+                    this.setUser(user);
 
                     return { success: true };
-                } else {
-                    const message = response.data?.message || 'Login failed';
-                    this.error = new Error(message);
-                    return { success: false, message };
                 }
-            } catch (error: any) {
-                console.error('useUserStore.ts - login - API 요청 에러:', error);
-                this.accessToken = null;
-                this.refreshToken = null;
-                localStorage.removeItem('accessToken');
-                const message = error.response?.data?.message || 'Login failed';
-                this.error = new Error(message);
-                return { success: false, message };
+                return { success: false, message: 'Login failed' };
+            } catch (error: unknown) {
+                console.error('Login failed:', error);
+                this.clearUser();
+                if (error instanceof Error) {
+                    return { 
+                        success: false, 
+                        message: error.message 
+                    };
+                }
+                if (error && typeof error === 'object' && 'response' in error) {
+                    const axiosError = error as { response?: { data?: { message?: string } } };
+                    return {
+                        success: false,
+                        message: axiosError.response?.data?.message || 'Login failed'
+                    };
+                }
+                return { 
+                    success: false, 
+                    message: 'Login failed'
+                };
             } finally {
                 this.setLoading(false);
             }
@@ -120,16 +146,14 @@ export const useUserStore = defineStore('user', {
                 console.log('useUserStore.ts - refreshTokenAction - response.data:', response.data);
 
                 if (response.status === 201 || response.status === 200) {
-                    const newAccessToken = response.data.accessToken;
-                    const newRefreshToken = response.data.refreshToken;
-
-                    console.log('useUserStore.ts - refreshTokenAction - 새 엑세스 토큰:', newAccessToken);
-                    console.log('useUserStore.ts - refreshTokenAction - 새 리프레시 토큰:', newRefreshToken);
-
-                    this.accessToken = newAccessToken;
-                    this.refreshToken = newRefreshToken;
-                    localStorage.setItem('accessToken', newAccessToken);
-                    console.log('useUserStore.ts - refreshTokenAction - 토큰 갱신 완료 및 저장 (localStorage 에 accessToken 만 저장)');
+                    const { accessToken, refreshToken } = response.data;
+                    
+                    this.accessToken = accessToken;
+                    this.refreshToken = refreshToken;
+                    localStorage.setItem('accessToken', accessToken);
+                    
+                    axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+                    
                     return true;
                 } else {
                     console.error(
@@ -148,71 +172,51 @@ export const useUserStore = defineStore('user', {
             }
         },
         async checkAuth(): Promise<boolean> {
-            console.log('useUserStore.ts - checkAuth - 시작 - accessToken:', this.accessToken);
-            this.setLoading(true);
+            delete axios.defaults.headers.common['Authorization'];
+            this.initialize();
+            console.log('checkAuth 시작 - 현재 상태:', {
+                accessToken: this.accessToken,
+                user: this.user,
+                isLoggedIn: this.isLoggedIn
+            });
 
             if (!this.accessToken) {
-                console.warn('useUserStore.ts - checkAuth - accessToken 없음');
-                this.setLoading(false);
+                console.log('액세스 토큰 없음');
+                this.clearUser();
                 return false;
             }
 
             try {
+                if (!axios.defaults.headers.common['Authorization']) {
+                    axios.defaults.headers.common['Authorization'] = `Bearer ${this.accessToken}`;
+                }
+
                 const response = await axios.get('/auth/profile');
-                console.log('useUserStore.ts - checkAuth - API 응답 성공 - response:', response);
+                console.log('프로필 조회 응답:', response.data);
 
-                if (response.status === 200 || response.status === 201) {
+                if (response.status === 200) {
                     this.setUser(response.data);
-                    console.log('useUserStore.ts - checkAuth - 사용자 인증 성공');
-                    this.authChecked = true;
                     return true;
-                } else if (response.status === 401) {
-                    console.warn('useUserStore.ts - checkAuth - 401 에러 - 토큰 갱신 시도');
-                    const refreshResult = await this.refreshTokenAction();
-                    if (refreshResult) {
-                        console.log('useUserStore.ts - checkAuth - 리프레시 토큰 갱신 성공 - 재시도');
-                        this.setLoading(false);
-                        return this.checkAuth();
-                    } else {
-                        console.warn('useUserStore.ts - checkAuth - 리프레시 토큰 갱신 실패 - 인증 실패');
-                        this.clearUser();
-                        this.setLoading(false);
-                        return false;
-                    }
-                } else {
-                    console.error(
-                        'useUserStore.ts - checkAuth - API 응답 실패 (401 외) - 상태 코드:',
-                        response.status,
-                    );
-                    this.clearUser();
-                    this.setLoading(false);
-                    return false;
                 }
+                return false;
             } catch (error: any) {
-                console.error('useUserStore.ts - checkAuth - API 요청 에러:', error);
-
-                if (error.response && error.response.status === 401) {
-                    console.warn('useUserStore.ts - checkAuth - 401 에러 (catch) - 토큰 갱신 시도');
-                    const refreshResult = await this.refreshTokenAction();
-                    if (refreshResult) {
-                        console.log('useUserStore.ts - checkAuth - 리프레시 토큰 갱신 성공 - 재시도 (catch 블록)');
-                        this.setLoading(false);
-                        return this.checkAuth();
-                    } else {
-                        console.warn('useUserStore.ts - checkAuth - 리프레시 토큰 갱신 실패 - 인증 실패 (catch 블록)');
-                        this.clearUser();
-                        this.setLoading(false);
-                        return false;
+                console.error('인증 확인 중 에러:', error.response?.status);
+                
+                if (error.response?.status === 401) {
+                    try {
+                        const refreshResult = await this.refreshTokenAction();
+                        if (refreshResult) {
+                            return this.checkAuth();
+                        }
+                    } catch (refreshError) {
+                        console.error('토큰 갱신 실패:', refreshError);
                     }
-                } else {
-                    console.error('useUserStore.ts - checkAuth - API 요청 중 오류 발생 (catch 블록):', error);
-                    this.clearUser();
-                    this.setLoading(false);
-                    return false;
                 }
+                
+                this.clearUser();
+                return false;
             } finally {
                 this.setLoading(false);
-                console.log('useUserStore.ts - checkAuth - 종료');
             }
         },
     },

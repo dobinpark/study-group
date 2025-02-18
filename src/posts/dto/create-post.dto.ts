@@ -15,5 +15,5 @@ export class CreatePostDto {
     category!: PostCategory;
 
     @IsNumber()
-    authorId: number;
-} 
+    authorId!: number;
+}

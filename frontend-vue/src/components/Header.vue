@@ -1,22 +1,22 @@
 <template>
   <header>
     <div class="header-container">
-      <div class="top-container">
-        <div class="top-content">
-          <div class="logo-container">
+		<div class="top-container">
+			<div class="top-content">
+				<div class="logo-container">
             <img alt="로고" class="logo" src="@/assets/images/book.png" />
             <router-link class="title-link" to="/">
-              <span class="title">함공</span>
-            </router-link>
-          </div>
-          <div class="right-section">
+						<span class="title">함공</span>
+					</router-link>
+				</div>
+				<div class="right-section">
             <div class="auth-container" :class="{ 'mobile-auth': isMobile }">
               <template v-if="userStore.isLoggedIn && userStore.user">
                 <span class="welcome-text">{{ userStore.user.nickname }}님 환영합니다!</span>
                 <div class="nav-buttons" :class="{ 'mobile-nav-buttons': isMobile }">
                   <router-link class="nav-button" to="/my-studies">
                     내 스터디
-                  </router-link>
+							</router-link>
                   <router-link class="nav-button" to="/profile">
                     프로필
                   </router-link>
@@ -24,25 +24,25 @@
                 <button class="logout-button" @click="logout">
                   로그아웃
                 </button>
-              </template>
-              <template v-else>
+						</template>
+						<template v-else>
                 <span class="login-text">로그인 해주세요</span>
-                <router-link to="/login">
+							<router-link to="/login">
                   <button class="login-button">
                     <img alt="로그인" class="login-icon" src="@/assets/images/man.png" />
                     로그인
                   </button>
-                </router-link>
-              </template>
+							</router-link>
+						</template>
               <template v-if="userStore.loading">
                 <span>로그인 상태 확인 중...</span>
-              </template>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="nav-wrapper">
-        <div class="nav-container">
+						</template>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="nav-wrapper">
+			<div class="nav-container">
           <nav class="nav-items" :class="{ 'mobile-nav-items': isMobile }">
             <ul class="main-menu" :class="{ 'mobile-main-menu': isMobile }">
               <li v-for="category in categories" :key="category.name" class="menu-item"
@@ -60,18 +60,18 @@
                           <li v-for="item in subCategory.items" :key="item" class="detail-menu-item"
                             @click.stop="navigateToStudyList(subCategory.name, item)">
                             {{ item }}
-                          </li>
-                        </ul>
-                      </li>
-                    </ul>
-                  </li>
-                </ul>
-              </li>
-            </ul>
-          </nav>
-        </div>
-      </div>
-    </div>
+								</li>
+										</ul>
+								</li>
+										</ul>
+								</li>
+										</ul>
+								</li>
+					</ul>
+				</nav>
+			</div>
+		</div>
+	</div>
   </header>
 </template>
 
@@ -703,7 +703,7 @@ const checkUserInfo = async () => {
     try {
       const response = await axios.get('/auth/profile');
       userStore.setUser(response.data);
-    } catch (error) {
+		} catch (error) {
       console.error('사용자 정보 조회 실패:', error);
     }
   }
@@ -742,7 +742,7 @@ const toggleDetailMenu = (subCategoryName: string) => {
   if (activeSubCategoryName.value === subCategoryName) {
     // 이미 활성화된 중분류 메뉴를 다시 클릭 시: 닫기
     activeSubCategoryName.value = null;
-  } else {
+	} else {
     // 다른 중분류 메뉴 클릭 시: 열기(기존 메뉴 닫고)
     activeSubCategoryName.value = subCategoryName;
   }
@@ -805,25 +805,25 @@ const handleSubCategoryClick = (mainCategory: string, subCategory: string) => {
 }
 
 .top-container {
-  width: 100%;
-  height: 80px;
+	width: 100%;
+	height: 80px;
   position: relative;
 }
 
 .top-content {
   width: 100%;
   height: 100%;
-  display: flex;
+	display: flex;
   justify-content: center;
   /* 중앙 정렬 */
-  align-items: center;
-  position: relative;
+	align-items: center;
+	position: relative;
 }
 
 .logo-container {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+	display: flex;
+	align-items: center;
+	gap: 10px;
   /* margin-left과 margin-right를 auto로 설정하여 중앙 정렬 */
   margin: 0 auto;
 }
@@ -836,8 +836,8 @@ const handleSubCategoryClick = (mainCategory: string, subCategory: string) => {
 }
 
 .logo {
-  width: 100px;
-  height: auto;
+	width: 100px;
+	height: auto;
 }
 
 .title-link {
@@ -846,25 +846,25 @@ const handleSubCategoryClick = (mainCategory: string, subCategory: string) => {
 }
 
 .title {
-  font-size: 65px;
-  font-weight: 400;
-  color: #1a365d;
-  text-decoration: none;
+	font-size: 65px;
+	font-weight: 400;
+	color: #1a365d;
+	text-decoration: none;
   /* 밑줄 제거 */
-  font-family: 'Nanum Pen Script', cursive;
-  letter-spacing: 1px;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
+	font-family: 'Nanum Pen Script', cursive;
+	letter-spacing: 1px;
+	text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+	transition: all 0.3s ease;
 }
 
 .title:hover {
   color: #4a90e2;
-  transform: scale(1.05) rotate(-2deg);
+	transform: scale(1.05) rotate(-2deg);
 }
 
 .welcome-text {
-  font-size: 16px;
-  color: #666;
+	font-size: 16px;
+	color: #666;
 }
 
 .nav-wrapper {
@@ -877,13 +877,13 @@ const handleSubCategoryClick = (mainCategory: string, subCategory: string) => {
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+	display: flex;
+	justify-content: center;
+	align-items: center;
 }
 
 .nav-items {
-  width: 100%;
+	width: 100%;
   display: flex;
   justify-content: center;
 }
@@ -891,35 +891,35 @@ const handleSubCategoryClick = (mainCategory: string, subCategory: string) => {
 .main-menu {
   width: 80%;
   /* 전체 너비 사용 */
-  display: flex;
+	display: flex;
   justify-content: space-between;
   /* 메뉴 항목들을 균등하게 분배 */
-  list-style: none;
-  padding: 0;
+	list-style: none;
+	padding: 0;
   margin: 0;
 }
 
 .menu-item {
-  color: #fff;
-  font-weight: bold;
-  font-size: 20px;
-  cursor: pointer;
+	color: #fff;
+	font-weight: bold;
+	font-size: 20px;
+	cursor: pointer;
   padding: 5px 20px;
   /* 패딩 조정 */
-  position: relative;
+	position: relative;
   text-align: center;
   /* 텍스트 중앙 정렬 */
 }
 
 .menu-item:hover {
-  color: #1a365d;
+	color: #1a365d;
 }
 
 .menu-item>ul {
-  display: none;
-  position: absolute;
-  top: 100%;
-  left: 0;
+	display: none;
+	position: absolute;
+	top: 100%;
+	left: 0;
   background-color: #4a90e2;
   padding: 0;
   list-style: none;
@@ -929,7 +929,7 @@ const handleSubCategoryClick = (mainCategory: string, subCategory: string) => {
 
 .menu-item:hover>ul,
 .menu-item:focus-within>ul {
-  display: block;
+	display: block;
 }
 
 .sub-menu-item {
@@ -953,8 +953,8 @@ const handleSubCategoryClick = (mainCategory: string, subCategory: string) => {
 
 .sub-menu-item>ul {
   display: none;
-  position: absolute;
-  top: 0;
+	position: absolute;
+	top: 0;
   left: 100%;
   background-color: #4a90e2;
   padding: 0;
@@ -976,7 +976,7 @@ const handleSubCategoryClick = (mainCategory: string, subCategory: string) => {
 
 /* 모바일 스타일 */
 .auth-container.mobile-auth {
-  flex-direction: column;
+	flex-direction: column;
   align-items: flex-start;
   gap: 0.5rem;
 }
@@ -1012,7 +1012,7 @@ const handleSubCategoryClick = (mainCategory: string, subCategory: string) => {
 .detail-menu.mobile-detail-menu {
   position: static;
   width: 100%;
-  display: block;
+	display: block;
 }
 
 .detail-menu-item.mobile-detail-menu-item {
@@ -1050,8 +1050,8 @@ const handleSubCategoryClick = (mainCategory: string, subCategory: string) => {
 }
 
 .auth-container {
-  display: flex;
-  align-items: center;
+	display: flex;
+	align-items: center;
   gap: 1rem;
 }
 
@@ -1061,8 +1061,8 @@ const handleSubCategoryClick = (mainCategory: string, subCategory: string) => {
 }
 
 .nav-button {
-  display: flex;
-  align-items: center;
+	display: flex;
+	align-items: center;
   justify-content: center;
   gap: 0.4rem;
   padding: 0.4rem 0.7rem;
@@ -1086,7 +1086,7 @@ const handleSubCategoryClick = (mainCategory: string, subCategory: string) => {
 
 .login-button {
   display: inline-flex;
-  align-items: center;
+	align-items: center;
   justify-content: center;
   padding: 0.5rem 1rem;
   background-color: #4a90e2;
@@ -1115,7 +1115,7 @@ const handleSubCategoryClick = (mainCategory: string, subCategory: string) => {
 
 .logout-button {
   display: inline-flex;
-  align-items: center;
+	align-items: center;
   justify-content: center;
   padding: 0.5rem 1rem;
   background-color: #e74c3c;

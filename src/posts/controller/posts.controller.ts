@@ -9,7 +9,6 @@ import { ApiOperation, ApiResponse, ApiTags, ApiQuery, ApiBearerAuth, ApiCreated
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { Request } from 'express';
 import { AuthGuard } from '@nestjs/passport';
-import { GetUser } from '../../auth/decorators/get-user.decorator';
 
 @ApiTags('게시판')
 @Controller('posts')
@@ -42,8 +41,12 @@ export class PostsController {
     @HttpCode(HttpStatus.CREATED)
     async createPost(
         @Body() createPostDto: CreatePostDto,
-        @GetUser() user: User
+        @Req() req: Request
     ): Promise<PostEntity> {
+        const user = req.user as User;
+        if (!user) {
+            throw new UnauthorizedException('User not authenticated');
+        }
         const postData = {
             ...createPostDto,
             authorId: user.id

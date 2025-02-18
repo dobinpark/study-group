@@ -14,18 +14,12 @@ import axios from '@/utils/axios';
 const userStore = useUserStore();
 
 onMounted(async () => {
-	// localStorage에서 사용자 정보 복원
-	userStore.initializeFromStorage();
-	
-	if (localStorage.getItem('accessToken')) {
-		try {
-			// 서버에서 최신 사용자 정보 가져오기
-			const response = await axios.get('/auth/profile');
-			userStore.setUser(response.data);
-		} catch (error) {
-			console.error('사용자 정보 조회 실패:', error);
-			userStore.clearUser();
-		}
+	userStore.initialize(); // 먼저 localStorage에서 상태 복원
+	try {
+		// 인증 상태 확인
+		await userStore.checkAuth();
+	} catch (error) {
+		console.error('인증 상태 확인 실패:', error);
 	}
 });
 </script>

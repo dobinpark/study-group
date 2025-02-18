@@ -24,7 +24,7 @@ export class PostsService {
         return await this.postsRepository.findByCategory(category, page, limit, search);
     }
 
-    async createPost(createPostDto: CreatePostDto) {
+    async createPost(createPostDto: CreatePostDto): Promise<Post> {
         const { title, content, category, authorId } = createPostDto;
 
         // authorId가 없는 경우 에러 처리
@@ -32,14 +32,14 @@ export class PostsService {
             throw new UnauthorizedException('Author ID is required');
         }
 
-        const post = this.postRepository.save({
+        const post = {
             title,
             content,
             category,
             authorId,
             views: 0,
             likes: 0
-        });
+        };
 
         return await this.postRepository.save(post);
     }

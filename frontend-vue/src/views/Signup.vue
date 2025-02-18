@@ -11,7 +11,7 @@
         <div class="form-row">
           <div class="form-group">
             <label for="password">비밀번호</label>
-            <input type="password" id="password" v-model="password" required placeholder="최소 8자 이상, 영어/숫자/특수문자 포함" />
+            <input type="password" id="password" v-model="password" required placeholder="최소 8자 이상, 영어/숫자/특수문자(!@#$%^&*()) 포함" />
           </div>
 
           <div class="form-group">

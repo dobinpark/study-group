@@ -176,10 +176,12 @@ onMounted(() => {
   display: flex;
   gap: 2rem;
   margin-bottom: 1.5rem;
+  flex-wrap: wrap;
 }
 
 .form-group {
   flex: 1;
+  min-width: 200px;
 }
 
 .form-group label {
@@ -216,6 +218,8 @@ onMounted(() => {
   margin-top: 2rem;
   padding-top: 2rem;
   border-top: 2px solid #e2e8f0;
+  padding: 2rem;
+  border: none;
 }
 
 .password-section legend {
@@ -223,6 +227,22 @@ onMounted(() => {
   color: #2d3748;
   font-weight: 600;
   margin-bottom: 1rem;
+  padding: 0;
+}
+
+.password-section .form-row {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  width: 100%;
+  margin: 0;
+}
+
+.password-section .form-group {
+  flex: 1;
+  min-width: 200px;
+  margin-bottom: 1.5rem;
 }
 
 .button-group {
