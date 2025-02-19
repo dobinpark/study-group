@@ -10,7 +10,6 @@ import {
 import { Exclude } from 'class-transformer';
 import { Post } from '@/src/posts/entities/post.entity';
 import { StudyGroup } from '@/src/study/entities/study-group.entity';
-import { RefreshToken } from '../../auth/entities/refresh-token.entity';
 import { ApiProperty } from '@nestjs/swagger';
 
 export enum UserRole {
@@ -27,7 +26,7 @@ export class User {
     username!: string;
 
     @Column()
-    @Exclude()
+    @Exclude({ toPlainOnly: true })
     password!: string;
 
     @Column()
@@ -42,22 +41,18 @@ export class User {
     @OneToMany(() => Post, post => post.author)
     posts!: Post[];
 
-    @ApiProperty({ 
+    @ApiProperty({
         description: '생성한 스터디 그룹',
-        type: () => [StudyGroup]  // 배열 타입으로 지정
+        type: [StudyGroup]
     })
-    @OneToMany(() => StudyGroup, studyGroup => studyGroup.creator, {
-        cascade: true
-    })
+    @OneToMany(() => StudyGroup, studyGroup => studyGroup.creator)
     createdStudyGroups!: StudyGroup[];
 
-    @ApiProperty({ 
+    @ApiProperty({
         description: '참여한 스터디 그룹',
-        type: () => [StudyGroup]  // 배열 타입으로 지정
+        type: [StudyGroup]
     })
-    @ManyToMany(() => StudyGroup, studyGroup => studyGroup.members, {
-        cascade: true
-    })
+    @ManyToMany(() => StudyGroup, studyGroup => studyGroup.members)
     joinedStudyGroups!: StudyGroup[];
 
     @CreateDateColumn()
@@ -72,7 +67,4 @@ export class User {
         default: UserRole.USER,
     })
     role!: UserRole;
-
-    @OneToMany(() => RefreshToken, refreshToken => refreshToken.user)
-    refreshTokens?: RefreshToken[];
 }

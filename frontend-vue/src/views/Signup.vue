@@ -113,9 +113,6 @@ const signup = async () => {
     console.log('회원가입 성공:', response.data);
     alert('회원가입이 완료되었습니다.');
 
-    // 액세스 토큰 저장
-    localStorage.setItem('accessToken', response.data.accessToken);
-
     await router.push('/login');
   } catch (error: any) {
     console.error('회원가입 실패:', error.response?.data?.message || '회원가입 중 오류가 발생했습니다.');

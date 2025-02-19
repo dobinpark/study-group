@@ -1,5 +1,6 @@
 import { IsString, IsEmail, IsPhoneNumber, MinLength, Matches, IsNotEmpty } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { PASSWORD_REGEX, PASSWORD_REGEX_MESSAGE } from '../../utils/validation';
 
 export class UserCredentialsDto {
 
@@ -12,9 +13,7 @@ export class UserCredentialsDto {
     @IsString()
     @IsNotEmpty({ message: '비밀번호는 필수입니다.' })
     @MinLength(8, { message: '비밀번호는 최소 8자 이상이어야 합니다.' })
-    @Matches(/^(?=.*[a-z])(?=.*[0-9])(?=.*[!@#$%^&*()\-_=+{};:,<.>])[a-z0-9!@#$%^&*()\-_=+{};:,<.>]{8,}$/, {
-        message: '비밀번호는 영문 소문자, 숫자, 특수문자를 모두 포함해야 합니다.',
-    })
+    @Matches(PASSWORD_REGEX, { message: PASSWORD_REGEX_MESSAGE })
     password!: string;
 
     @ApiProperty({ example: 'password123!', description: '비밀번호 재확인' })

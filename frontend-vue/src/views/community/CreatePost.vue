@@ -82,9 +82,8 @@ const submitPost = async () => {
 
   try {
     const userStore = useUserStore();
-    if (!userStore.user?.id) {
-      window.alert('로그인이 필요합니다.');
-      await router.push('/login');
+    if (!userStore.isLoggedIn) {
+      router.push('/login');
       return;
     }
 
@@ -92,7 +91,7 @@ const submitPost = async () => {
       title: title.value,
       content: content.value,
       category: getCategory(String(route.params.category)),
-      authorId: userStore.user.id
+      authorId: userStore.user?.id
     });
 
     window.alert('게시글이 성공적으로 작성되었습니다.');

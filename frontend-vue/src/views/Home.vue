@@ -14,12 +14,14 @@
 
 <script setup>
 import { useRouter } from 'vue-router';
+import { useUserStore } from '@/store';
 
 const router = useRouter();
+const userStore = useUserStore();
 
 // 스터디 그룹 생성 버튼 클릭 시 처리
 const handleCreateStudy = () => {
-  const isAuthenticated = !!localStorage.getItem('accessToken');
+  const isAuthenticated = userStore.isLoggedIn;
   if (!isAuthenticated) {
     alert('로그인이 필요한 서비스입니다.');
     router.push('/login');

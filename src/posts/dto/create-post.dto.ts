@@ -13,7 +13,4 @@ export class CreatePostDto {
     @IsEnum(PostCategory)
     @IsNotEmpty({ message: '게시판 종류를 선택해주세요.' })
     category!: PostCategory;
-
-    @IsNumber()
-    authorId!: number;
 }

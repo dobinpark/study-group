@@ -1,24 +1,28 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 export class UserProfileResponseDto {
-    @ApiProperty({ description: 'User ID' })
+    @ApiProperty({ description: '사용자 ID' })
     id!: number;
 
-    @ApiProperty({ description: 'Username' })
+    @ApiProperty({ description: '사용자 아이디' })
     username!: string;
 
-    @ApiProperty({ description: 'User nickname' })
+    @ApiProperty({ description: '닉네임' })
     nickname!: string;
 
-    @ApiProperty({ description: 'User email' })
+    @ApiProperty({ description: '이메일' })
     email!: string;
 
-    @ApiProperty({ description: 'User phone number' })
+    @ApiProperty({ description: '전화번호' })
     phoneNumber!: string;
 
-    @ApiProperty({ description: 'User creation date' })
+    @ApiProperty({ description: '가입일' })
     createdAt!: Date;
 
-    @ApiProperty({ description: 'User last update date' })
+    @ApiProperty({ description: '정보 수정일' })
     updatedAt!: Date;
+
+    constructor(user: Partial<UserProfileResponseDto>) {
+        Object.assign(this, user);
+    }
 }

@@ -191,11 +191,26 @@ const detailCategories = computed(() => {
 // 스터디 그룹 생성 처리
 const handleSubmit = async () => {
   try {
-    const response = await axios.post('/study-groups-create', studyGroup.value, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('accessToken')}`
-      }
-    });
+    // 데이터 정제
+    const payload = {
+      name: String(studyGroup.value.name).trim(),
+      mainCategory: String(studyGroup.value.mainCategory).trim(),
+      subCategory: String(studyGroup.value.subCategory).trim(),
+      detailCategory: String(studyGroup.value.detailCategory).trim(),
+      content: String(studyGroup.value.content).trim(),
+      maxMembers: Number(studyGroup.value.maxMembers)
+    };
+
+    // 데이터 유효성 검사
+    if (!payload.name || !payload.mainCategory || !payload.subCategory || 
+        !payload.detailCategory || !payload.content || !payload.maxMembers) {
+      throw new Error('모든 필드를 입력해주세요.');
+    }
+
+    // 데이터 형식 확인을 위한 로깅
+    console.log('Sending study group data:', payload);
+
+    const response = await axios.post('/study-groups', payload);
 
     if (response.status === 201) {
       emitter?.emit('studyGroupCreated');
@@ -203,11 +218,15 @@ const handleSubmit = async () => {
       await router.push('/study-groups');
     }
   } catch (error: any) {
-    if (error.response?.status === 401 || error.response?.status === 403) {
+    console.error('Full error object:', error);
+    if (error.message === '모든 필드를 입력해주세요.') {
+      alert(error.message);
+    } else if (error.response?.status === 401 || error.response?.status === 403) {
       alert('로그인이 필요합니다. 다시 로그인해주세요.');
       await router.push('/login');
     } else {
       alert(error.response?.data?.message || '스터디 그룹 생성에 실패했습니다.');
+      console.error('Error creating study group:', error.response?.data);
     }
   }
 };

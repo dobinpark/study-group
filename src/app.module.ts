@@ -9,6 +9,8 @@ import * as redisStore from 'cache-manager-redis-store';
 import { PostsModule } from './posts/posts.module';
 import { validate } from './config/env.validation';
 import { RedisClientOptions } from 'redis';
+import { LoggingInterceptor } from './interceptors/logging.interceptor';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 
 console.log(process.env.DB_PORT);
 

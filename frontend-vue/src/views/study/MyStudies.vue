@@ -143,7 +143,7 @@ const truncateText = (text: string, maxLength: number) => {
 // 스터디 상세 페이지로 이동
 const goToStudyDetail = (studyId: number) => {
   if (!studyId) return;
-  router.push(`/study-groups-detail/${studyId}`);
+  router.push(`/study-groups/${studyId}`);
 };
 
 // 컴포넌트가 마운트될 때 내 스터디 목록 가져오기

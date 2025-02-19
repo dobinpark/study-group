@@ -34,7 +34,7 @@
 
 <script lang="ts">
 export default {
-    name: 'FindPasswordModal'
+  name: 'FindPasswordModal'
 };
 </script>
 
@@ -103,7 +103,8 @@ const isValidEmail = (email: string): boolean => {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.7); /* 더 어두운 배경 */
+  background-color: rgba(0, 0, 0, 0.7);
+  /* 더 어두운 배경 */
   display: flex;
   justify-content: center;
   align-items: center;
@@ -112,13 +113,16 @@ const isValidEmail = (email: string): boolean => {
 
 .modal-content {
   background-color: white;
-  border-radius: 12px; /* 더 둥근 모서리 */
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* 더 부드러운 그림자 */
+  border-radius: 12px;
+  /* 더 둥근 모서리 */
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  /* 더 부드러운 그림자 */
   width: 90%;
   max-width: 500px;
   display: flex;
   flex-direction: column;
-  overflow: hidden; /* 내용이 넘치지 않도록 */
+  overflow: hidden;
+  /* 내용이 넘치지 않도록 */
 }
 
 .modal-header {
@@ -127,15 +131,18 @@ const isValidEmail = (email: string): boolean => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #f7fafc; /* 헤더 배경색 추가 */
+  background-color: #f7fafc;
+  /* 헤더 배경색 추가 */
 }
 
 .modal-title {
   margin-bottom: 0;
   line-height: 1.5;
-  font-size: 1.5rem; /* 더 큰 글꼴 크기 */
+  font-size: 1.5rem;
+  /* 더 큰 글꼴 크기 */
   font-weight: 600;
-  color: #2d3748; /* 더 진한 글꼴 색상 */
+  color: #2d3748;
+  /* 더 진한 글꼴 색상 */
 }
 
 .close-button {
@@ -158,7 +165,8 @@ const isValidEmail = (email: string): boolean => {
 .modal-body {
   padding: 1.5rem;
   flex-grow: 1;
-  background-color: #f9fafb; /* 모달 본문 배경색 추가 */
+  background-color: #f9fafb;
+  /* 모달 본문 배경색 추가 */
 }
 
 .find-password-form {
@@ -188,11 +196,13 @@ const isValidEmail = (email: string): boolean => {
 }
 
 .validation-error {
-  color: #e53e3e; /* 더 진한 에러 색상 */
+  color: #e53e3e;
+  /* 더 진한 에러 색상 */
   font-size: 0.875rem;
 }
 
-.error-message, .success-message {
+.error-message,
+.success-message {
   font-size: 0.9rem;
   margin-top: 0.5rem;
   padding: 0.75rem;
@@ -254,7 +264,12 @@ const isValidEmail = (email: string): boolean => {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 </style>

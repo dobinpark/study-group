@@ -37,9 +37,11 @@
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from '../../utils/axios';
+import { useUserStore } from '@/store';
 
 const route = useRoute();
 const router = useRouter();
+const userStore = useUserStore();
 
 const title = ref('');
 const content = ref('');
@@ -132,6 +134,10 @@ path: `/post-detail/${route.params.id}`,
 
 // 컴포넌트가 마운트될 때 게시글 데이터 가져오기
 onMounted(() => {
+  if (!userStore.isLoggedIn) {
+    router.push('/login');
+    return;
+  }
   fetchPost();
 });
 </script>

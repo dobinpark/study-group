@@ -1,4 +1,5 @@
-import { IsString, IsNotEmpty, MinLength, MaxLength } from 'class-validator';
+import { IsString, IsNotEmpty, MinLength, MaxLength, IsEnum } from 'class-validator';
+import { PostCategory } from '../enum/post-category.enum';
 
 export class UpdatePostDto {
     @IsString()
@@ -11,4 +12,7 @@ export class UpdatePostDto {
     @IsNotEmpty({ message: '내용을 입력해주세요' })
     @MinLength(2, { message: '내용은 최소 2자 이상이어야 합니다' })
     content!: string;
+
+    @IsEnum(PostCategory)
+    category!: PostCategory;
 }

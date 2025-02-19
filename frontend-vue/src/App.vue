@@ -9,18 +9,11 @@
 import { onMounted } from 'vue';
 import { useUserStore } from '@/store';
 import Header from './components/Header.vue'
-import axios from '@/utils/axios';
 
 const userStore = useUserStore();
 
 onMounted(async () => {
-	userStore.initialize(); // 먼저 localStorage에서 상태 복원
-	try {
-		// 인증 상태 확인
-		await userStore.checkAuth();
-	} catch (error) {
-		console.error('인증 상태 확인 실패:', error);
-	}
+	await userStore.fetchSessionStatus(); // 앱 시작 시 세션 상태 확인
 });
 </script>
 

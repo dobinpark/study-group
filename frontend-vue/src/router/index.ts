@@ -98,21 +98,24 @@ const router = createRouter({
     ],
 });
 
-router.beforeEach(async (to) => {
+router.beforeEach(async (to, from, next) => {
     const userStore = useUserStore();
 
-    if (to.meta.auth === 'requiresAuth') { // 인증이 필요한 페이지 접근 시
-        await userStore.checkAuth(); // checkAuth 액션 호출하여 인증 확인 (비동기)
-
-        if (!userStore.isLoggedIn) { // 로그인되지 않은 경우
-            return {
-                path: '/login',
-                query: { redirect: to.fullPath },
-            };
-        }
+    // authChecked가 false일 때만 세션 상태 확인 (최초 로딩 시 한 번만 호출)
+    if (!userStore.authChecked) {
+        await userStore.fetchSessionStatus(); // 세션 상태 확인 액션 호출 (await 추가)
     }
-    // public 페이지는 항상 접근 허용
-    return true; // Ensure a return value for all paths
+
+    const isLoggedIn = userStore.isLoggedIn; // Pinia 스토어에서 로그인 상태 가져옴
+
+    if (to.meta.auth === 'requiresAuth' && !isLoggedIn) {
+        console.log('Authentication required. Redirecting to login...');
+        next('/login');
+    } else if (to.path === '/login' && isLoggedIn) {
+        next('/');
+    } else {
+        next();
+    }
 });
 
 export default router;

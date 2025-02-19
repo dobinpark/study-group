@@ -129,7 +129,7 @@ const loadStudyGroup = async () => {
   isLoading.value = true;
 
   try {
-    const response = await axios.get(`/study-groups-detail/${route.params.id}`, {
+    const response = await axios.get(`/study-groups/${route.params.id}`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem('accessToken')}`
       }

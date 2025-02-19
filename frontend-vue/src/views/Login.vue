@@ -38,10 +38,7 @@ import { ref, onMounted, nextTick } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { type AxiosError, isAxiosError } from 'axios';
 import { useUserStore } from '../store/index';
-import { Store } from 'pinia';
-import type { AuthState } from '../store/index';
 import FindPasswordModal from '../components/FindPasswordModal.vue';
-import type { User } from '../types/user';
 
 function isAxiosErrorType(error: unknown): error is AxiosError {
   return isAxiosError(error);
@@ -49,14 +46,7 @@ function isAxiosErrorType(error: unknown): error is AxiosError {
 
 const router = useRouter();
 const route = useRoute();
-const userStore = useUserStore() as Store<'user', AuthState, {}, {
-  login: (credentials: any) => Promise<{ success: boolean; message?: string; accessToken: string }>;
-  logout: () => void;
-  checkAuth: () => Promise<boolean>;
-  setUser: (userData: User) => void;
-  clearUser: () => void;
-  loadUserFromStorage: () => void;
-}>;
+const userStore = useUserStore();
 const username = ref('');
 const password = ref('');
 const isModalOpen = ref(false);
@@ -78,7 +68,7 @@ const login = async () => {
   try {
     if (!username.value || !password.value) {
       errorType.value = 'validation';
-      userStore.error = '아이디와 비밀번호를 모두 입력해주세요.';
+      userStore.error = new Error('아이디와 비밀번호를 모두 입력해주세요.');
       return;
     }
 
@@ -90,13 +80,12 @@ const login = async () => {
 
     if (result.success) {
       loginError.value = false;
-      localStorage.setItem('accessToken', result.accessToken);
       const redirect = Array.isArray(route.query.redirect) ? route.query.redirect[0] : route.query.redirect;
       const redirectTo = redirect || '/';
       await router.push(redirectTo);
     } else {
       errorType.value = 'server';
-      userStore.error = result.message || '로그인에 실패했습니다.';
+      userStore.error = new Error(result.message || '로그인에 실패했습니다.');
       loginError.value = true;
     }
 
@@ -125,7 +114,7 @@ const login = async () => {
     } else {
       console.error('Login failed: An unknown error occurred', error);
     }
-    userStore.error = errorMessageText;
+    userStore.error = new Error(errorMessageText);
   }
 };
 

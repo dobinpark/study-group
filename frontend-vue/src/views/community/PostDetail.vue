@@ -60,6 +60,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from '../../utils/axios';
+import { useUserStore } from '@/store';
 
 interface Post {
   id: number;
@@ -80,6 +81,7 @@ const router = useRouter();
 const post = ref<Post | null>(null);
 const loading = ref(true);
 const isLiked = ref(false);
+const userStore = useUserStore();
 
 // 카테고리 타입 계산
 const postType = computed(() => {
@@ -172,6 +174,33 @@ const deletePost = async () => {
 // 좋아요 처리
 const toggleLike = async () => {
   try {
+    const response = await axios.post(`/posts/${route.params.id}/toggle-like`);
+    isLiked.value = response.data.liked;
+    if (post.value) {
+      post.value.likes += response.data.liked ? 1 : -1;
+    }
+  } catch (error: any) {
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      alert('로그인이 필요합니다. 다시 로그인해주세요.');
+      await router.push('/login');
+    } else {
+      console.error('좋아요 처리 실패:', error);
+    }
+  }
+};
+
+// 대신 userStore를 사용
+const isAuthor = computed(() => {
+  return post.value?.author.id === userStore.user?.id;
+});
+
+const likePost = async () => {
+  try {
+    // 세션 기반 인증 확인
+    if (!userStore.isLoggedIn) {
+      router.push('/login');
+      return;
+    }
     const response = await axios.post(`/posts/${route.params.id}/toggle-like`);
     isLiked.value = response.data.liked;
     if (post.value) {

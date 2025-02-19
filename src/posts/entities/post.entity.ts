@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn, ManyToMany, JoinTable } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn, JoinColumn } from 'typeorm';
 import { User } from '../../user/entities/user.entity';
 import { PostCategory } from '../enum/post-category.enum';
 
@@ -15,12 +15,15 @@ export class Post {
 
     @Column({
         type: 'enum',
-        enum: PostCategory,
-        default: PostCategory.FREE
+        enum: PostCategory
     })
     category!: PostCategory; // 게시물 카테고리
 
-    @ManyToOne(() => User, user => user.posts, { eager: false })
+    @Column()
+    authorId!: number;
+
+    @ManyToOne(() => User)
+    @JoinColumn({ name: 'authorId' })
     author!: User; // 작성자
 
     @Column({ default: 0 })
@@ -34,10 +37,6 @@ export class Post {
 
     @UpdateDateColumn()
     updatedAt!: Date; // 수정일
-
-    @ManyToMany(() => User)
-    @JoinTable({ name: 'post_likes' })
-    likedBy!: User[]; // 좋아요한 사용자 목록
 }
 
 export { PostCategory };

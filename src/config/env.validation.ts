@@ -28,6 +28,14 @@ export class EnvironmentVariables {
     @IsNotEmpty()
     DB_DATABASE!: string;
 
+    @IsString()
+    @IsNotEmpty()
+    SESSION_SECRET!: string;
+
+    @IsNumber()
+    @IsOptional()
+    SESSION_MAX_AGE?: number = 24 * 60 * 60 * 1000; // 1일
+
     @IsNumber()
     @IsOptional()
     PORT: number = 3000;
