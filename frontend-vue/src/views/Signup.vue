@@ -101,19 +101,16 @@ const signup = async () => {
     const formattedPhoneNumber = phoneNumber.value.replace(/-/g, '');
 
     // 회원가입 요청
-    const response = await axios.post('/users/signup', {
+    const response = await axios.post('/auth/signup', {
       username: username.value,
       password: password.value,
-      confirmPassword: confirmPassword.value,
-      nickname: nickname.value,
       email: email.value,
-      phoneNumber: formattedPhoneNumber,
+      nickname: nickname.value
     });
 
-    console.log('회원가입 성공:', response.data);
-    alert('회원가입이 완료되었습니다.');
-
-    await router.push('/login');
+    if (response.data.success) {
+      await router.push('/login');
+    }
   } catch (error: any) {
     console.error('회원가입 실패:', error.response?.data?.message || '회원가입 중 오류가 발생했습니다.');
     alert(error.response?.data?.message || '회원가입 중 오류가 발생했습니다.');

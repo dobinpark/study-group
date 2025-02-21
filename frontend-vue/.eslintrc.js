@@ -7,10 +7,9 @@ module.exports = {
         es2021: true
     },
     'extends': [
-        'eslint:recommended',
         'plugin:vue/vue3-essential',
-        'plugin:@typescript-eslint/recommended',
-        // 필요하다면 다른 확장 설정 추가 (예: 'plugin:prettier/recommended')
+        'eslint:recommended',
+        '@vue/typescript'
     ],
     'parserOptions': {
         ecmaVersion: 'latest',
@@ -25,10 +24,11 @@ module.exports = {
     ],
     parser: 'vue-eslint-parser',
     rules: {
-        // 필요하다면 추가 규칙 설정
-        // 예시: 'no-console': 'warn', // console.log() 사용 시 경고
+        'vue/multi-word-component-names': 'off',  // 단일 단어 컴포넌트 이름 허용
+        '@typescript-eslint/no-explicit-any': 'warn',  // any 타입 경고로 변경
+        'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
+        'no-debugger': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
         '@typescript-eslint/ban-types': 'off', // 또는 'off' 로 변경하여 규칙 비활성화 시도 (임시)
-        '@typescript-eslint/no-explicit-any': 'warn',
     },
     overrides: [
         {

@@ -1,6 +1,5 @@
 import { SessionData, Session as ExpressSession } from 'express-session';
-import { UserRole } from '../user/entities/user.entity';
-import { UserProfileResponseDto } from '../user/dto/user-profile.response.dto';
+import { UserRole, User } from '../user/entities/user.entity';
 
 export interface SessionUser {
     id: number;
@@ -11,5 +10,5 @@ export interface SessionUser {
 
 export interface CustomSession extends ExpressSession {
     destroy(callback: (err?: any) => void): this;
-    user?: UserProfileResponseDto;
+    user?: Omit<User, 'password'>;
 }

@@ -6,18 +6,18 @@
         <div class="form-group">
           <label for="username">아이디</label>
           <input type="text" id="username" v-model="username" required placeholder="아이디를 입력하세요"
-            :class="{ 'error': errorType === 'validation' }" ref="usernameInputRef" />
+            :class="{ 'error': errorType === 'validation' }" ref="usernameInputRef" :disabled="loading" />
         </div>
         <div class="form-group">
           <label for="password">비밀번호</label>
           <input type="password" id="password" v-model="password" required placeholder="비밀번호를 입력하세요"
-            :class="{ 'error': errorType === 'validation' }" />
+            :class="{ 'error': errorType === 'validation' }" :disabled="loading" />
         </div>
         <div class="button-group">
-          <button type="submit" class="submit-button" :disabled="userStore.loading">
+          <button type="submit" class="submit-button" :disabled="loading">
             로그인
-            <span v-if="userStore.loading" class="spinner"></span>
-            <span v-if="userStore.loading" class="loading-text">로그인 중...</span>
+            <span v-if="loading" class="spinner"></span>
+            <span v-if="loading" class="loading-text">로그인 중...</span>
           </button>
         </div>
         <div v-if="loginError" class="error-message">로그인 실패</div>
@@ -34,10 +34,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, nextTick } from 'vue';
+import { ref, onMounted, nextTick, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { type AxiosError, isAxiosError } from 'axios';
-import { useUserStore } from '../store/index';
+import { useStore, mapActions } from 'vuex';
 import FindPasswordModal from '../components/FindPasswordModal.vue';
 
 function isAxiosErrorType(error: unknown): error is AxiosError {
@@ -46,7 +46,7 @@ function isAxiosErrorType(error: unknown): error is AxiosError {
 
 const router = useRouter();
 const route = useRoute();
-const userStore = useUserStore();
+const store = useStore();
 const username = ref('');
 const password = ref('');
 const isModalOpen = ref(false);
@@ -62,13 +62,13 @@ onMounted(() => {
 
 const login = async () => {
   errorType.value = '';
-  userStore.error = null;
+  store.state.error = null;
   loginError.value = false;
 
   try {
     if (!username.value || !password.value) {
       errorType.value = 'validation';
-      userStore.error = new Error('아이디와 비밀번호를 모두 입력해주세요.');
+      store.state.error = new Error('아이디와 비밀번호를 모두 입력해주세요.');
       return;
     }
 
@@ -76,7 +76,7 @@ const login = async () => {
       username: username.value,
       password: password.value,
     };
-    const result = await userStore.login(loginPayload);
+    const result = await loginAction(loginPayload);
 
     if (result.success) {
       loginError.value = false;
@@ -85,7 +85,7 @@ const login = async () => {
       await router.push(redirectTo);
     } else {
       errorType.value = 'server';
-      userStore.error = new Error(result.message || '로그인에 실패했습니다.');
+      store.state.error = new Error(result.message || '로그인에 실패했습니다.');
       loginError.value = true;
     }
 
@@ -110,11 +110,8 @@ const login = async () => {
             errorMessageText = (error.response.data as { message?: string })?.message || errorMessageText;
         }
       }
-      console.error('Login failed:', error);
-    } else {
-      console.error('Login failed: An unknown error occurred', error);
     }
-    userStore.error = new Error(errorMessageText);
+    store.state.error = new Error(errorMessageText);
   }
 };
 
@@ -125,6 +122,9 @@ const openFindPasswordModal = () => {
 const closeModal = () => {
   isModalOpen.value = false;
 };
+
+const { login: loginAction } = mapActions(['login']);
+const loading = computed(() => store.state.loading);
 </script>
 
 <style scoped>

@@ -1,118 +1,141 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import Home from '../views/Home.vue';
-import Login from '../views/Login.vue';
-import Signup from '../views/Signup.vue';
-import Profile from '../views/Profile.vue';
-import PostList from '../views/community/PostList.vue';
-import CreatePost from '../views/community/CreatePost.vue';
-import EditPost from '../views/community/EditPost.vue';
-import PostDetail from '../views/community/PostDetail.vue';
-import StudyGroupList from '../views/study/StudyGroupList.vue';
-import StudyGroupDetail from '../views/study/StudyGroupDetail.vue';
-import CreateStudyGroup from '../views/study/CreateStudyGroup.vue';
-import EditStudyGroup from '../views/study/EditStudyGroup.vue';
-import MyStudies from '../views/study/MyStudies.vue';
-import { useUserStore } from '@/store';
+import HomeView from '../views/Home.vue';
+import LoginView from '../views/auth/Login.vue';
+import SignupView from '../views/auth/Signup.vue';
+import FindPasswordView from '../views/auth/FindPassword.vue';
+import StudyGroupListView from '../views/study/StudyGroupList.vue';
+import StudyGroupCreateView from '../views/study/StudyGroupCreate.vue';
+import StudyGroupDetailView from '../views/study/StudyGroupDetail.vue';
+import StudyGroupEditView from '../views/study/StudyGroupEdit.vue';
+import MyStudyGroupsView from '../views/study/MyStudyGroups.vue';
+import ProfileView from '../views/user/Profile.vue';
+import PostListView from '../views/community/PostList.vue';
+import PostCreateView from '../views/community/PostCreate.vue';
+import PostDetailView from '../views/community/PostDetail.vue';
+import PostEditView from '../views/community/PostEdit.vue';
+
+const routes = [
+    {
+        path: '/',
+        name: 'home',
+        component: HomeView
+    },
+    {
+        path: '/auth/login',
+        name: 'login',
+        component: LoginView
+    },
+    {
+        path: '/auth/signup',
+        name: 'signup',
+        component: SignupView
+    },
+    {
+        path: '/auth/find-password',
+        name: 'findPassword',
+        component: FindPasswordView
+    },
+    {
+        path: '/study-groups',
+        name: 'studyGroups',
+        component: StudyGroupListView
+    },
+    {
+        path: '/study-groups/create',
+        name: 'studyGroupCreate',
+        component: StudyGroupCreateView,
+        meta: { requiresAuth: true }
+    },
+    {
+        path: '/study-groups/:id',
+        name: 'studyGroupDetail',
+        component: StudyGroupDetailView
+    },
+    {
+        path: '/study-groups/:id/edit',
+        name: 'studyGroupEdit',
+        component: StudyGroupEditView,
+        meta: { requiresAuth: true }
+    },
+    {
+        path: '/my-study-groups',
+        name: 'myStudyGroups',
+        component: MyStudyGroupsView,
+        meta: { requiresAuth: true }
+    },
+    {
+        path: '/profile',
+        name: 'profile',
+        component: ProfileView,
+        meta: { requiresAuth: true }
+    },
+    {
+        path: '/users/:id/profile',
+        name: 'userProfile',
+        component: ProfileView
+    },
+    {
+        path: '/posts',
+        name: 'posts',
+        children: [
+            {
+                path: '',
+                name: 'postList',
+                component: PostListView,
+            },
+            {
+                path: 'create',
+                name: 'postCreate',
+                component: PostCreateView,
+                meta: { requiresAuth: true }
+            },
+            {
+                path: ':id',
+                name: 'postDetail',
+                component: PostDetailView
+            },
+            {
+                path: ':id/edit',
+                name: 'postEdit',
+                component: PostEditView,
+                meta: { requiresAuth: true }
+            },
+            {
+                path: 'categories/:category',
+                name: 'postsByCategory',
+                component: PostListView
+            },
+            {
+                path: 'search',
+                name: 'searchPosts',
+                component: PostListView
+            },
+            {
+                path: 'my',
+                name: 'myPosts',
+                component: PostListView,
+                meta: { requiresAuth: true }
+            },
+            {
+                path: ':id/comments',
+                name: 'postComments',
+    component: PostDetailView
+            }
+        ]
+    }
+];
 
 const router = createRouter({
     history: createWebHistory(process.env.BASE_URL),
-    routes: [
-        {
-            path: '/',
-            name: 'home',
-            component: Home,
-            meta: { auth: 'public' },
-        },
-        {
-            path: '/login',
-            name: 'login',
-            component: Login,
-            meta: { auth: 'public' },
-        },
-        {
-            path: '/signup',
-            name: 'signup',
-            component: Signup,
-            meta: { auth: 'public' },
-        },
-        {
-            path: '/profile',
-            name: 'profile',
-            component: Profile,
-            meta: { auth: 'requiresAuth' },
-        },
-        {
-            path: '/post-list',
-            name: 'post-list',
-            component: PostList,
-            meta: { auth: 'public' },
-        },
-        {
-            path: '/create-post',
-            name: 'create-post',
-            component: CreatePost,
-            meta: { auth: 'requiresAuth' },
-        },
-        {
-            path: '/edit-post',
-            name: 'edit-post',
-            component: EditPost,
-            meta: { auth: 'requiresAuth' },
-        },
-        {
-            path: '/post-detail',
-            name: 'post-detail',
-            component: PostDetail,
-            meta: { auth: 'requiresAuth' },
-        },
-        {
-            path: '/study-group-list',
-            name: 'study-group-list',
-            component: StudyGroupList,
-            meta: { auth: 'public' },
-        },
-        {
-            path: '/study-group-detail',
-            name: 'study-group-detail',
-            component: StudyGroupDetail,
-            meta: { auth: 'requiresAuth' },
-        },
-        {
-            path: '/study-group-create',
-            name: 'study-group-create',
-            component: CreateStudyGroup,
-            meta: { auth: 'requiresAuth' },
-        },
-        {
-            path: '/study-group-edit',
-            name: 'study-group-edit',
-            component: EditStudyGroup,
-            meta: { auth: 'requiresAuth' },
-        },
-        {
-            path: '/my-studies',
-            name: 'my-studies',
-            component: MyStudies,
-            meta: { auth: 'requiresAuth' },
-        },
-    ],
+    routes
 });
 
-router.beforeEach(async (to, from, next) => {
-    const userStore = useUserStore();
+// 인증이 필요한 라우트에 대한 가드 설정
+router.beforeEach((to, from, next) => {
+    const isAuthenticated = !!localStorage.getItem('user');
 
-    // authChecked가 false일 때만 세션 상태 확인 (최초 로딩 시 한 번만 호출)
-    if (!userStore.authChecked) {
-        await userStore.fetchSessionStatus(); // 세션 상태 확인 액션 호출 (await 추가)
-    }
-
-    const isLoggedIn = userStore.isLoggedIn; // Pinia 스토어에서 로그인 상태 가져옴
-
-    if (to.meta.auth === 'requiresAuth' && !isLoggedIn) {
-        console.log('Authentication required. Redirecting to login...');
-        next('/login');
-    } else if (to.path === '/login' && isLoggedIn) {
-        next('/');
+    if (to.meta.requiresAuth && !isAuthenticated) {
+        next('/auth/login');
     } else {
         next();
     }

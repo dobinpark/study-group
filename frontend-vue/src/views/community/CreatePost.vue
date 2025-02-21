@@ -37,10 +37,12 @@ import { ref, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from '../../utils/axios';
 import { PostCategoryKorean } from '../../types/post';
-import { useUserStore } from '../../store';
+import { useUserStore } from '../../store/user';
 
 const route = useRoute();
 const router = useRouter();
+
+const userStore = useUserStore();
 
 const title = ref('');
 const content = ref('');
@@ -77,21 +79,17 @@ const validateForm = () => {
 };
 
 // 게시글 제출
-const submitPost = async () => {
-  if (!validateForm()) return;
-
+const createPost = async () => {
   try {
-    const userStore = useUserStore();
     if (!userStore.isLoggedIn) {
       router.push('/login');
       return;
     }
 
-    const response = await axios.post('/create-post', {
+    const response = await axios.post('/posts', {
       title: title.value,
       content: content.value,
-      category: getCategory(String(route.params.category)),
-      authorId: userStore.user?.id
+      category: getCategory(String(route.params.category))
     });
 
     window.alert('게시글이 성공적으로 작성되었습니다.');
@@ -132,7 +130,7 @@ const getCategory = (category: string): string => {
 
 const handleSubmit = () => {
   // 폼 유효성 검사 및 게시글 제출 로직
-  submitPost();
+  createPost();
 };
 
 const goBack = () => {

@@ -1,97 +1,61 @@
-// src/stores/index.ts (useUserStore.ts)
-import { defineStore } from 'pinia';
-import axios from '@/utils/axios';
-import type { User } from '@/types/user';
+import { createStore } from 'vuex';
+import { authService, studyGroupService } from '../services/api.service';
 
-interface AuthState {
-    user: User | null;
-    loading: boolean;
-    error: Error | null;
-    authChecked: boolean;
-    isLoggedIn: boolean;
-}
+export default createStore({
+  state: {
+    user: null,
+    studyGroups: [],
+    currentStudyGroup: null,
+    loading: false,
+    error: null
+  },
 
-export const useUserStore = defineStore('user', {
-    state: (): AuthState => ({
-        user: null,
-        loading: false,
-        error: null,
-        authChecked: false,
-        isLoggedIn: false,
-    }),
-    persist: {
-        enabled: true,
-        strategies: [
-            {
-                key: 'user',
-                storage: localStorage,
-                paths: ['user', 'isLoggedIn']
-            }
-        ]
+  mutations: {
+    setUser(state: any, user: any) {
+      state.user = user;
     },
-    getters: {
-        getUser: (state) => state.user,
-        isLoading: (state) => state.loading,
-        getErrorMessage: (state) => state.error?.message,
+    setStudyGroups(state: any, studyGroups: any) {
+      state.studyGroups = studyGroups;
     },
-    actions: {
-        setLoading(isLoading: boolean): void {
-            this.loading = isLoading;
-        },
-        setUser(user: User): void {
-            this.user = user;
-            this.error = null;
-            this.isLoggedIn = true;
-        },
-        clearUser(): void {
-            this.user = null;
-            this.isLoggedIn = false;
-            this.error = null;
-            this.setLoading(false);
-        },
-        async login(credentials: { username: string; password: string }): Promise<{ success: boolean; message?: string }> {
-            this.loading = true;
-            try {
-                const response = await axios.post('/auth/login', credentials);
-                if (response.data.success) {
-                    this.user = response.data.user;
-                    this.isLoggedIn = true;
-                    return { success: true };
-                }
-                return { success: false, message: response.data.message };
-            } catch (error: any) {
-                return { success: false, message: error.response?.data?.message || '로그인 실패' };
-            } finally {
-                this.loading = false;
-            }
-        },
-        async fetchSessionStatus() {
-            this.setLoading(true);
-            try {
-                const response = await axios.get('/auth/session');
-                if (response.status === 200) {
-                    this.isLoggedIn = true;
-                    this.user = response.data.data;
-                } else {
-                    this.isLoggedIn = false;
-                    this.user = null;
-                }
-                this.authChecked = true;
-            } catch (error) {
-                this.isLoggedIn = false;
-                this.user = null;
-                this.error = error as Error;
-                this.authChecked = true;
-            } finally {
-                this.setLoading(false);
-            }
-        },
-        async logout(): Promise<void> {
-            try {
-                await axios.post('/auth/logout');
-            } finally {
-                this.clearUser();
-            }
-        }
+    setCurrentStudyGroup(state: any, studyGroup: any) {
+      state.currentStudyGroup = studyGroup;
     },
+    setLoading(state: any, loading: any) {
+      state.loading = loading;
+    },
+    setError(state: any, error: any) {
+      state.error = error;
+    }
+  },
+
+  actions: {
+    async login({ commit }: any, { username, password }: any) {
+      try {
+        commit('setLoading', true);
+        const response = await authService.login(username, password);
+        commit('setUser', response.user);
+        return response;
+      } catch (error: any) {
+        commit('setError', error.response?.data?.message || '로그인 실패');
+        throw error;
+      } finally {
+        commit('setLoading', false);
+      }
+    },
+
+    async fetchStudyGroups({ commit }: any, params: any) {
+      try {
+        commit('setLoading', true);
+        const response = await studyGroupService.getStudyGroups(params);
+        commit('setStudyGroups', response.data.items);
+        return response;
+      } catch (error: any) {
+        commit('setError', error.response?.data?.message || '스터디 그룹 조회 실패');
+        throw error;
+      } finally {
+        commit('setLoading', false);
+      }
+    }
+    // ... 기타 액션들
+  }
 });

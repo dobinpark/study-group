@@ -1,5 +1,5 @@
-const { defineConfig } = require('@vue/cli-service')
 const path = require('path')
+const { defineConfig } = require('@vue/cli-service')
 
 module.exports = defineConfig({
   // 개발 서버 설정
@@ -21,6 +21,7 @@ module.exports = defineConfig({
     }
   },
   // 기타 설정
-  lintOnSave: false, // 저장 시 린트 비활성화
+  lintOnSave: false, // 저장 시 린트 비활성화 -> 빌드 시 린트 검사도 비활성화
   transpileDependencies: true,
+  parallel: false
 })

@@ -2,7 +2,7 @@ import { IsString, IsEmail, IsPhoneNumber, MinLength, Matches, IsNotEmpty } from
 import { ApiProperty } from '@nestjs/swagger';
 import { PASSWORD_REGEX, PASSWORD_REGEX_MESSAGE } from '../../utils/validation';
 
-export class UserCredentialsDto {
+export class AuthSignupDto {
 
     @ApiProperty({ example: 'user123', description: '사용자 아이디' })
     @IsString()

@@ -56,7 +56,7 @@
         </div>
 
         <div class="action-buttons">
-          <button v-if="userStore.user && studyGroup" @click="joinStudyGroup" class="join-button"
+          <button v-if="store.state.user && studyGroup" @click="joinStudyGroup" class="join-button"
             :disabled="isLoading || isAlreadyMember || isCreator">
             <i class="fas fa-sign-in-alt"></i>
             <span v-if="isCreator">내가 만든 스터디입니다</span>
@@ -87,7 +87,7 @@
 import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from '../../utils/axios';
-import { useUserStore } from '../../store/index';
+import { useStore } from 'vuex';
 
 interface User {
   id: number;
@@ -109,18 +109,18 @@ interface StudyGroup {
 
 const route = useRoute();
 const router = useRouter();
-const userStore = useUserStore();
+const store = useStore();
 
 const studyGroup = ref<StudyGroup | null>(null);
 const isLoading = ref(false);
 const error = ref<string | null>(null);
 
 const isCreator = computed(() => {
-  return studyGroup.value?.creator.id === userStore.user?.id;
+  return studyGroup.value?.creator.id === store.state.user?.id;
 });
 
 const isAlreadyMember = computed(() => {
-  return studyGroup.value?.members.some(m => m.id === userStore.user?.id);
+  return studyGroup.value?.members.some(m => m.id === store.state.user?.id);
 });
 
 // 스터디 그룹 상세 정보 로드
@@ -157,7 +157,7 @@ const loadStudyGroup = async () => {
 
 // 스터디 그룹 참여
 const joinStudyGroup = async () => {
-  if (!userStore.user) {
+  if (!store.state.user) {
     await router.push('/login');
     return;
   }

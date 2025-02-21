@@ -1,22 +1,22 @@
 <template>
   <header>
     <div class="header-container">
-		<div class="top-container">
-			<div class="top-content">
-				<div class="logo-container">
-            <img alt="로고" class="logo" src="@/assets/images/book.png" />
+      <div class="top-container">
+        <div class="top-content">
+          <div class="logo-container">
+            <img alt="로고" class="logo" src="../assets/images/book.png" />
             <router-link class="title-link" to="/">
-						<span class="title">함공</span>
-					</router-link>
-				</div>
-				<div class="right-section">
+              <span class="title">함공</span>
+            </router-link>
+          </div>
+          <div class="right-section">
             <div class="auth-container" :class="{ 'mobile-auth': isMobile }">
-              <template v-if="userStore.isLoggedIn && userStore.user">
-                <span class="welcome-text">{{ userStore.user.nickname }}님 환영합니다!</span>
+              <template v-if="isLoggedIn && user">
+                <span class="welcome-text">{{ user.nickname }}님 환영합니다!</span>
                 <div class="nav-buttons" :class="{ 'mobile-nav-buttons': isMobile }">
                   <router-link class="nav-button" to="/my-studies">
                     내 스터디
-							</router-link>
+                  </router-link>
                   <router-link class="nav-button" to="/profile">
                     프로필
                   </router-link>
@@ -24,25 +24,25 @@
                 <button class="logout-button" @click="logout">
                   로그아웃
                 </button>
-						</template>
-						<template v-else>
+              </template>
+              <template v-else>
                 <span class="login-text">로그인 해주세요</span>
-							<router-link to="/login">
+                <router-link to="/login">
                   <button class="login-button">
-                    <img alt="로그인" class="login-icon" src="@/assets/images/man.png" />
+                    <img alt="로그인" class="login-icon" src="../assets/images/man.png" />
                     로그인
                   </button>
-							</router-link>
-						</template>
-              <template v-if="userStore.loading">
+                </router-link>
+              </template>
+              <template v-if="loading">
                 <span>로그인 상태 확인 중...</span>
-						</template>
-					</div>
-				</div>
-			</div>
-		</div>
-		<div class="nav-wrapper">
-			<div class="nav-container">
+              </template>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="nav-wrapper">
+        <div class="nav-container">
           <nav class="nav-items" :class="{ 'mobile-nav-items': isMobile }">
             <ul class="main-menu" :class="{ 'mobile-main-menu': isMobile }">
               <li v-for="category in categories" :key="category.name" class="menu-item"
@@ -60,48 +60,45 @@
                           <li v-for="item in subCategory.items" :key="item" class="detail-menu-item"
                             @click.stop="navigateToStudyList(subCategory.name, item)">
                             {{ item }}
-								</li>
-										</ul>
-								</li>
-										</ul>
-								</li>
-										</ul>
-								</li>
-					</ul>
-				</nav>
-			</div>
-		</div>
-	</div>
+                          </li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </div>
   </header>
 </template>
 
-<script lang="ts">
-import { provide } from 'vue';
-import mitt from 'mitt';
-
-export const emitter = mitt();
-provide('emitter', emitter);
-
-export default {
-  name: 'MainHeader',
-};
-</script>
-
 <script lang="ts" setup>
-import { ref, onMounted, onUnmounted, watch } from 'vue';
+import { ref, provide, computed, onMounted, onUnmounted, watch } from 'vue';
+import mitt from 'mitt';
 import axios from '../utils/axios';
-import { useUserStore } from '@/store';
+import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import type { Category, SubCategory } from '@/types/category';
-/*import categoriesData from '@/assets/data/categories.json';*/
 
-const userStore = useUserStore();
+const emitter = mitt();
+provide('emitter', emitter);
+
+const store = useStore();
 const router = useRouter();
 
 const isMobile = ref(false);
+const activeSubCategoryName = ref('');
 
-const categories = ref([
+const isLoggedIn = computed(() => store.state.isLoggedIn);
+const user = computed(() => store.state.user);
+const loading = computed(() => store.state.loading);
+
+const categories = ref<Category[]>([
   {
+    id: 1,
     "name": "지역별",
     "subCategories": [
       {
@@ -456,6 +453,7 @@ const categories = ref([
     ]
   },
   {
+    id: 2,
     "name": "학습자별",
     "subCategories": [
       {
@@ -507,6 +505,7 @@ const categories = ref([
     ]
   },
   {
+    id: 3,
     "name": "전공별",
     "subCategories": [
       {
@@ -589,6 +588,7 @@ const categories = ref([
     ]
   },
   {
+    id: 4,
     "name": "커뮤니티",
     "subCategories": [
       {
@@ -603,6 +603,7 @@ const categories = ref([
     ]
   },
   {
+    id: 5,
     "name": "고객센터",
     "subCategories": [
       {
@@ -619,6 +620,8 @@ const categories = ref([
 ]);
 
 const chunkSubCategories = (subCategories: SubCategory[], size: number): SubCategory[][] => {
+  if (!subCategories) return [];
+
   const chunks: SubCategory[][] = [];
   for (let i = 0; i < subCategories.length; i += size) {
     chunks.push(subCategories.slice(i, i + size));
@@ -626,174 +629,68 @@ const chunkSubCategories = (subCategories: SubCategory[], size: number): SubCate
   return chunks;
 };
 
-const logout = () => {
-  userStore.clearUser();
-  router.push('/login');
-};
-
-/*const fetchCategories = async () => {
+const logout = async () => {
   try {
-    const response = await axios.get('/study-groups/categories');
-    categories.value = response.data;
-    console.log('Header.vue - API categories.value (after fetch):', categories.value); // 이 로그를 다시 확인
-    console.log('Header.vue - API 카테고리 데이터:', categories.value); // 이 로그도 다시 확인
+    await store.dispatch('logout');
+    await router.push('/login');
   } catch (error) {
-    console.error('카테고리 조회 실패:', error);
-    alert('카테고리 정보를 불러오는 데 실패했습니다.');
+    console.error('로그아웃 실패:', error);
   }
-};*/
+};
 
 const fetchUserInfo = async () => {
-  console.log(
-    'MainHeader.vue - fetchUserInfo - 시작 - userStore.accessToken:',
-    userStore.accessToken,
-  );
-
-  if (!userStore.accessToken) {
-    console.warn(
-      'MainHeader.vue - fetchUserInfo - accessToken 없음, 사용자 정보 조회 건너뜀',
-    );
-    return;
-  }
-
-  userStore.setLoading(true);
-
   try {
-    const response = await axios.get('/api/auth/profile');
-
-    if (response.status === 200 || response.status === 201) {
-      console.log(
-        'MainHeader.vue - fetchUserInfo - API 응답 성공 - response.data:',
-        response.data,
-      );
-      userStore.setUser(response.data);
-    } else {
-      console.error(
-        'MainHeader.vue - fetchUserInfo - API 응답 실패 (200/201 외) - 상태 코드:',
-        response.status,
-      );
-      userStore.clearUser();
+    const response = await axios.get('/auth/session');
+    if (response.status === 200 && response.data) {
+      await store.dispatch('setUser', response.data);
     }
-  } catch (error: any) {
-    console.error(
-      'MainHeader.vue - fetchUserInfo - 사용자 정보 조회 실패:',
-      error,
-    );
-
-    if (error.response && error.response.status === 401) {
-      console.warn(
-        'MainHeader.vue - fetchUserInfo - 401 Unauthorized 에러 발생 - 로그아웃 처리',
-      );
-      userStore.clearUser();
-    } else {
-      console.error(
-        'MainHeader.vue - fetchUserInfo - API 요청 중 오류 발생:',
-        error,
-      );
-    }
-  } finally {
-    userStore.setLoading(false);
-    console.log('MainHeader.vue - fetchUserInfo - 완료');
+  } catch (error) {
+    console.error('사용자 정보 조회 실패:', error);
+    await store.dispatch('clearUser');
   }
 };
 
-// 사용자 정보 확인 함수
-const checkUserInfo = async () => {
-  if (userStore.accessToken && !userStore.user?.nickname) {
-    try {
-      const response = await axios.get('/auth/profile');
-      userStore.setUser(response.data);
-		} catch (error) {
-      console.error('사용자 정보 조회 실패:', error);
-    }
-  }
+const checkMobile = () => {
+  isMobile.value = window.innerWidth <= 768;
 };
 
-// 라우터 이동 시 사용자 정보 확인
+const navigateToStudyList = (subCategory: string, item: string) => {
+  if (!subCategory || !item) return;
+
+  router.push({
+    path: '/study-groups',
+    query: {
+      subCategory,
+      detailCategory: item
+    }
+  });
+};
+
+const handleSubCategoryClick = (mainCategory: string, subCategory: string) => {
+  if (!mainCategory || !subCategory) return;
+
+  router.push({
+    path: '/study-groups',
+    query: {
+      mainCategory,
+      subCategory
+    }
+  });
+};
+
 watch(() => router.currentRoute.value.path, async () => {
-  await checkUserInfo();
+  await fetchUserInfo();
 });
 
 onMounted(async () => {
-  await checkUserInfo();
   await fetchUserInfo();
-  /*await fetchCategories();*/
-
-  updateMobileStatus();
-  window.addEventListener('resize', updateMobileStatus);
-
-  console.log('MainHeader.vue - onMounted - activeSubCategoryName.value:', activeSubCategoryName.value);
+  checkMobile();
+  window.addEventListener('resize', checkMobile);
 });
 
 onUnmounted(() => {
-  window.removeEventListener('resize', updateMobileStatus);
+  window.removeEventListener('resize', checkMobile);
 });
-
-const updateMobileStatus = () => {
-  isMobile.value = window.innerWidth <= 768; // 768px 이하이면 모바일로 간주
-  console.log('MainHeader.vue - updateMobileStatus - isMobile:', isMobile.value);
-};
-
-// ref 변수 추가: 현재 활성화된 중분류 메뉴 이름 저장
-const activeSubCategoryName = ref<string | null>(null);
-
-// 소분류 메뉴 표시/숨김 토글 함수
-const toggleDetailMenu = (subCategoryName: string) => {
-  if (activeSubCategoryName.value === subCategoryName) {
-    // 이미 활성화된 중분류 메뉴를 다시 클릭 시: 닫기
-    activeSubCategoryName.value = null;
-	} else {
-    // 다른 중분류 메뉴 클릭 시: 열기(기존 메뉴 닫고)
-    activeSubCategoryName.value = subCategoryName;
-  }
-};
-
-// 스터디 목록 페이지로 이동하는 함수 수정
-const navigateToStudyList = (category: string, detail?: string) => {
-  const query: { mainCategory: string; subCategory?: string } = { 
-    mainCategory: category 
-  };
-  
-  if (detail) {
-    query.subCategory = detail;
-  }
-  
-  router.push({
-    path: '/study-group-list',
-    query
-  });
-};
-
-// 게시판 페이지로 이동하는 함수 추가
-const navigateToBoard = (category: string) => {
-  router.push({
-    path: '/community/posts',
-    query: { category }
-  });
-};
-
-// 중분류 클릭 핸들러 함수
-const handleSubCategoryClick = (mainCategory: string, subCategory: string) => {
-  if (mainCategory === '커뮤니티') {
-    // 커뮤니티 메뉴인 경우 게시판으로 이동
-    const categoryMap: { [key: string]: string } = {
-      '자유게시판': 'FREE',
-      '질문게시판': 'QUESTION',
-      '건의게시판': 'SUGGESTION'
-    };
-    
-    const category = categoryMap[subCategory];
-    if (category) {
-      router.push({
-        path: '/post-list',
-        query: { category }
-      });
-    }
-  } else {
-    // 다른 메뉴의 경우 기존 토글 기능 유지
-    toggleDetailMenu(subCategory);
-  }
-};
 </script>
 
 <style scoped>
@@ -805,26 +702,24 @@ const handleSubCategoryClick = (mainCategory: string, subCategory: string) => {
 }
 
 .top-container {
-	width: 100%;
-	height: 80px;
+  width: 100%;
+  height: 80px;
   position: relative;
 }
 
 .top-content {
   width: 100%;
   height: 100%;
-	display: flex;
+  display: flex;
   justify-content: center;
-  /* 중앙 정렬 */
-	align-items: center;
-	position: relative;
+  align-items: center;
+  position: relative;
 }
 
 .logo-container {
-	display: flex;
-	align-items: center;
-	gap: 10px;
-  /* margin-left과 margin-right를 auto로 설정하여 중앙 정렬 */
+  display: flex;
+  align-items: center;
+  gap: 10px;
   margin: 0 auto;
 }
 
@@ -836,35 +731,33 @@ const handleSubCategoryClick = (mainCategory: string, subCategory: string) => {
 }
 
 .logo {
-	width: 100px;
-	height: auto;
+  width: 100px;
+  height: auto;
 }
 
 .title-link {
   text-decoration: none;
-  /* 밑줄 제거 */
 }
 
 .title {
-	font-size: 65px;
-	font-weight: 400;
-	color: #1a365d;
-	text-decoration: none;
-  /* 밑줄 제거 */
-	font-family: 'Nanum Pen Script', cursive;
-	letter-spacing: 1px;
-	text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
-	transition: all 0.3s ease;
+  font-size: 65px;
+  font-weight: 400;
+  color: #1a365d;
+  text-decoration: none;
+  font-family: 'Nanum Pen Script', cursive;
+  letter-spacing: 1px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
 }
 
 .title:hover {
   color: #4a90e2;
-	transform: scale(1.05) rotate(-2deg);
+  transform: scale(1.05) rotate(-2deg);
 }
 
 .welcome-text {
-	font-size: 16px;
-	color: #666;
+  font-size: 16px;
+  color: #666;
 }
 
 .nav-wrapper {
@@ -877,49 +770,45 @@ const handleSubCategoryClick = (mainCategory: string, subCategory: string) => {
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-	display: flex;
-	justify-content: center;
-	align-items: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .nav-items {
-	width: 100%;
+  width: 100%;
   display: flex;
   justify-content: center;
 }
 
 .main-menu {
   width: 80%;
-  /* 전체 너비 사용 */
-	display: flex;
+  display: flex;
   justify-content: space-between;
-  /* 메뉴 항목들을 균등하게 분배 */
-	list-style: none;
-	padding: 0;
+  list-style: none;
+  padding: 0;
   margin: 0;
 }
 
 .menu-item {
-	color: #fff;
-	font-weight: bold;
-	font-size: 20px;
-	cursor: pointer;
+  color: #fff;
+  font-weight: bold;
+  font-size: 20px;
+  cursor: pointer;
   padding: 5px 20px;
-  /* 패딩 조정 */
-	position: relative;
+  position: relative;
   text-align: center;
-  /* 텍스트 중앙 정렬 */
 }
 
 .menu-item:hover {
-	color: #1a365d;
+  color: #1a365d;
 }
 
 .menu-item>ul {
-	display: none;
-	position: absolute;
-	top: 100%;
-	left: 0;
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
   background-color: #4a90e2;
   padding: 0;
   list-style: none;
@@ -929,7 +818,7 @@ const handleSubCategoryClick = (mainCategory: string, subCategory: string) => {
 
 .menu-item:hover>ul,
 .menu-item:focus-within>ul {
-	display: block;
+  display: block;
 }
 
 .sub-menu-item {
@@ -953,8 +842,8 @@ const handleSubCategoryClick = (mainCategory: string, subCategory: string) => {
 
 .sub-menu-item>ul {
   display: none;
-	position: absolute;
-	top: 0;
+  position: absolute;
+  top: 0;
   left: 100%;
   background-color: #4a90e2;
   padding: 0;
@@ -974,9 +863,8 @@ const handleSubCategoryClick = (mainCategory: string, subCategory: string) => {
   background-color: #357abd;
 }
 
-/* 모바일 스타일 */
 .auth-container.mobile-auth {
-	flex-direction: column;
+  flex-direction: column;
   align-items: flex-start;
   gap: 0.5rem;
 }
@@ -1002,7 +890,6 @@ const handleSubCategoryClick = (mainCategory: string, subCategory: string) => {
   position: static;
   width: 100%;
   display: block;
-  /* 항상 표시 */
 }
 
 .sub-menu-item.mobile-sub-menu-item {
@@ -1012,7 +899,7 @@ const handleSubCategoryClick = (mainCategory: string, subCategory: string) => {
 .detail-menu.mobile-detail-menu {
   position: static;
   width: 100%;
-	display: block;
+  display: block;
 }
 
 .detail-menu-item.mobile-detail-menu-item {
@@ -1033,16 +920,12 @@ const handleSubCategoryClick = (mainCategory: string, subCategory: string) => {
 .menu-item:hover>.sub-menu.multi-column,
 .menu-item:focus-within>.sub-menu.multi-column {
   display: flex;
-  /* flexbox 레이아웃으로 표시 */
 }
 
 .sub-menu-column {
   width: 200px;
-  /* 열 너비 200px으로 수정 - 중요! */
   margin-right: 20px;
-  /* 열 사이 간격 20px으로 수정 */
   border-bottom: none;
-  /* border-bottom 제거 */
 }
 
 .sub-menu-column:last-child {
@@ -1050,8 +933,8 @@ const handleSubCategoryClick = (mainCategory: string, subCategory: string) => {
 }
 
 .auth-container {
-	display: flex;
-	align-items: center;
+  display: flex;
+  align-items: center;
   gap: 1rem;
 }
 
@@ -1061,8 +944,8 @@ const handleSubCategoryClick = (mainCategory: string, subCategory: string) => {
 }
 
 .nav-button {
-	display: flex;
-	align-items: center;
+  display: flex;
+  align-items: center;
   justify-content: center;
   gap: 0.4rem;
   padding: 0.4rem 0.7rem;
@@ -1086,7 +969,7 @@ const handleSubCategoryClick = (mainCategory: string, subCategory: string) => {
 
 .login-button {
   display: inline-flex;
-	align-items: center;
+  align-items: center;
   justify-content: center;
   padding: 0.5rem 1rem;
   background-color: #4a90e2;
@@ -1115,7 +998,7 @@ const handleSubCategoryClick = (mainCategory: string, subCategory: string) => {
 
 .logout-button {
   display: inline-flex;
-	align-items: center;
+  align-items: center;
   justify-content: center;
   padding: 0.5rem 1rem;
   background-color: #e74c3c;
@@ -1138,11 +1021,7 @@ const handleSubCategoryClick = (mainCategory: string, subCategory: string) => {
 @media (max-width: 768px) {
   .nav-container {
     width: 100%;
-    /* 모바일에서는 전체 너비 사용 */
     padding: 0 10px;
   }
-
-  /* ... 나머지 모바일 스타일 유지 ... */
 }
 </style>
-export { emitter };

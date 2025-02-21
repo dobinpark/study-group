@@ -15,7 +15,12 @@
           <div v-else>
             <section class="study-section">
               <h2>내가 만든 스터디</h2>
-              <div class="study-grid">
+              <div v-if="createdStudies.length === 0" class="empty-state">
+                <p>아직 만든 스터디가 없습니다.</p>
+                <p class="empty-state-description">새로운 스터디를 만들어 함께 공부해보세요!</p>
+                <router-link to="/study-groups/create" class="btn btn-primary">스터디 만들기</router-link>
+              </div>
+              <div v-else class="study-grid">
                 <div v-for="study in createdStudies" :key="study.id" class="study-card">
                   <div class="study-card-header">
                     <h3>{{ study.name }}</h3>
@@ -27,6 +32,7 @@
                     <p>{{ study.content }}</p>
                     <div class="study-meta">
                       <span>참여 인원: {{ study.members?.length || 0 }}/{{ study.maxMembers }}</span>
+                      <span>생성일: {{ formatDate(study.createdAt) }}</span>
                     </div>
                   </div>
                   <div class="study-card-footer">
@@ -39,7 +45,12 @@
 
             <section class="study-section">
               <h2>참여 중인 스터디</h2>
-              <div class="study-grid">
+              <div v-if="joinedStudies.length === 0" class="empty-state">
+                <p>아직 참여 중인 스터디가 없습니다.</p>
+                <p class="empty-state-description">관심 있는 스터디에 참여해보세요!</p>
+                <router-link to="/study-groups" class="btn btn-primary">스터디 찾아보기</router-link>
+              </div>
+              <div v-else class="study-grid">
                 <div v-for="study in joinedStudies" :key="study.id" class="study-card">
                   <div class="study-card-header">
                     <h3>{{ study.name }}</h3>
@@ -51,6 +62,7 @@
                     <p>{{ study.content }}</p>
                     <div class="study-meta">
                       <span>참여 인원: {{ study.members?.length || 0 }}/{{ study.maxMembers }}</span>
+                      <span>생성일: {{ formatDate(study.createdAt) }}</span>
                     </div>
                   </div>
                   <div class="study-card-footer">
@@ -72,26 +84,7 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from '../../utils/axios';
 import { AxiosError, isAxiosError } from 'axios';
-
-// 사용자 인터페이스 정의
-interface User {
-  id: number;
-  nickname: string;
-}
-
-// 스터디 그룹 인터페이스 정의
-interface StudyGroup {
-  id: number;
-  name: string;
-  content: string;
-  mainCategory: string;
-  subCategory: string;
-  detailCategory: string;
-  creator: User;
-  members: User[];
-  maxMembers: number;
-  createdAt: string;
-}
+import type { User, StudyGroup, StudyGroupResponse } from '../../types/study';
 
 const router = useRouter();
 const createdStudies = ref<StudyGroup[]>([]);
@@ -102,26 +95,24 @@ const loading = ref(true);
 const fetchMyStudies = async () => {
   try {
     loading.value = true;
-    const response = await axios.get('/study-groups/my-studies', {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('accessToken')}`
-      }
-    });
+    const response = await axios.get<StudyGroupResponse>('/study-groups/my-studies');
 
-    console.log('내 스터디 조회 응답:', response.data);
-
-    if (response.data) {
-      createdStudies.value = response.data.created || [];
-      joinedStudies.value = response.data.joined || [];
+    if (response.data.success) {
+      createdStudies.value = response.data.data.created || [];
+      joinedStudies.value = response.data.data.joined || [];
     }
   } catch (error) {
-    const axiosError = error as AxiosError;
-    console.error('내 스터디 조회 실패:', axiosError);
-    if (isAxiosError(axiosError) && axiosError.response?.status === 401 || axiosError.response?.status === 403) {
-      alert('로그인이 필요한 서비스입니다.');
-      await router.push('/login');
-    } else {
-      alert('스터디 그룹 조회에 실패했습니다.');
+    if (isAxiosError(error)) {
+      if (error.response?.status === 401) {
+        alert('로그인이 필요한 서비스입니다.');
+        await router.push('/login?redirect=/my-study-groups');
+      } else if (error.response?.status === 403) {
+        alert('접근 권한이 없습니다.');
+        await router.push('/');
+      } else {
+        const errorMessage = error.response?.data?.message || '스터디 그룹 조회에 실패했습니다.';
+        alert(errorMessage);
+      }
     }
   } finally {
     loading.value = false;
@@ -141,9 +132,29 @@ const truncateText = (text: string, maxLength: number) => {
 };
 
 // 스터디 상세 페이지로 이동
-const goToStudyDetail = (studyId: number) => {
-  if (!studyId) return;
+const goToDetail = (studyId: number) => {
   router.push(`/study-groups/${studyId}`);
+};
+
+// 스터디 수정 페이지로 이동
+const goToEdit = (studyId: number) => {
+  router.push(`/study-groups/${studyId}/edit`);
+};
+
+// 스터디 탈퇴
+const leaveStudy = async (studyId: number) => {
+  try {
+    if (!confirm('정말로 스터디를 탈퇴하시겠습니까?')) {
+      return;
+    }
+    
+    await axios.delete(`/study-groups/${studyId}/leave`);
+    await fetchMyStudies(); // 목록 새로고침
+    alert('스터디를 탈퇴했습니다.');
+  } catch (error) {
+    console.error('스터디 탈퇴 실패:', error);
+    alert('스터디 탈퇴에 실패했습니다.');
+  }
 };
 
 // 컴포넌트가 마운트될 때 내 스터디 목록 가져오기
@@ -252,5 +263,23 @@ onMounted(() => {
   .study-card-footer {
     flex-direction: column;
   }
+}
+
+.empty-state {
+  text-align: center;
+  padding: 2rem;
+  background: #f8fafc;
+  border-radius: 8px;
+  color: #64748b;
+}
+
+.empty-state .btn {
+  margin-top: 1rem;
+}
+
+.empty-state-description {
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+  color: #94a3b8;
 }
 </style>

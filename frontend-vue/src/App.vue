@@ -1,27 +1,24 @@
 <template>
-	<div id="app">
-		<Header />
-		<router-view></router-view>
-	</div>
+  <img alt="Vue logo" src="./assets/images/logo.png">
 </template>
 
-<script setup lang="ts">
-import { onMounted } from 'vue';
-import { useUserStore } from '@/store';
-import Header from './components/Header.vue'
+<script lang="ts">
+import { Options, Vue } from 'vue-class-component';
 
-const userStore = useUserStore();
-
-onMounted(async () => {
-	await userStore.fetchSessionStatus(); // 앱 시작 시 세션 상태 확인
-});
+@Options({
+  components: {
+  },
+})
+export default class App extends Vue { }
 </script>
 
 <style>
 #app {
-	font-family: Avenir, Helvetica, Arial, sans-serif;
-	-webkit-font-smoothing: antialiased;
-	-moz-osx-font-smoothing: grayscale;
-	color: #2c3e50;
+  font-family: Avenir, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-align: center;
+  color: #2c3e50;
+  margin-top: 60px;
 }
 </style>

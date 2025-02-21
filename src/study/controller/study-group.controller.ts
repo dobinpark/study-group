@@ -15,7 +15,19 @@ import {
     ClassSerializerInterceptor,
     ParseIntPipe,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
+import {
+    ApiTags,
+    ApiOperation,
+    ApiResponse,
+    ApiQuery,
+    ApiCreatedResponse,
+    ApiBadRequestResponse,
+    ApiOkResponse,
+    ApiNotFoundResponse,
+    ApiParam,
+    ApiBody,
+    ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
 import { StudyGroupService } from '../service/study-group.service';
 import { CreateStudyGroupDto } from '../dto/create-study-group.dto';
 import { UpdateStudyGroupDto } from '../dto/update-study-group.dto';
@@ -32,8 +44,14 @@ import { DataResponse, BaseResponse } from '../../types/response.types';
 export class StudyGroupController {
     constructor(private readonly studyGroupService: StudyGroupService) {}
 
-    @Post()
     @ApiOperation({ summary: '스터디 그룹 생성' })
+    @ApiBody({ type: CreateStudyGroupDto })
+    @ApiCreatedResponse({
+        description: '스터디 그룹 생성 성공',
+    })
+    @ApiBadRequestResponse({ description: '잘못된 요청' })
+    @ApiUnauthorizedResponse({ description: '인증 필요' })
+    @Post()
     @HttpCode(HttpStatus.CREATED)
     async create(
         @Body() createStudyGroupDto: CreateStudyGroupDto,
@@ -46,13 +64,17 @@ export class StudyGroupController {
         return { success: true, data: studyGroup };
     }
 
-    @Get()
     @ApiOperation({ summary: '스터디 그룹 목록 조회' })
-    @ApiQuery({ name: 'mainCategory', required: false })
-    @ApiQuery({ name: 'subCategory', required: false })
-    @ApiQuery({ name: 'detailCategory', required: false })
-    @ApiQuery({ name: 'page', required: false })
-    @ApiQuery({ name: 'limit', required: false })
+    @ApiQuery({ name: 'mainCategory', required: false, description: '메인 카테고리' })
+    @ApiQuery({ name: 'subCategory', required: false, description: '서브 카테고리' })
+    @ApiQuery({ name: 'detailCategory', required: false, description: '상세 카테고리' })
+    @ApiQuery({ name: 'page', required: false, type: Number, description: '페이지 번호' })
+    @ApiQuery({ name: 'limit', required: false, type: Number, description: '페이지당 항목 수' })
+    @ApiOkResponse({
+        description: '스터디 그룹 목록 조회 성공',
+        isArray: true
+    })
+    @Get()
     async findAll(
         @Query('mainCategory') mainCategory?: string,
         @Query('subCategory') subCategory?: string,
@@ -70,8 +92,13 @@ export class StudyGroupController {
         return { success: true, data: result };
     }
 
-    @Get(':id')
     @ApiOperation({ summary: '스터디 그룹 상세 조회' })
+    @ApiParam({ name: 'id', required: true, description: '스터디 그룹 ID' })
+    @ApiOkResponse({
+        description: '스터디 그룹 조회 성공',
+    })
+    @ApiNotFoundResponse({ description: '스터디 그룹을 찾을 수 없음' })
+    @Get(':id')
     async findOne(
         @Param('id', ParseIntPipe) id: number
     ): Promise<DataResponse<StudyGroup>> {
@@ -79,8 +106,16 @@ export class StudyGroupController {
         return { success: true, data: studyGroup };
     }
 
-    @Put(':id')
     @ApiOperation({ summary: '스터디 그룹 수정' })
+    @ApiParam({ name: 'id', required: true, description: '스터디 그룹 ID' })
+    @ApiBody({ type: UpdateStudyGroupDto })
+    @ApiOkResponse({
+        description: '스터디 그룹 수정 성공',
+    })
+    @ApiBadRequestResponse({ description: '잘못된 요청' })
+    @ApiUnauthorizedResponse({ description: '인증 필요' })
+    @ApiNotFoundResponse({ description: '스터디 그룹을 찾을 수 없음' })
+    @Put(':id')
     async update(
         @Param('id', ParseIntPipe) id: number,
         @Body() updateStudyGroupDto: UpdateStudyGroupDto,

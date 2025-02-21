@@ -1,7 +1,8 @@
 import { IsString, IsEmail, IsNotEmpty } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class FindPasswordDto {
+export class AuthFindPasswordDto {
+
     @ApiProperty({ description: '비밀번호를 찾을 사용자 아이디' })
     @IsString()
     @IsNotEmpty({ message: '사용자 아이디는 필수입니다.' })

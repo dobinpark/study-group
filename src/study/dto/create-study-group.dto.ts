@@ -4,11 +4,12 @@ import { ApiProperty } from '@nestjs/swagger';
 export class CreateStudyGroupDto {
     @ApiProperty({
         description: '스터디 그룹 이름',
+        example: '알고리즘 스터디',
         minLength: 2,
         maxLength: 50
     })
     @IsString()
-    @IsNotEmpty()
+    @IsNotEmpty({ message: '스터디 그룹 이름은 필수입니다.' })
     @Length(2, 50, { message: '스터디 그룹 이름은 2-50자 사이여야 합니다.' })
     name!: string;
 
@@ -38,16 +39,18 @@ export class CreateStudyGroupDto {
 
     @ApiProperty({
         description: '스터디 그룹 설명',
+        example: '알고리즘 문제 풀이를 함께 공부하는 스터디입니다.',
         minLength: 10,
         maxLength: 1000
     })
     @IsString()
-    @IsNotEmpty()
+    @IsNotEmpty({ message: '스터디 그룹 설명은 필수입니다.' })
     @Length(10, 1000, { message: '스터디 그룹 설명은 10-1000자 사이여야 합니다.' })
     content!: string;
 
     @ApiProperty({
         description: '최대 인원 수',
+        example: 10,
         minimum: 2,
         maximum: 100
     })

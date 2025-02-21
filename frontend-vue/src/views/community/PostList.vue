@@ -63,7 +63,7 @@ import { ref, onMounted, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from '../../utils/axios';
 import { PostCategory } from '../../types/post';
-import { useUserStore } from '@/store';
+import { useStore } from 'vuex';
 
 interface Author {
   id: number;
@@ -96,8 +96,8 @@ const searchQuery = ref('');
 const itemsPerPage = 10;
 const totalPosts = ref(0);
 const loading = ref(true);
-const userStore = useUserStore();
-const isAuthenticated = computed(() => userStore.isLoggedIn);
+const store = useStore();
+const isAuthenticated = computed(() => store.state.isLoggedIn);
 
 // 카테고리 제목 계산
 const categoryTitle = computed(() => {
@@ -161,7 +161,7 @@ const search = () => {
 
 // 글쓰기 페이지로 이동
 const createPost = () => {
-  if (!userStore.isLoggedIn) {
+  if (!store.state.isLoggedIn) {
     router.push('/login');
     return;
   }

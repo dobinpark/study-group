@@ -60,7 +60,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from '../../utils/axios';
-import { useUserStore } from '@/store';
+import { useUserStore } from '../../store/user';
 
 interface Post {
   id: number;
@@ -215,6 +215,10 @@ const likePost = async () => {
     }
   }
 };
+
+const categoryTitle = computed(() => {
+  // ... 구현
+});
 
 onMounted(() => {
   fetchPost();

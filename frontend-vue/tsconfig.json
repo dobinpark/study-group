@@ -5,6 +5,8 @@
         "strict": true,
         "jsx": "preserve",
         "moduleResolution": "node",
+        "experimentalDecorators": true,
+        "allowJs": true,
         "skipLibCheck": true,
         "esModuleInterop": true,
         "allowSyntheticDefaultImports": true,
@@ -12,12 +14,32 @@
         "useDefineForClassFields": true,
         "sourceMap": true,
         "baseUrl": ".",
-        "types": ["webpack-env", "node"],
+        "types": [
+            "webpack-env",
+            "node",
+            "@types/node"
+        ],
         "paths": {
             "@/*": ["src/*"]
         },
         "lib": ["esnext", "dom", "dom.iterable", "scripthost"]
     },
-    "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue", "src/**/*.d.ts"],
-    "exclude": ["node_modules"]
+    "include": [
+        "src/**/*.ts",
+        "src/**/*.tsx",
+        "src/**/*.vue",
+        "tests/**/*.ts",
+        "tests/**/*.tsx",
+        "*.js",
+        "*.ts",
+        ".eslintrc.js",
+        "vue.config.js",
+        "src/types/*.d.ts"
+    ],
+    "exclude": [
+        "node_modules",
+        ".eslintrc.js",
+        "vue.config.js",
+        "babel.config.js"
+    ]
 }

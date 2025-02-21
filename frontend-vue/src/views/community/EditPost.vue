@@ -10,15 +10,14 @@
           <form @submit.prevent="handleSubmit" class="post-form">
             <div class="form-group">
               <label for="title">제목</label>
-              <input type="text" id="title" v-model="title" placeholder="제목을 입력하세요" 
-                     :class="{ 'error': errors.title }">
+              <input type="text" id="title" v-model="title" placeholder="제목을 입력하세요" :class="{ 'error': errors.title }">
               <span class="error-message" v-if="errors.title">{{ errors.title }}</span>
             </div>
 
             <div class="form-group">
               <label for="content">내용</label>
               <textarea id="content" v-model="content" rows="15" placeholder="내용을 입력하세요"
-                        :class="{ 'error': errors.content }"></textarea>
+                :class="{ 'error': errors.content }"></textarea>
               <span class="error-message" v-if="errors.content">{{ errors.content }}</span>
             </div>
 
@@ -37,7 +36,7 @@
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from '../../utils/axios';
-import { useUserStore } from '@/store';
+import { useUserStore } from '../../store/user';
 
 const route = useRoute();
 const router = useRouter();
@@ -60,7 +59,7 @@ const fetchPost = async () => {
     if (response.data.category && !route.query.category) {
       await router.replace({
         path: route.path,
-        query: {category: response.data.category}
+        query: { category: response.data.category }
       });
     }
   } catch (error: any) {
@@ -72,7 +71,7 @@ const fetchPost = async () => {
       console.error('게시글 조회 실패:', error);
       await router.push({
         path: '/post-list',
-        query: {category: route.query.category}
+        query: { category: route.query.category }
       });
     }
   }
@@ -110,7 +109,7 @@ const submitEdit = async () => {
     });
 
     await router.push({
-  path: `/post-detail/${route.params.id}`,
+      path: `/post-detail/${route.params.id}`,
       query: { category: route.query.category }
     });
   } catch (error: any) {
@@ -127,7 +126,7 @@ const submitEdit = async () => {
 const goBack = () => {
   // 취소 시에도 카테고리 정보 유지
   router.push({
-path: `/post-detail/${route.params.id}`,
+    path: `/post-detail/${route.params.id}`,
     query: { category: route.query.category }
   });
 };
@@ -140,6 +139,27 @@ onMounted(() => {
   }
   fetchPost();
 });
+
+const handleSubmit = () => {
+  // ... 구현
+};
+
+const updatePost = async () => {
+  try {
+    if (!userStore.isLoggedIn) {
+      router.push('/login');
+      return;
+    }
+    const response = await axios.patch(`/posts/${route.params.id}`, {
+      title: title.value,
+      content: content.value,
+      // category: category.value // category 변수가 정의되지 않았으므로 주석 처리 또는 제거
+    });
+    // ... 나머지 코드
+  } catch (error) {
+    // ... 에러 처리
+  }
+};
 </script>
 
 <style scoped>

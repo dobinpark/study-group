@@ -119,8 +119,12 @@ const updateProfile = async () => {
   }
 };
 
-onMounted(() => {
-  getProfile();
+onMounted(async () => {
+  if (!userStore.isLoggedIn) {
+    router.push('/login');
+    return;
+  }
+  await getProfile();
 });
 </script>
 
