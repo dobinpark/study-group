@@ -95,7 +95,7 @@ const loading = ref(true);
 const fetchMyStudies = async () => {
   try {
     loading.value = true;
-    const response = await axios.get<StudyGroupResponse>('/study-groups/my-studies');
+    const response = await axios.get<StudyGroupResponse>('/my-studies');
 
     if (response.data.success) {
       createdStudies.value = response.data.data.created || [];
@@ -105,7 +105,7 @@ const fetchMyStudies = async () => {
     if (isAxiosError(error)) {
       if (error.response?.status === 401) {
         alert('로그인이 필요한 서비스입니다.');
-        await router.push('/login?redirect=/my-study-groups');
+        await router.push('/login');
       } else if (error.response?.status === 403) {
         alert('접근 권한이 없습니다.');
         await router.push('/');
@@ -147,7 +147,7 @@ const leaveStudy = async (studyId: number) => {
     if (!confirm('정말로 스터디를 탈퇴하시겠습니까?')) {
       return;
     }
-    
+
     await axios.delete(`/study-groups/${studyId}/leave`);
     await fetchMyStudies(); // 목록 새로고침
     alert('스터디를 탈퇴했습니다.');

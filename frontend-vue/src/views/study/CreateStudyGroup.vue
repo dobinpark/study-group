@@ -76,7 +76,7 @@
 import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from '../../utils/axios';
-import { emitter } from '../../components/Header.vue';
+import mitt from 'mitt';
 
 const router = useRouter();
 
@@ -202,8 +202,8 @@ const handleSubmit = async () => {
     };
 
     // 데이터 유효성 검사
-    if (!payload.name || !payload.mainCategory || !payload.subCategory || 
-        !payload.detailCategory || !payload.content || !payload.maxMembers) {
+    if (!payload.name || !payload.mainCategory || !payload.subCategory ||
+      !payload.detailCategory || !payload.content || !payload.maxMembers) {
       throw new Error('모든 필드를 입력해주세요.');
     }
 
@@ -213,9 +213,8 @@ const handleSubmit = async () => {
     const response = await axios.post('/study-groups', payload);
 
     if (response.status === 201) {
-      emitter?.emit('studyGroupCreated');
       alert('스터디 그룹이 생성되었습니다.');
-      await router.push('/study-groups');
+      await router.push('/study-groups/create');
     }
   } catch (error: any) {
     console.error('Full error object:', error);
@@ -235,13 +234,6 @@ const handleSubmit = async () => {
 const goBack = () => {
   router.back();
 };
-
-// 스터디 그룹 생성/삭제 이벤트 감지
-if (emitter) {
-  emitter.on('studyGroupCreated', () => {
-    fetchStudyGroupCounts();
-  });
-}
 
 // 그룹 카운트 가져오는 로직
 const fetchStudyGroupCounts = () => {

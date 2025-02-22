@@ -7,48 +7,33 @@
         </header>
 
         <main class="page-content">
-          <div v-if="loading" class="loading">
-            로딩 중...
-          </div>
+          <div v-if="loading">로딩 중...</div>
           <div v-else-if="post" class="post-detail">
             <div class="post-header">
               <h2 class="post-title">{{ post.title }}</h2>
               <div class="post-meta">
                 <div class="post-info">
-                  <span class="author-name">
-                    <i class="fas fa-user"></i> {{ post.author?.nickname }}
-                  </span>
-                  <span class="post-date">
-                    <i class="fas fa-clock"></i> {{ formatDate(post.createdAt) }}
-                  </span>
-                  <span class="post-views">
-                    <i class="fas fa-eye"></i> 조회 {{ post.views }}
-                  </span>
-                  <span class="post-likes">
-                    <i class="fas fa-heart"></i> 좋아요 {{ post.likes }}
-                  </span>
+                  <span>작성자: {{ post.author?.nickname }}</span>
+                  <span>작성일: {{ formatDate(post.createdAt) }}</span>
+                  <span>조회수: {{ post.views }}</span>
+                  <span>좋아요: {{ post.likes }}</span>
                 </div>
                 <div v-if="isAuthor" class="author-actions">
-                  <button @click="editPost" class="btn btn-secondary">수정</button>
-                  <button @click="deletePost" class="btn btn-danger">삭제</button>
+                  <button @click="editPost">수정</button>
+                  <button @click="deletePost">삭제</button>
                 </div>
               </div>
             </div>
 
-            <div class="post-content">
-              {{ post.content }}
-            </div>
+            <div class="post-content">{{ post.content }}</div>
 
             <div class="post-actions">
-              <button @click="likePost" class="btn btn-primary" :class="{ 'liked': isLiked }">
-                <i class="fas" :class="isLiked ? 'fa-heart' : 'fa-heart'"></i>
-                좋아요
-              </button>
+              <button @click="handleLike">좋아요</button>
             </div>
           </div>
 
           <div class="button-group">
-            <button @click="goBack" class="btn btn-secondary">목록으로</button>
+            <button @click="goBack">목록으로</button>
           </div>
         </main>
       </div>
@@ -59,9 +44,11 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import axios from '../../utils/axios';
 import { useUserStore } from '../../store/user';
+import axios from '../../utils/axios';
+import { PostCategoryKorean } from '../../types/post';
 
+// 게시글 타입 정의
 interface Post {
   id: number;
   title: string;
@@ -78,151 +65,63 @@ interface Post {
 
 const route = useRoute();
 const router = useRouter();
-const post = ref<Post | null>(null);
-const loading = ref(true);
-const isLiked = ref(false);
 const userStore = useUserStore();
 
-// 카테고리 타입 계산
-const postType = computed(() => {
-  const category = (route.query.category as string || 'FREE').toUpperCase();
+const post = ref<Post | null>(null);
+const loading = ref(true);
 
-  switch (category) {
-    case 'FREE':
-      return '자유';
-    case 'QUESTION':
-      return '질문';
-    case 'SUGGESTION':
-      return '건의';
-    default:
-      return '게시글';
-  }
+// 카테고리 제목 계산
+const categoryTitle = computed(() => {
+  const category = route.params.category as keyof typeof PostCategoryKorean;
+  return PostCategoryKorean[category] || '게시판';
 });
 
-// 컨텐츠 형식화
-const formattedContent = computed(() => {
-  return post.value?.content?.replace(/\n/g, '<br>') || '';
+const isAuthor = computed(() => {
+  if (!post.value || !userStore.user) return false;
+  return post.value.author.id === userStore.user.id;
 });
 
-// 게시글 상세정보 가져오기
 const fetchPost = async () => {
   try {
-    loading.value = true;
-    const response = await axios.get(`/post-detail/${route.params.id}`);
-    post.value = response.data;
-
-    if (response.data.category && !route.query.category) {
-      await router.replace({
-        path: route.path,
-        query: { category: response.data.category }
-      });
-    }
-
-  } catch (error: any) {
-    if (error.response?.status === 401 || error.response?.status === 403) {
-      alert('로그인이 필요합니다. 다시 로그인해주세요.');
-      await router.push('/login');
-    } else {
-      console.error('게시글 조회 실패:', error);
-    }
+    const response = await axios.get(`/posts/${route.params.id}`);
+    post.value = response.data.data;
+  } catch (error) {
+    alert('게시글을 불러올 수 없습니다');
+    router.push('/posts');
   } finally {
     loading.value = false;
   }
 };
 
-// 날짜 형식화
-const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString('ko-KR');
+const formatDate = (date: string) => new Date(date).toLocaleDateString();
+
+const handleLike = async () => {
+  try {
+    const response = await axios.post(`/posts/${route.params.id}/like`);
+    if (response.data.success && post.value) {
+      post.value.likes = response.data.data.likes;
+    }
+  } catch (error: any) {
+    alert(error.response?.data?.message || '좋아요 처리에 실패했습니다');
+  }
 };
 
-// 목록으로 이동
-const goBack = () => {
-  router.push({
-    path: '/post-list',
-    query: { category: route.query.category }
-  });
-};
+const editPost = () => router.push(`/posts/${route.params.id}/edit`);
 
-// 수정 페이지로 이동
-const editPost = () => {
-  router.push(`/edit-post/${route.params.id}`);
-};
-
-// 게시글 삭제
 const deletePost = async () => {
-  if (!confirm('정말로 삭제하시겠습니까?')) return;
-
+  if (!confirm('정말 삭제하시겠습니까?')) return;
+  
   try {
     await axios.delete(`/posts/${route.params.id}`);
-
-    window.alert('게시글이 삭제되었습니다.');
-    await router.push({
-      path: '/post-list',
-      query: { category: route.query.category }
-    });
+    router.push('/posts');
   } catch (error: any) {
-    if (error.response?.status === 401 || error.response?.status === 403) {
-      alert('로그인이 필요합니다. 다시 로그인해주세요.');
-      await router.push('/login');
-    } else {
-      const errorMessage = error.response?.data?.message || '게시글 삭제에 실패했습니다.';
-      window.alert(errorMessage);
-    }
+    alert(error.response?.data?.message || '게시글 삭제에 실패했습니다');
   }
 };
 
-// 좋아요 처리
-const toggleLike = async () => {
-  try {
-    const response = await axios.post(`/posts/${route.params.id}/toggle-like`);
-    isLiked.value = response.data.liked;
-    if (post.value) {
-      post.value.likes += response.data.liked ? 1 : -1;
-    }
-  } catch (error: any) {
-    if (error.response?.status === 401 || error.response?.status === 403) {
-      alert('로그인이 필요합니다. 다시 로그인해주세요.');
-      await router.push('/login');
-    } else {
-      console.error('좋아요 처리 실패:', error);
-    }
-  }
-};
+const goBack = () => router.push('/posts');
 
-// 대신 userStore를 사용
-const isAuthor = computed(() => {
-  return post.value?.author.id === userStore.user?.id;
-});
-
-const likePost = async () => {
-  try {
-    // 세션 기반 인증 확인
-    if (!userStore.isLoggedIn) {
-      router.push('/login');
-      return;
-    }
-    const response = await axios.post(`/posts/${route.params.id}/toggle-like`);
-    isLiked.value = response.data.liked;
-    if (post.value) {
-      post.value.likes += response.data.liked ? 1 : -1;
-    }
-  } catch (error: any) {
-    if (error.response?.status === 401 || error.response?.status === 403) {
-      alert('로그인이 필요합니다. 다시 로그인해주세요.');
-      await router.push('/login');
-    } else {
-      console.error('좋아요 처리 실패:', error);
-    }
-  }
-};
-
-const categoryTitle = computed(() => {
-  // ... 구현
-});
-
-onMounted(() => {
-  fetchPost();
-});
+onMounted(fetchPost);
 </script>
 
 <style scoped>

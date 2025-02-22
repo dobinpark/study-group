@@ -9,8 +9,7 @@ import * as redisStore from 'cache-manager-redis-store';
 import { PostsModule } from './posts/posts.module';
 import { validate } from './config/env.validation';
 import { RedisClientOptions } from 'redis';
-import { LoggingInterceptor } from './interceptors/logging.interceptor';
-import { APP_INTERCEPTOR } from '@nestjs/core';
+import { PassportModule } from '@nestjs/passport';
 
 console.log(process.env.DB_PORT);
 
@@ -52,6 +51,7 @@ if (!process.env.DB_PORT) {
             ttl: 300,
         }),
         PostsModule,
+        PassportModule.register({ session: true }),
     ],
     controllers: [],
     providers: [],

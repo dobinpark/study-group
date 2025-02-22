@@ -1,44 +1,35 @@
 <template>
   <div class="signup-container">
     <div class="signup-content">
-      <h1 class="signup-title">회원가입</h1>
-      <form @submit.prevent="signup" class="signup-form">
+      <h1>회원가입</h1>
+      <form @submit.prevent="handleSubmit">
         <div class="form-group">
           <label for="username">아이디</label>
-          <input type="text" id="username" v-model="username" required placeholder="아이디를 입력하세요" />
+          <input type="text" id="username" v-model="form.username" required />
         </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label for="password">비밀번호</label>
-            <input type="password" id="password" v-model="password" required placeholder="최소 8자 이상, 영어/숫자/특수문자(!@#$%^&*()) 포함" />
-          </div>
-
-          <div class="form-group">
-            <label for="confirmPassword">비밀번호 재확인</label>
-            <input type="password" id="confirmPassword" v-model="confirmPassword" required
-              placeholder="비밀번호를 다시 입력하세요." />
-          </div>
+        <div class="form-group">
+          <label for="password">비밀번호</label>
+          <input type="password" id="password" v-model="form.password" required />
         </div>
-
+        <div class="form-group">
+          <label for="confirmPassword">비밀번호 확인</label>
+          <input type="password" id="confirmPassword" v-model="form.confirmPassword" required />
+        </div>
         <div class="form-group">
           <label for="nickname">닉네임</label>
-          <input type="text" id="nickname" v-model="nickname" required placeholder="닉네임을 입력하세요" />
+          <input type="text" id="nickname" v-model="form.nickname" required />
         </div>
-
         <div class="form-group">
           <label for="email">이메일</label>
-          <input type="email" id="email" v-model="email" required placeholder="example@example.com" />
+          <input type="email" id="email" v-model="form.email" required />
         </div>
-
         <div class="form-group">
           <label for="phoneNumber">전화번호</label>
-          <input type="tel" id="phoneNumber" v-model="phoneNumber" required placeholder="010-1234-5678" />
+          <input type="tel" id="phoneNumber" v-model="form.phoneNumber" required />
         </div>
-
         <div class="button-group">
-          <button type="button" @click="cancel" class="cancel-button">취소</button>
-          <button type="submit" class="submit-button">회원가입</button>
+          <button type="button" @click="$router.push('/login')">취소</button>
+          <button type="submit">가입하기</button>
         </div>
       </form>
     </div>
@@ -46,74 +37,30 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { reactive } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from '../utils/axios';
 
 const router = useRouter();
 
-// 사용자 입력을 위한 ref 변수들
-const username = ref('');
-const password = ref('');
-const confirmPassword = ref('');
-const nickname = ref('');
-const email = ref('');
-const phoneNumber = ref('');
+const form = reactive({
+  username: '',
+  password: '',
+  confirmPassword: '',
+  nickname: '',
+  email: '',
+  phoneNumber: ''
+});
 
-// 취소 버튼 클릭 시 홈으로 이동
-const cancel = () => {
-  router.push('/home');
-};
-
-// 비밀번호 유효성 검사
-const validatePassword = (password: string) => {
-  const passwordRegex = /^(?=.*[a-z])(?=.*[0-9])(?=.*[!@#$%^&*()\-_=+{};:,<.>])[a-z0-9!@#$%^&*()\-_=+{};:,<.>]{8,}$/;
-
-  if (!passwordRegex.test(password)) {
-    return '비밀번호는 소문자, 숫자, 특수문자를 각각 1개 이상 포함해야 합니다.';
-  }
-  return '';
-};
-
-// 회원가입 처리
-const signup = async () => {
+const handleSubmit = async () => {
   try {
-    // 모든 필드가 입력되었는지 확인
-    if (!username.value || !password.value || !confirmPassword.value || !nickname.value || !email.value || !phoneNumber.value) {
-      alert('모든 필드를 입력해주세요.');
-      return;
-    }
-
-    // 비밀번호 유효성 검사
-    const passwordError = validatePassword(password.value);
-    if (passwordError) {
-      alert(passwordError);
-      return;
-    }
-
-    // 비밀번호 일치 여부 확인
-    if (password.value !== confirmPassword.value) {
-      alert('비밀번호가 일치하지 않습니다.');
-      return;
-    }
-
-    // 전화번호 포맷팅
-    const formattedPhoneNumber = phoneNumber.value.replace(/-/g, '');
-
-    // 회원가입 요청
-    const response = await axios.post('/auth/signup', {
-      username: username.value,
-      password: password.value,
-      email: email.value,
-      nickname: nickname.value
-    });
-
+    const response = await axios.post('/auth/signup', form);
     if (response.data.success) {
-      await router.push('/login');
+      alert('회원가입이 완료되었습니다');
+      router.push('/login');
     }
   } catch (error: any) {
-    console.error('회원가입 실패:', error.response?.data?.message || '회원가입 중 오류가 발생했습니다.');
-    alert(error.response?.data?.message || '회원가입 중 오류가 발생했습니다.');
+    alert(error.response?.data?.message || '회원가입에 실패했습니다');
   }
 };
 </script>

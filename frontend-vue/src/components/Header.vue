@@ -21,7 +21,7 @@
                     프로필
                   </router-link>
                 </div>
-                <button class="logout-button" @click="logout">
+                <button class="logout-button" @click="handleLogout">
                   로그아웃
                 </button>
               </template>
@@ -75,27 +75,31 @@
   </header>
 </template>
 
-<script lang="ts" setup>
+<script setup lang="ts">
 import { ref, provide, computed, onMounted, onUnmounted, watch } from 'vue';
 import mitt from 'mitt';
 import axios from '../utils/axios';
-import { useStore } from 'vuex';
+import { useUserStore } from '../store/user';
 import { useRouter } from 'vue-router';
-import type { Category, SubCategory } from '@/types/category';
+import type { Category, SubCategory } from '../types/category';
 
+const userStore = useUserStore();
+const router = useRouter();
+
+// 이벤트 버스 생성 및 제공
 const emitter = mitt();
 provide('emitter', emitter);
 
-const store = useStore();
-const router = useRouter();
+// 로그인 상태 관리
+const isLoggedIn = computed(() => userStore.isLoggedIn);
+const user = computed(() => userStore.user);
+const loading = computed(() => userStore.loading);
 
+// 모바일 화면 여부
 const isMobile = ref(false);
 const activeSubCategoryName = ref('');
 
-const isLoggedIn = computed(() => store.state.isLoggedIn);
-const user = computed(() => store.state.user);
-const loading = computed(() => store.state.loading);
-
+// 카테고리 데이터 정의
 const categories = ref<Category[]>([
   {
     id: 1,
@@ -629,31 +633,23 @@ const chunkSubCategories = (subCategories: SubCategory[], size: number): SubCate
   return chunks;
 };
 
-const logout = async () => {
+// 로그아웃 처리
+const handleLogout = async () => {
   try {
-    await store.dispatch('logout');
-    await router.push('/login');
+    await userStore.logout();
+    router.push('/');
   } catch (error) {
     console.error('로그아웃 실패:', error);
+    alert('로그아웃에 실패했습니다.');
   }
 };
 
-const fetchUserInfo = async () => {
-  try {
-    const response = await axios.get('/auth/session');
-    if (response.status === 200 && response.data) {
-      await store.dispatch('setUser', response.data);
-    }
-  } catch (error) {
-    console.error('사용자 정보 조회 실패:', error);
-    await store.dispatch('clearUser');
-  }
-};
-
+// 모바일 화면 체크 함수
 const checkMobile = () => {
   isMobile.value = window.innerWidth <= 768;
 };
 
+// 스터디 그룹 목록 페이지로 이동
 const navigateToStudyList = (subCategory: string, item: string) => {
   if (!subCategory || !item) return;
 
@@ -678,18 +674,23 @@ const handleSubCategoryClick = (mainCategory: string, subCategory: string) => {
   });
 };
 
-watch(() => router.currentRoute.value.path, async () => {
-  await fetchUserInfo();
-});
-
+// 컴포넌트 마운트 시 모바일 체크 및 이벤트 리스너 등록
 onMounted(async () => {
-  await fetchUserInfo();
+  await userStore.checkSessionStatus();
   checkMobile();
   window.addEventListener('resize', checkMobile);
 });
 
+// 컴포넌트 언마운트 시 이벤트 리스너 제거
 onUnmounted(() => {
   window.removeEventListener('resize', checkMobile);
+});
+
+// 서브 카테고리 활성화 상태 감시
+watch(activeSubCategoryName, (newValue, oldValue) => {
+  if (newValue !== oldValue) {
+    // 서브 카테고리 변경 시 처리
+  }
 });
 </script>
 
@@ -874,7 +875,10 @@ onUnmounted(() => {
   gap: 0.3rem;
 }
 
-.nav-items.mobile-nav-items {}
+.nav-items.mobile-nav-items {
+  flex-direction: column;
+  align-items: flex-start;
+}
 
 .main-menu.mobile-main-menu {
   flex-direction: column;

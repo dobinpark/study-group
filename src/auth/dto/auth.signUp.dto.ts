@@ -1,4 +1,4 @@
-import { IsString, IsEmail, IsPhoneNumber, MinLength, Matches, IsNotEmpty } from 'class-validator';
+import { IsString, IsEmail, IsNotEmpty, MinLength, Matches } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { PASSWORD_REGEX, PASSWORD_REGEX_MESSAGE } from '../../utils/validation';
 
@@ -30,7 +30,9 @@ export class AuthSignupDto {
     @IsEmail()
     email!: string;
 
-    @ApiProperty({ example: '010-1234-5678', description: '사용자 휴대전화' })
-    @IsPhoneNumber('KR')
+    @ApiProperty({ example: '01012345678', description: '사용자 휴대전화' })
+    @IsString()
+    @IsNotEmpty({ message: '전화번호는 필수입니다.' })
+    @Matches(/^[0-9]{11}$/, { message: '올바른 전화번호 형식이 아닙니다. (예: 01012345678)' })
     phoneNumber!: string;
 }

@@ -14,7 +14,7 @@
 
 <script setup>
 import { useRouter } from 'vue-router';
-import { useUserStore } from '@/store';
+import { useUserStore } from '../store/user';
 
 const router = useRouter();
 const userStore = useUserStore();
@@ -27,7 +27,7 @@ const handleCreateStudy = () => {
     router.push('/login');
     return;
   }
-  router.push('/study-group-create');
+  router.push('/study-groups/create');
 };
 </script>
 

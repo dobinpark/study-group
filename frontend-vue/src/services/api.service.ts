@@ -11,9 +11,16 @@ const apiClient = axios.create({
 });
 
 export const authService = {
-  async login(username: string, password: string) {
-    const response = await apiClient.post('/auth/login', { username, password });
-    return response.data;
+  async login(credentials: { username: string; password: string }) {
+    try {
+      const response = await apiClient.post('/auth/login', credentials);
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.status === 401) {
+        throw new Error('아이디 또는 비밀번호가 일치하지 않습니다.');
+      }
+      throw error;
+    }
   },
 
   async signup(signupData: any) {
@@ -22,13 +29,27 @@ export const authService = {
   },
 
   async logout() {
-    const response = await apiClient.post('/auth/logout');
-    return response.data;
+    try {
+      const response = await apiClient.post('/auth/logout');
+      return response.data;
+    } catch (error) {
+      console.error('Logout error:', error);
+      throw error;
+    }
   },
 
   async getCurrentUser() {
     const response = await apiClient.get('/auth/me');
     return response.data;
+  },
+
+  async checkSession() {
+    try {
+      const response = await apiClient.get('/auth/session');
+      return response.data.data;
+    } catch (error) {
+      return { isAuthenticated: false, user: null };
+    }
   }
 };
 

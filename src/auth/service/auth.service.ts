@@ -17,26 +17,28 @@ export class AuthService {
         private readonly authRepository: AuthRepository,
     ) { }
 
-    async validateUser(username: string, password: string): Promise<AuthLoginResponseDto | null> {
+    async loginWithCredentials(username: string, password: string): Promise<AuthLoginResponseDto> {
         this.logger.debug(`Validating user: ${username}`);
         try {
             const user = await this.authRepository.findByUsername(username);
             if (!user) {
                 this.logger.debug(`User ${username} not found`);
-                throw new UnauthorizedException('존재하지 않는 사용자입니다.');
+                throw new UnauthorizedException('아이디 또는 비밀번호가 일치하지 않습니다.');
             }
 
-            const passwordIsValid = await bcrypt.compare(password, user.password);
-            this.logger.debug(`Password valid for user ${username}: ${passwordIsValid}`);
-            if (!passwordIsValid) {
-                throw new UnauthorizedException('비밀번호가 일치하지 않습니다.');
+            const isPasswordValid = await bcrypt.compare(password, user.password);
+            if (!isPasswordValid) {
+                throw new UnauthorizedException('아이디 또는 비밀번호가 일치하지 않습니다.');
             }
 
             const { password: _, ...result } = user;
-            return result;
+            return result as AuthLoginResponseDto;
         } catch (error) {
             this.logger.error(`Login failed for user ${username}`, error);
-            throw error;
+            if (error instanceof UnauthorizedException) {
+                throw error;
+            }
+            throw new InternalServerErrorException('로그인 처리 중 오류가 발생했습니다.');
         }
     }
 
@@ -86,16 +88,6 @@ export class AuthService {
         }
     }
 
-    async login(user: User): Promise<AuthLoginResponseDto> {
-        try {
-            const { password, ...result } = user;
-            return result;
-        } catch (error) {
-            this.logger.error('Error during login process', error);
-            throw new InternalServerErrorException('로그인 처리 중 오류가 발생했습니다.');
-        }
-    }
-
     async findPassword(findPasswordDto: AuthFindPasswordDto): Promise<{ tempPassword: string }> {
         const { username, email } = findPasswordDto;
 
@@ -111,6 +103,7 @@ export class AuthService {
             await this.authRepository.updatePassword(user.id, hashedPassword);
 
             // TODO: 이메일 발송 로직 추가
+            this.logger.log(`임시 비밀번호 '${tempPassword}'가 사용자 '${username}'에게 발급되었습니다.`);
             return { tempPassword };
         } catch (error) {
             this.logger.error(`Password reset failed for user ${username}`, error);

@@ -18,10 +18,10 @@
           <span class="creator">작성자: {{ studyGroup.creator?.nickname }}</span>
           <span class="members">참여 인원: {{ studyGroup.members?.length || 0 }}/{{
             studyGroup.maxMembers
-          }}</span>
+            }}</span>
           <span class="date">{{
             formatDate(studyGroup.createdAt)
-          }}</span>
+            }}</span>
         </div>
         <p class="study-group-content">
           {{ truncateContent(studyGroup?.description) }}
@@ -46,6 +46,7 @@
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from '../../utils/axios';
+import { useUserStore } from '../../store/user';
 import type { Category } from '../../types/category';
 
 // 사용자 인터페이스 정의
@@ -70,6 +71,7 @@ interface StudyGroup {
 
 const route = useRoute();
 const router = useRouter();
+const userStore = useUserStore();
 const studyGroups = ref<StudyGroup[]>([]);
 const searchQuery = ref('');
 const loading = ref(true);
@@ -84,11 +86,7 @@ const currentSubCategory = computed(() => route.query.subCategory as string);
 const fetchStudyGroups = async () => {
   loading.value = true;
   try {
-    const response = await axios.get('/study-groups', {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('accessToken')}`
-      }
-    });
+    const response = await axios.get('/study-groups');
     studyGroups.value = response.data;
   } catch (error: any) {
     if (error.response?.status === 401 || error.response?.status === 403) {
@@ -105,7 +103,7 @@ const fetchStudyGroups = async () => {
 // 카테고리 목록 가져오기
 const fetchCategories = async () => {
   try {
-    const response = await axios.get('/study-groups-categories');
+    const response = await axios.get('/study-groups/categories/stats');
     categories.value = response.data;
     console.log('카테고리 데이터:', response.data);
   } catch (error: any) {
@@ -125,12 +123,17 @@ const goToDetail = (id: number) => {
     console.error('유효하지 않은 스터디 그룹 ID:', id);
     return;
   }
-  router.push(`/study-group-detail?id=${id}`);
+  router.push(`/study-groups/${id}`);
 };
 
 // 스터디 그룹 생성 페이지로 이동
 const createStudyGroup = () => {
-  router.push('/study-group-create');
+  if (!userStore.isLoggedIn) {
+    alert('로그인이 필요한 서비스입니다.');
+    router.push('/login');
+    return;
+  }
+  router.push('/study-groups/create');
 };
 
 // 날짜 형식 변환

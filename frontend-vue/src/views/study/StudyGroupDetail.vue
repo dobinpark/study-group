@@ -56,7 +56,7 @@
         </div>
 
         <div class="action-buttons">
-          <button v-if="store.state.user && studyGroup" @click="joinStudyGroup" class="join-button"
+          <button v-if="userStore.isLoggedIn && studyGroup" @click="joinStudyGroup" class="join-button"
             :disabled="isLoading || isAlreadyMember || isCreator">
             <i class="fas fa-sign-in-alt"></i>
             <span v-if="isCreator">내가 만든 스터디입니다</span>
@@ -87,7 +87,7 @@
 import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from '../../utils/axios';
-import { useStore } from 'vuex';
+import { useUserStore } from '../../store/user';
 
 interface User {
   id: number;
@@ -109,18 +109,18 @@ interface StudyGroup {
 
 const route = useRoute();
 const router = useRouter();
-const store = useStore();
+const userStore = useUserStore();
 
 const studyGroup = ref<StudyGroup | null>(null);
 const isLoading = ref(false);
 const error = ref<string | null>(null);
 
 const isCreator = computed(() => {
-  return studyGroup.value?.creator.id === store.state.user?.id;
+  return studyGroup.value?.creator.id === userStore.user?.id;
 });
 
 const isAlreadyMember = computed(() => {
-  return studyGroup.value?.members.some(m => m.id === store.state.user?.id);
+  return studyGroup.value?.members.some(m => m.id === userStore.user?.id);
 });
 
 // 스터디 그룹 상세 정보 로드
@@ -129,11 +129,7 @@ const loadStudyGroup = async () => {
   isLoading.value = true;
 
   try {
-    const response = await axios.get(`/study-groups/${route.params.id}`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('accessToken')}`
-      }
-    });
+    const response = await axios.get(`/study-groups/${route.params.id}`);
 
     if (!response.data) {
       throw new Error('데이터가 없습니다.');
@@ -157,21 +153,20 @@ const loadStudyGroup = async () => {
 
 // 스터디 그룹 참여
 const joinStudyGroup = async () => {
-  if (!store.state.user) {
+  if (!userStore.isLoggedIn) {
     await router.push('/login');
     return;
   }
 
   try {
     isLoading.value = true;
-    await axios.post(`/study-groups/${route.params.id}/join`, {});
+    await axios.post(`/study-groups/${route.params.id}/join`);
     await loadStudyGroup();
     alert('스터디 그룹에 참여하였습니다.');
   } catch (error: any) {
-    // 세션 기반 인증에서는 401 또는 403 에러가 인증 실패를 의미할 수 있습니다.
     if (error.response?.status === 401 || error.response?.status === 403) {
       alert('로그인이 필요합니다. 다시 로그인해주세요.');
-      await router.push('/login'); // 로그인 페이지로 리다이렉트
+      await router.push('/login');
     } else {
       alert(error.response?.data?.message || '참여에 실패했습니다.');
     }
@@ -182,7 +177,7 @@ const joinStudyGroup = async () => {
 
 // 스터디 그룹 수정
 const handleEdit = () => {
-  router.push(`/study-group-edit?id=${route.params.id}`);
+  router.push(`/study-groups/${route.params.id}/edit`);
 };
 
 // 스터디 그룹 삭제
@@ -194,10 +189,9 @@ const handleDelete = async () => {
     alert('스터디 그룹이 삭제되었습니다.');
     await router.push('/study-groups');
   } catch (error: any) {
-    // 세션 기반 인증에서는 401 또는 403 에러가 인증 실패를 의미할 수 있습니다.
     if (error.response?.status === 401 || error.response?.status === 403) {
       alert('로그인이 필요합니다. 다시 로그인해주세요.');
-      await router.push('/login'); // 로그인 페이지로 리다이렉트
+      await router.push('/login');
     } else {
       alert('스터디 그룹 삭제에 실패했습니다: ' + error.response?.data?.message || error.message);
     }

@@ -190,7 +190,7 @@ const handleSubmit = async () => {
       maxMembers: Number(studyGroup.value.maxMembers)
     };
 
-    await axios.put(`/study-groups/${route.params.id}`, updateData, {
+    await axios.put(`/study-groups/${route.params.id}/edit`, updateData, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem('accessToken')}`
       }

@@ -32,7 +32,7 @@ export default createStore({
     async login({ commit }: any, { username, password }: any) {
       try {
         commit('setLoading', true);
-        const response = await authService.login(username, password);
+        const response = await authService.login({ username, password });
         commit('setUser', response.user);
         return response;
       } catch (error: any) {

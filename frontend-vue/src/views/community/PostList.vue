@@ -3,53 +3,47 @@
     <div class="page-inner">
       <div class="content-card">
         <header class="page-header">
-          <h2 class="board-title">{{ categoryTitle }}</h2>
+          <h2>{{ categoryTitle }}</h2>
         </header>
 
         <main class="page-content">
-          <div v-if="loading" class="loading">
-            로딩 중...
-          </div>
+          <div v-if="loading">로딩 중...</div>
           <div v-else>
-            <div class="post-list">
-              <table>
-                <thead>
-                  <tr>
-                    <th>번호</th>
-                    <th>제목</th>
-                    <th>작성자</th>
-                    <th>작성일</th>
-                    <th>조회수</th>
-                    <th>좋아요</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(post, index) in posts" :key="post.id" @click="viewPost(post.id)">
-                    <td>{{ totalPosts - ((currentPage - 1) * itemsPerPage + index) }}</td>
-                    <td class="title">{{ post.title }}</td>
-                    <td>{{ post.author.nickname }}</td>
-                    <td>{{ formatDate(post.createdAt) }}</td>
-                    <td>{{ post.views }}</td>
-                    <td>{{ post.likes }}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+            <table class="post-list">
+              <thead>
+                <tr>
+                  <th>번호</th>
+                  <th>제목</th>
+                  <th>작성자</th>
+                  <th>작성일</th>
+                  <th>조회수</th>
+                  <th>좋아요</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="post in posts" :key="post.id" @click="viewPost(post.id)">
+                  <td>{{ post.id }}</td>
+                  <td>{{ post.title }}</td>
+                  <td>{{ post.author.nickname }}</td>
+                  <td>{{ formatDate(post.createdAt) }}</td>
+                  <td>{{ post.views }}</td>
+                  <td>{{ post.likes }}</td>
+                </tr>
+              </tbody>
+            </table>
 
             <div class="action-bar">
               <div class="search-box">
-                <input type="text" v-model="searchQuery" placeholder="검색어를 입력하세요" @keyup.enter="search">
-                <button @click="search" class="search-button">검색</button>
+                <input v-model="searchQuery" @keyup.enter="search" placeholder="검색어 입력" />
+                <button @click="search">검색</button>
               </div>
-              <button @click="createPost" class="write-button">글쓰기</button>
+              <button @click="createPost">글쓰기</button>
             </div>
 
             <div class="pagination">
-              <button :disabled="currentPage === 1" @click="changePage(currentPage - 1)">&lt;</button>
-              <span v-for="page in totalPages" :key="page">
-                <button :class="{ active: page === currentPage }" @click="changePage(page)">{{ page }}</button>
-              </span>
-              <button :disabled="currentPage === totalPages" @click="changePage(currentPage + 1)">&gt;</button>
+              <button :disabled="page === 1" @click="changePage(page - 1)">이전</button>
+              <span>{{ page }} / {{ totalPages }}</span>
+              <button :disabled="page === totalPages" @click="changePage(page + 1)">다음</button>
             </div>
           </div>
         </main>
@@ -59,137 +53,79 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from '../../utils/axios';
-import { PostCategory } from '../../types/post';
-import { useStore } from 'vuex';
 
-interface Author {
-  id: number;
-  nickname: string;
-}
-
+// 게시글 타입 정의
 interface Post {
   id: number;
   title: string;
   content: string;
-  author: Author;
+  author: {
+    id: number;
+    nickname: string;
+  };
+  createdAt: string;
   views: number;
   likes: number;
-  createdAt: string;
-  category: PostCategory;
-  displayId: number;
 }
 
-interface Props {
-  category?: string;
-}
-
-const props = defineProps<Props>();
 const route = useRoute();
 const router = useRouter();
+
 const posts = ref<Post[]>([]);
-const currentPage = ref(1);
+const loading = ref(true);
+const page = ref(1);
 const totalPages = ref(1);
 const searchQuery = ref('');
-const itemsPerPage = 10;
-const totalPosts = ref(0);
-const loading = ref(true);
-const store = useStore();
-const isAuthenticated = computed(() => store.state.isLoggedIn);
 
-// 카테고리 제목 계산
 const categoryTitle = computed(() => {
-  const category = (route.query.category as string || props.category || 'FREE').toUpperCase();
-
-  switch (category) {
-    case 'FREE':
-      return '자유게시판';
-    case 'QUESTION':
-      return '질문게시판';
-    case 'SUGGESTION':
-      return '건의게시판';
-    default:
-      return '게시판';
-  }
+  const category = String(route.query.category || 'FREE');
+  const titles = {
+    FREE: '자유게시판',
+    QUESTION: '질문게시판',
+    SUGGESTION: '건의게시판'
+  } as const;
+  
+  return titles[category as keyof typeof titles] || '게시판';
 });
 
-// 게시글 목록 가져오기
 const fetchPosts = async () => {
   try {
-    const category = (route.query.category as string || props.category || 'FREE').toUpperCase();
-    console.log('Fetching posts for category:', category);
-
-    const response = await axios.get('/post-list', {
+    const response = await axios.get('/posts', {
       params: {
-        category: category,
-        page: currentPage.value,
-        limit: itemsPerPage,
+        category: route.query.category,
+        page: page.value,
         search: searchQuery.value
       }
     });
-
-    if (response.data) {
-      posts.value = response.data.items;
-      totalPosts.value = response.data.total;
-      totalPages.value = Math.ceil(response.data.total / itemsPerPage);
-    }
-  } catch (error: any) {
-    if (error.response?.status === 401 || error.response?.status === 403) {
-      alert('로그인이 필요합니다. 다시 로그인해주세요.');
-      await router.push('/login');
-    } else {
-      console.error('게시글 조회 실패:', error);
-    }
+    posts.value = response.data.data.items;
+    totalPages.value = Math.ceil(response.data.data.total / 10);
+  } catch (error) {
+    alert('게시글 목록을 불러올 수 없습니다');
   } finally {
     loading.value = false;
   }
 };
 
-// 날짜 형식 변환
-const formatDate = (dateString: string) => {
-  const date = new Date(dateString);
-  return date.toLocaleDateString('ko-KR');
-};
+const formatDate = (date: string) => new Date(date).toLocaleDateString();
 
-// 검색 기능
 const search = () => {
-  currentPage.value = 1;
+  page.value = 1;
   fetchPosts();
 };
 
-// 글쓰기 페이지로 이동
-const createPost = () => {
-  if (!store.state.isLoggedIn) {
-    router.push('/login');
-    return;
-  }
-  router.push('/create-post');
-};
-
-// 게시글 상세 페이지로 이동
-const viewPost = (id: number) => {
-  router.push(`/post-detail/${id}`);
-};
-
-// 페이지 변경
-const changePage = (page: number) => {
-  currentPage.value = page;
+const changePage = (newPage: number) => {
+  page.value = newPage;
   fetchPosts();
 };
 
-// 컴포넌트가 마운트될 때 게시글 목록 가져오기
-onMounted(() => {
-  fetchPosts();
-});
+const createPost = () => router.push('/posts/create');
 
-// route.query.category가 변경될 때마다 게시글 다시 가져오기
-watch(() => route.query.category, () => {
-  currentPage.value = 1;
-  searchQuery.value = '';
-  fetchPosts();
-});
+const viewPost = (id: number) => router.push(`/posts/${id}`);
+
+onMounted(fetchPosts);
 </script>
 
 <style scoped>

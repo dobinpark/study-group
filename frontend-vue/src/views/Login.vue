@@ -1,130 +1,48 @@
 <template>
   <div class="login-container">
     <div class="login-content">
-      <h1 class="login-title">로그인</h1>
-      <form @submit.prevent="login" class="login-form">
+      <h1>로그인</h1>
+      <form @submit.prevent="handleSubmit">
         <div class="form-group">
           <label for="username">아이디</label>
-          <input type="text" id="username" v-model="username" required placeholder="아이디를 입력하세요"
-            :class="{ 'error': errorType === 'validation' }" ref="usernameInputRef" :disabled="loading" />
+          <input type="text" id="username" v-model="form.username" required />
         </div>
         <div class="form-group">
           <label for="password">비밀번호</label>
-          <input type="password" id="password" v-model="password" required placeholder="비밀번호를 입력하세요"
-            :class="{ 'error': errorType === 'validation' }" :disabled="loading" />
+          <input type="password" id="password" v-model="form.password" required />
         </div>
         <div class="button-group">
-          <button type="submit" class="submit-button" :disabled="loading">
-            로그인
-            <span v-if="loading" class="spinner"></span>
-            <span v-if="loading" class="loading-text">로그인 중...</span>
-          </button>
-        </div>
-        <div v-if="loginError" class="error-message">로그인 실패</div>
-        <div class="signup-link">
-          계정이 없으신가요? <router-link to="/signup">회원가입</router-link>
-        </div>
-        <div class="find-password-link">
-          비밀번호를 잊으셨나요? <a href="#" @click.prevent="openFindPasswordModal">비밀번호 찾기</a>
+          <button type="submit">로그인</button>
+          <button type="button" @click="$router.push('/signup')">회원가입</button>
         </div>
       </form>
     </div>
-    <FindPasswordModal :is-open="isModalOpen" @close="closeModal" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, nextTick, computed } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
-import { type AxiosError, isAxiosError } from 'axios';
-import { useStore, mapActions } from 'vuex';
-import FindPasswordModal from '../components/FindPasswordModal.vue';
-
-function isAxiosErrorType(error: unknown): error is AxiosError {
-  return isAxiosError(error);
-}
+import { reactive } from 'vue';
+import { useRouter } from 'vue-router';
+import { useUserStore } from '../store/user';
 
 const router = useRouter();
-const route = useRoute();
-const store = useStore();
-const username = ref('');
-const password = ref('');
-const isModalOpen = ref(false);
-const errorType = ref('');
-const usernameInputRef = ref<HTMLInputElement | null>(null);
-const loginError = ref(false);
+const userStore = useUserStore();
 
-onMounted(() => {
-  nextTick(() => {
-    usernameInputRef.value?.focus();
-  });
+const form = reactive({
+  username: '',
+  password: ''
 });
 
-const login = async () => {
-  errorType.value = '';
-  store.state.error = null;
-  loginError.value = false;
-
+const handleSubmit = async () => {
   try {
-    if (!username.value || !password.value) {
-      errorType.value = 'validation';
-      store.state.error = new Error('아이디와 비밀번호를 모두 입력해주세요.');
-      return;
+    const response = await userStore.login(form);
+    if (response) {
+      router.push('/');
     }
-
-    const loginPayload = {
-      username: username.value,
-      password: password.value,
-    };
-    const result = await loginAction(loginPayload);
-
-    if (result.success) {
-      loginError.value = false;
-      const redirect = Array.isArray(route.query.redirect) ? route.query.redirect[0] : route.query.redirect;
-      const redirectTo = redirect || '/';
-      await router.push(redirectTo);
-    } else {
-      errorType.value = 'server';
-      store.state.error = new Error(result.message || '로그인에 실패했습니다.');
-      loginError.value = true;
-    }
-
-  } catch (error: unknown) {
-    let errorMessageText = '로그인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
-    errorType.value = 'server';
-    loginError.value = true;
-
-    if (isAxiosErrorType(error)) {
-      if (error.response) {
-        switch (error.response.status) {
-          case 400:
-            errorMessageText = '잘못된 요청입니다. 아이디 또는 비밀번호를 확인해주세요.';
-            break;
-          case 401:
-            errorMessageText = '아이디 또는 비밀번호가 일치하지 않습니다.';
-            break;
-          case 500:
-            errorMessageText = '서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
-            break;
-          default:
-            errorMessageText = (error.response.data as { message?: string })?.message || errorMessageText;
-        }
-      }
-    }
-    store.state.error = new Error(errorMessageText);
+  } catch (error: any) {
+    alert(error.response?.data?.message || '로그인에 실패했습니다');
   }
 };
-
-const openFindPasswordModal = () => {
-  isModalOpen.value = true;
-};
-
-const closeModal = () => {
-  isModalOpen.value = false;
-};
-
-const { login: loginAction } = mapActions(['login']);
-const loading = computed(() => store.state.loading);
 </script>
 
 <style scoped>

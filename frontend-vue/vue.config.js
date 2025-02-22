@@ -1,5 +1,5 @@
-const path = require('path')
 const { defineConfig } = require('@vue/cli-service')
+const path = require('path')
 
 module.exports = defineConfig({
   // 개발 서버 설정
