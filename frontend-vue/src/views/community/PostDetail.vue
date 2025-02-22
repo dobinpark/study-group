@@ -46,7 +46,7 @@ import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useUserStore } from '../../store/user';
 import axios from '../../utils/axios';
-import { PostCategoryKorean } from '../../types/post';
+import { PostCategoryKorean } from '../../types/models';
 
 // 게시글 타입 정의
 interface Post {
@@ -96,6 +96,12 @@ const fetchPost = async () => {
 const formatDate = (date: string) => new Date(date).toLocaleDateString();
 
 const handleLike = async () => {
+  if (!userStore.isLoggedIn) {
+    alert('로그인이 필요합니다');
+    router.push('/login');
+    return;
+  }
+
   try {
     const response = await axios.post(`/posts/${route.params.id}/like`);
     if (response.data.success && post.value) {

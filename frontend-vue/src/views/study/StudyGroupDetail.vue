@@ -125,29 +125,12 @@ const isAlreadyMember = computed(() => {
 
 // 스터디 그룹 상세 정보 로드
 const loadStudyGroup = async () => {
-  error.value = null;
-  isLoading.value = true;
-
   try {
     const response = await axios.get(`/study-groups/${route.params.id}`);
-
-    if (!response.data) {
-      throw new Error('데이터가 없습니다.');
-    }
-
-    studyGroup.value = {
-      ...response.data,
-      members: Array.isArray(response.data.members) ? response.data.members : [],
-      creator: response.data.creator || { id: 0, nickname: '알 수 없음' }
-    };
-
-  } catch (err: any) {
-    error.value = '스터디 그룹 정보를 불러오는데 실패했습니다.';
-    setTimeout(() => {
-      router.push('/study-groups');
-    }, 2000);
-  } finally {
-    isLoading.value = false;
+    studyGroup.value = response.data;
+  } catch (error: any) {
+    alert(error.response?.data?.message || '스터디 그룹 정보를 불러오는데 실패했습니다.');
+    router.push('/study-groups');
   }
 };
 

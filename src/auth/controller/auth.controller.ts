@@ -23,13 +23,13 @@ import { AuthLoginDto } from '../dto/auth.login.dto';
 import { AuthFindPasswordDto } from '../dto/auth.findPassword.dto';
 import { AuthLoginResponseDto } from '../dto/auth.loginResponse.dto';
 import { LocalAuthGuard } from '../guards/local-auth.guard';
-import { SessionUser } from '../types/sessionUser.type';
 
 @ApiTags('인증')
 @Controller('auth')
 @UseInterceptors(ClassSerializerInterceptor)
 @UseInterceptors(TransformInterceptor)
 export class AuthController {
+
     constructor(private readonly authService: AuthService) { }
 
     @ApiOperation({ summary: '회원가입' })
@@ -59,6 +59,7 @@ export class AuthController {
         await this.authService.signUp(signupDto);
         return { success: true, message: '회원가입이 완료되었습니다.' };
     }
+
 
     @ApiOperation({ summary: '로그인' })
     @ApiBody({ type: AuthLoginDto })
@@ -90,6 +91,7 @@ export class AuthController {
         };
     }
 
+
     @ApiOperation({ summary: '로그아웃' })
     @ApiResponse({
         status: 200,
@@ -114,16 +116,18 @@ export class AuthController {
         return { success: true, message: '로그아웃 되었습니다.' };
     }
 
+
     @ApiOperation({ summary: '현재 로그인한 사용자 정보 조회' })
     @ApiResponse({ status: 200, description: '사용자 정보 조회 성공', type: User })
     @Get('me')
-    async getMe(@Req() req: Request): Promise<DataResponse<Omit<SessionUser, 'password'>>> {
-        const user = req.user as SessionUser;
+    async getMe(@Req() req: Request): Promise<DataResponse<Omit<User, 'password'>>> {
+        const user = req.user as User;
         return {
             success: true,
             data: user
         };
     }
+
 
     @ApiOperation({ summary: '비밀번호 찾기' })
     @ApiResponse({
@@ -152,6 +156,7 @@ export class AuthController {
             data: { tempPassword }
         };
     }
+
 
     @ApiOperation({ summary: '세션 상태 확인' })
     @ApiResponse({

@@ -1,69 +1,85 @@
 import { defineStore } from 'pinia';
-import axios from '../utils/axios';
-import type { User } from '@/types/user';
+import type { User } from '../types/models';
 import { authService } from '../services/api.service';
 
-interface AuthState {
-    user: User | null;
-    loading: boolean;
-    error: Error | null;
-    authChecked: boolean;
-    isLoggedIn: boolean;
-}
-
-interface AuthActions {
-    setLoading(isLoading: boolean): void;
-    setUser(user: User): void;
-    clearUser(): void;
-    login(credentials: { username: string; password: string }): Promise<boolean>;
-    fetchSessionStatus(): Promise<void>;
-    logout(): Promise<void>;
-    checkSessionStatus(): Promise<boolean>;
-}
-
-interface AuthGetters {
-    getUser: (state: AuthState) => User | null;
-    isLoading: (state: AuthState) => boolean;
-    getErrorMessage: (state: AuthState) => string | undefined;
-    [key: string]: any;
+interface UserState {
+  user: User | null;
+  loading: boolean;
+  error: string | null;
+  isLoggedIn: boolean;
 }
 
 export const useUserStore = defineStore('user', {
-    state: () => ({
-        user: null as User | null,
-        isLoggedIn: false
-    }),
+  state: (): UserState => ({
+    user: null,
+    loading: false,
+    error: null,
+    isLoggedIn: false
+  }),
 
-    actions: {
-        async login(credentials: { username: string; password: string }) {
-            try {
-                const response = await axios.post('/auth/login', credentials);
-                if (response.data.success) {
-                    this.user = response.data.data;
-                    this.isLoggedIn = true;
-                    return true;
-                }
-                return false;
-            } catch (error) {
-                this.logout();
-                throw error;
-            }
-        },
+  getters: {
+    currentUser: (state) => state.user,
+    isAuthenticated: (state) => state.isLoggedIn,
+    hasError: (state) => !!state.error
+  },
 
-        async logout() {
-            await axios.post('/auth/logout');
-            this.user = null;
-            this.isLoggedIn = false;
-        },
+  actions: {
+    setLoading(status: boolean) {
+      this.loading = status;
+    },
 
-        async checkAuth() {
-            try {
-                const response = await axios.get('/auth/session');
-                this.isLoggedIn = response.data.data.isAuthenticated;
-                this.user = response.data.data.user;
-            } catch {
-                this.logout();
-            }
-        }
+    setError(error: string | null) {
+      this.error = error;
+    },
+
+    async login(credentials: { username: string; password: string }) {
+      this.setLoading(true);
+      this.setError(null);
+
+      try {
+        const response = await authService.login(credentials);
+        this.user = response.user;
+        this.isLoggedIn = true;
+        return true;
+      } catch (error: any) {
+        this.setError(error.response?.data?.message || '로그인에 실패했습니다');
+        return false;
+      } finally {
+        this.setLoading(false);
+      }
+    },
+
+    async logout() {
+      try {
+        await authService.logout();
+      } finally {
+        this.user = null;
+        this.isLoggedIn = false;
+      }
+    },
+
+    async checkAuth() {
+      this.setLoading(true);
+      try {
+        const response = await authService.checkSession();
+        this.isLoggedIn = response.isAuthenticated;
+        this.user = response.user;
+      } catch (error) {
+        this.logout();
+      } finally {
+        this.setLoading(false);
+      }
     }
+  },
+
+  persist: {
+    enabled: true,
+    strategies: [
+      {
+        key: 'user',
+        storage: localStorage,
+        paths: ['isLoggedIn', 'user']
+      }
+    ]
+  }
 });

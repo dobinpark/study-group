@@ -13,6 +13,7 @@ import { User } from '../entities/user.entity';
 @UseInterceptors(ClassSerializerInterceptor)
 @UseInterceptors(TransformInterceptor)
 export class UsersController {
+
     constructor(private readonly usersService: UsersService) { }
 
     @ApiOperation({ summary: '사용자 프로필 조회' })
@@ -36,6 +37,7 @@ export class UsersController {
         };
     }
 
+    
     @ApiOperation({ summary: '프로필 수정' })
     @ApiBody({ type: UpdateUserDto })
     @ApiOkResponse({

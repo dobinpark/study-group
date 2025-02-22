@@ -28,6 +28,7 @@ import { TransformInterceptor } from '../../interceptors/response.interceptor';
 @UseInterceptors(ClassSerializerInterceptor)
 @UseInterceptors(TransformInterceptor)
 export class PostsController {
+
     constructor(private readonly postsService: PostsService) {}
 
     @Get()
@@ -45,6 +46,7 @@ export class PostsController {
         return await this.postsService.findByCategory(category, page, limit, search);
     }
 
+
     @Post()
     @ApiOperation({ summary: '게시물 생성' })
     @HttpCode(HttpStatus.CREATED)
@@ -61,11 +63,13 @@ export class PostsController {
         });
     }
 
+
     @Get(':id')
     @ApiOperation({ summary: '게시물 상세 조회' })
     async findOne(@Param('id') id: number) {
         return await this.postsService.findOne(id);
     }
+
 
     @Post(':id/like')
     @ApiOperation({ summary: '게시물 좋아요' })
@@ -78,6 +82,7 @@ export class PostsController {
         }
         return await this.postsService.toggleLike(id, session.user.id);
     }
+
 
     @Put(':id')
     @ApiOperation({ summary: '게시물 수정' })
@@ -92,6 +97,7 @@ export class PostsController {
         return await this.postsService.updatePost(id, updatePostDto, session.user.id);
     }
 
+    
     @Delete(':id')
     @ApiOperation({ summary: '게시물 삭제' })
     async deletePost(

@@ -76,7 +76,6 @@
 import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from '../../utils/axios';
-import mitt from 'mitt';
 
 const router = useRouter();
 
@@ -191,42 +190,21 @@ const detailCategories = computed(() => {
 // 스터디 그룹 생성 처리
 const handleSubmit = async () => {
   try {
-    // 데이터 정제
-    const payload = {
-      name: String(studyGroup.value.name).trim(),
-      mainCategory: String(studyGroup.value.mainCategory).trim(),
-      subCategory: String(studyGroup.value.subCategory).trim(),
-      detailCategory: String(studyGroup.value.detailCategory).trim(),
-      content: String(studyGroup.value.content).trim(),
-      maxMembers: Number(studyGroup.value.maxMembers)
-    };
+    const response = await axios.post('/study-groups', {
+      name: studyGroup.value.name,
+      mainCategory: studyGroup.value.mainCategory,
+      subCategory: studyGroup.value.subCategory,
+      detailCategory: studyGroup.value.detailCategory,
+      content: studyGroup.value.content,
+      maxMembers: studyGroup.value.maxMembers
+    });
 
-    // 데이터 유효성 검사
-    if (!payload.name || !payload.mainCategory || !payload.subCategory ||
-      !payload.detailCategory || !payload.content || !payload.maxMembers) {
-      throw new Error('모든 필드를 입력해주세요.');
-    }
-
-    // 데이터 형식 확인을 위한 로깅
-    console.log('Sending study group data:', payload);
-
-    const response = await axios.post('/study-groups', payload);
-
-    if (response.status === 201) {
+    if (response.data.success) {
       alert('스터디 그룹이 생성되었습니다.');
-      await router.push('/study-groups/create');
+      router.push('/study-groups');
     }
   } catch (error: any) {
-    console.error('Full error object:', error);
-    if (error.message === '모든 필드를 입력해주세요.') {
-      alert(error.message);
-    } else if (error.response?.status === 401 || error.response?.status === 403) {
-      alert('로그인이 필요합니다. 다시 로그인해주세요.');
-      await router.push('/login');
-    } else {
-      alert(error.response?.data?.message || '스터디 그룹 생성에 실패했습니다.');
-      console.error('Error creating study group:', error.response?.data);
-    }
+    alert(error.response?.data?.message || '스터디 그룹 생성에 실패했습니다.');
   }
 };
 

@@ -42,6 +42,7 @@ import { DataResponse, BaseResponse } from '../../types/response.types';
 @UseInterceptors(ClassSerializerInterceptor)
 @UseInterceptors(TransformInterceptor)
 export class StudyGroupController {
+
     constructor(private readonly studyGroupService: StudyGroupService) {}
 
     @ApiOperation({ summary: '스터디 그룹 생성' })
@@ -63,6 +64,7 @@ export class StudyGroupController {
         const studyGroup = await this.studyGroupService.create(createStudyGroupDto, session.user.id);
         return { success: true, data: studyGroup };
     }
+
 
     @ApiOperation({ summary: '스터디 그룹 목록 조회' })
     @ApiQuery({ name: 'mainCategory', required: false, description: '메인 카테고리' })
@@ -92,6 +94,7 @@ export class StudyGroupController {
         return { success: true, data: result };
     }
 
+
     @ApiOperation({ summary: '스터디 그룹 상세 조회' })
     @ApiParam({ name: 'id', required: true, description: '스터디 그룹 ID' })
     @ApiOkResponse({
@@ -105,6 +108,7 @@ export class StudyGroupController {
         const studyGroup = await this.studyGroupService.findOne(id);
         return { success: true, data: studyGroup };
     }
+
 
     @ApiOperation({ summary: '스터디 그룹 수정' })
     @ApiParam({ name: 'id', required: true, description: '스터디 그룹 ID' })
@@ -128,6 +132,7 @@ export class StudyGroupController {
         return { success: true, data: updatedGroup };
     }
 
+
     @Delete(':id')
     @ApiOperation({ summary: '스터디 그룹 삭제' })
     async remove(
@@ -140,6 +145,7 @@ export class StudyGroupController {
         await this.studyGroupService.remove(id, session.user.id);
         return { success: true, message: '스터디 그룹이 삭제되었습니다.' };
     }
+
 
     @Post(':id/join')
     @ApiOperation({ summary: '스터디 그룹 참여' })
@@ -154,6 +160,7 @@ export class StudyGroupController {
         return { success: true, message: '스터디 그룹에 참여했습니다.' };
     }
 
+
     @Delete(':id/leave')
     @ApiOperation({ summary: '스터디 그룹 탈퇴' })
     async leave(
@@ -167,6 +174,7 @@ export class StudyGroupController {
         return { success: true, message: '스터디 그룹을 탈퇴했습니다.' };
     }
 
+    
     @Get('categories/stats')
     @ApiOperation({ summary: '카테고리별 스터디 그룹 통계' })
     async getCategoryStats(): Promise<DataResponse<CategoryDto[]>> {

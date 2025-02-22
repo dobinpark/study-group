@@ -33,22 +33,25 @@
 import { reactive, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from '../../utils/axios';
-import { PostCategoryKorean } from '../../types/post';
+import { PostCategoryKorean } from '../../types/models';
 
 const route = useRoute();
 const router = useRouter();
 
+// 단순한 폼 데이터 관리
 const form = reactive({
   title: '',
   content: '',
   category: route.params.category
 });
 
+// 카테고리 제목 표시
 const categoryTitle = computed(() => {
   const category = route.params.category as keyof typeof PostCategoryKorean;
   return PostCategoryKorean[category] || '게시판';
 });
 
+// 단순 API 호출
 const handleSubmit = async () => {
   try {
     const response = await axios.post('/posts', form);
