@@ -4,8 +4,19 @@ export const authService = {
   async login(credentials: { username: string; password: string }) {
     try {
       const response = await apiClient.post('/auth/login', credentials);
-      return response.data;
+      console.log('로그인 응답:', response.data);
+      
+      if (!response.data || !response.data.success) {
+        throw new Error('로그인에 실패했습니다');
+      }
+      
+      return {
+        user: response.data.data,
+        success: response.data.success,
+        message: response.data.message
+      };
     } catch (error: any) {
+      console.error('로그인 API 에러:', error);
       if (error.response?.status === 401) {
         throw new Error('아이디 또는 비밀번호가 일치하지 않습니다.');
       }
@@ -36,9 +47,22 @@ export const authService = {
   async checkSession() {
     try {
       const response = await apiClient.get('/auth/session');
-      return response.data.data;
+      console.log('Session check response:', response.data);
+      
+      if (response.data && response.data.success) {
+        return {
+          isAuthenticated: true,
+          user: response.data.data
+        };
+      }
+      
+      return {
+        isAuthenticated: false,
+        user: null
+      };
     } catch (error) {
-      return { isAuthenticated: false, user: null };
+      console.error('Session check error:', error);
+      return null;
     }
   }
 };

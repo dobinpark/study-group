@@ -10,6 +10,7 @@ import { UserProfileResponseDto } from '../dto/user.profileResponse.dto';
 
 @Injectable()
 export class UsersService {
+
     private static readonly USER_PROFILE_CACHE_PREFIX = 'user:profile:';
     private static readonly USER_PROFILE_CACHE_TTL = 600;
     private static readonly SALT_ROUNDS = 10;
@@ -22,10 +23,12 @@ export class UsersService {
         private cacheManager: Cache,
     ) { }
 
+    // 사용자 조회
     async findUserByUsername(username: string): Promise<User | null> {
         return this.userRepository.findOne({ where: { username } });
     }
 
+    // 사용자 프로필 조회
     async findUserProfileById(id: number): Promise<Omit<User, 'password'>> {
         const user = await this.userRepository.findOne({ where: { id } });
         if (!user) {
@@ -35,12 +38,14 @@ export class UsersService {
         return userProfile;
     }
 
+    // 사용자 프로필 업데이트
     async updateUser(id: number, updateUserDto: UpdateUserDto): Promise<Omit<User, 'password'>> {
         await this.userRepository.update(id, updateUserDto);
         const updatedUser = await this.findUserProfileById(id);
         return updatedUser;
     }
 
+    // 사용자 프로필 조회
     async getUserProfile(username: string): Promise<UserProfileResponseDto> {
         const profile = await this.userRepository.findOne({ where: { username } });
         if (!profile) {
@@ -49,6 +54,7 @@ export class UsersService {
         return this.excludeSensitiveFieldsToProfileDto(profile);
     }
 
+    // 사용자 프로필 업데이트
     async updateUserProfile(username: string, updateUserDto: UpdateUserDto): Promise<UserProfileResponseDto> {
         const cacheKey = this.getCacheKey(username);
         const updatedProfile = await this._updateUserProfile(username, updateUserDto);
@@ -59,6 +65,7 @@ export class UsersService {
         return updatedProfile;
     }
 
+    // 사용자 프로필 업데이트
     private async _updateUserProfile(username: string, updateUserDto: UpdateUserDto): Promise<UserProfileResponseDto> {
         try {
             const user = await this.findUserByUsername(username);
@@ -122,10 +129,12 @@ export class UsersService {
         }
     }
 
+    // 캐시 키 생성
     private getCacheKey(username: string): string {
         return `${UsersService.USER_PROFILE_CACHE_PREFIX}${username}`;
     }
 
+    // 민감한 필드 제외하여 프로필 DTO로 변환
     private excludeSensitiveFieldsToProfileDto(user: User): UserProfileResponseDto {
         const { password, ...rest } = user;
         return rest as UserProfileResponseDto;

@@ -38,9 +38,12 @@ export const useUserStore = defineStore('user', {
 
       try {
         const response = await authService.login(credentials);
-        this.user = response.user;
-        this.isLoggedIn = true;
-        return true;
+        if (response && response.user) {
+          this.user = response.user;
+          this.isLoggedIn = true;
+          return true;
+        }
+        return false;
       } catch (error: any) {
         this.setError(error.response?.data?.message || '로그인에 실패했습니다');
         return false;
@@ -55,6 +58,7 @@ export const useUserStore = defineStore('user', {
       } finally {
         this.user = null;
         this.isLoggedIn = false;
+        localStorage.removeItem('user-store');
       }
     },
 
@@ -62,12 +66,37 @@ export const useUserStore = defineStore('user', {
       this.setLoading(true);
       try {
         const response = await authService.checkSession();
-        this.isLoggedIn = response.isAuthenticated;
-        this.user = response.user;
+        console.log('Check auth response:', response);
+        
+        // 에러로 인한 null 응답 시 기존 상태 유지
+        if (response === null) {
+          console.log('Keeping existing auth state due to error');
+          return;
+        }
+        
+        // 세션이 유효하면 상태 업데이트
+        if (response.isAuthenticated && response.user) {
+          console.log('Session valid, updating state');
+          this.isLoggedIn = true;
+          this.user = response.user;
+        } else if (this.isLoggedIn) {
+          // 세션이 유효하지 않고 현재 로그인 상태라면 유지
+          console.log('Session invalid but keeping existing state');
+        }
       } catch (error) {
-        this.logout();
+        console.error('Check auth error:', error);
+        // 에러 시에도 기존 상태 유지
       } finally {
         this.setLoading(false);
+      }
+    },
+
+    initializeFromStorage() {
+      const stored = localStorage.getItem('user-store');
+      if (stored) {
+        const { user, isLoggedIn } = JSON.parse(stored);
+        this.user = user;
+        this.isLoggedIn = isLoggedIn;
       }
     }
   },
@@ -76,9 +105,9 @@ export const useUserStore = defineStore('user', {
     enabled: true,
     strategies: [
       {
-        key: 'user',
+        key: 'user-store',
         storage: localStorage,
-        paths: ['isLoggedIn', 'user']
+        paths: ['user', 'isLoggedIn']
       }
     ]
   }

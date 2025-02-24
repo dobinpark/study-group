@@ -36,4 +36,3 @@ export interface CreatePostDto {
   content: string;
   category: string;
 }
-

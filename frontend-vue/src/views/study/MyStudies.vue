@@ -83,19 +83,29 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from '../../utils/axios';
-import { AxiosError, isAxiosError } from 'axios';
-import type { User, StudyGroup, StudyGroupResponse } from '../../types/study';
+import { isAxiosError } from 'axios';
+import type { StudyGroup } from '../../types/models';
 
 const router = useRouter();
 const createdStudies = ref<StudyGroup[]>([]);
 const joinedStudies = ref<StudyGroup[]>([]);
 const loading = ref(true);
 
+// 인터페이스 직접 정의
+interface StudyGroupResponse {
+  success: boolean;
+  message?: string;
+  data: {
+    created: StudyGroup[];
+    joined: StudyGroup[];
+  };
+}
+
 // 내 스터디 목록 가져오기
 const fetchMyStudies = async () => {
   try {
     loading.value = true;
-    const response = await axios.get<StudyGroupResponse>('/my-studies');
+    const response = await axios.get<StudyGroupResponse>('study-groups/my-studies');
 
     if (response.data.success) {
       createdStudies.value = response.data.data.created || [];

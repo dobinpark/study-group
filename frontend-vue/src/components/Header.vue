@@ -26,7 +26,7 @@
                 </button>
               </template>
               <template v-else>
-                <span class="login-text">로그인 해주세요</span>
+                <span class="login-text">로그인 해주세요.</span>
                 <router-link to="/login">
                   <button class="login-button">
                     <img alt="로그인" class="login-icon" src="../assets/images/man.png" />
@@ -78,10 +78,9 @@
 <script setup lang="ts">
 import { ref, provide, computed, onMounted, onUnmounted, watch } from 'vue';
 import mitt from 'mitt';
-import axios from '../utils/axios';
 import { useUserStore } from '../store/user';
 import { useRouter } from 'vue-router';
-import type { Category, SubCategory } from '../types/category';
+import type { Category, SubCategory } from '../types/models';
 
 const userStore = useUserStore();
 const router = useRouter();
@@ -674,11 +673,23 @@ const handleSubCategoryClick = (mainCategory: string, subCategory: string) => {
   });
 };
 
-// 컴포넌트 마운트 시 모바일 체크 및 이벤트 리스너 등록
+// 컴포넌트 마운트 시 로그인 상태 확인
 onMounted(async () => {
-  await userStore.checkSessionStatus();
-  checkMobile();
-  window.addEventListener('resize', checkMobile);
+  try {
+    // 로딩 상태 표시
+    userStore.setLoading(true);
+    
+    // localStorage에서 상태를 확인하고 서버와 동기화
+    if (userStore.isLoggedIn && userStore.user) {
+      await userStore.checkAuth();
+    }
+  } catch (error) {
+    console.error('로그인 상태 확인 중 오류:', error);
+  } finally {
+    userStore.setLoading(false);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+  }
 });
 
 // 컴포넌트 언마운트 시 이벤트 리스너 제거

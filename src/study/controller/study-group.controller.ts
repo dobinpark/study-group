@@ -14,6 +14,7 @@ import {
     UseInterceptors,
     ClassSerializerInterceptor,
     ParseIntPipe,
+    InternalServerErrorException,
 } from '@nestjs/common';
 import {
     ApiTags,
@@ -45,6 +46,7 @@ export class StudyGroupController {
 
     constructor(private readonly studyGroupService: StudyGroupService) {}
 
+    // 스터디 그룹 생성
     @ApiOperation({ summary: '스터디 그룹 생성' })
     @ApiBody({ type: CreateStudyGroupDto })
     @ApiCreatedResponse({
@@ -65,7 +67,7 @@ export class StudyGroupController {
         return { success: true, data: studyGroup };
     }
 
-
+    // 스터디 그룹 목록 조회
     @ApiOperation({ summary: '스터디 그룹 목록 조회' })
     @ApiQuery({ name: 'mainCategory', required: false, description: '메인 카테고리' })
     @ApiQuery({ name: 'subCategory', required: false, description: '서브 카테고리' })
@@ -94,7 +96,7 @@ export class StudyGroupController {
         return { success: true, data: result };
     }
 
-
+    // 스터디 그룹 상세 조회
     @ApiOperation({ summary: '스터디 그룹 상세 조회' })
     @ApiParam({ name: 'id', required: true, description: '스터디 그룹 ID' })
     @ApiOkResponse({
@@ -109,7 +111,7 @@ export class StudyGroupController {
         return { success: true, data: studyGroup };
     }
 
-
+    // 스터디 그룹 수정
     @ApiOperation({ summary: '스터디 그룹 수정' })
     @ApiParam({ name: 'id', required: true, description: '스터디 그룹 ID' })
     @ApiBody({ type: UpdateStudyGroupDto })
@@ -132,7 +134,7 @@ export class StudyGroupController {
         return { success: true, data: updatedGroup };
     }
 
-
+    // 스터디 그룹 삭제
     @Delete(':id')
     @ApiOperation({ summary: '스터디 그룹 삭제' })
     async remove(
@@ -146,7 +148,7 @@ export class StudyGroupController {
         return { success: true, message: '스터디 그룹이 삭제되었습니다.' };
     }
 
-
+    // 스터디 그룹 참여
     @Post(':id/join')
     @ApiOperation({ summary: '스터디 그룹 참여' })
     async join(
@@ -160,7 +162,7 @@ export class StudyGroupController {
         return { success: true, message: '스터디 그룹에 참여했습니다.' };
     }
 
-
+    // 스터디 그룹 탈퇴
     @Delete(':id/leave')
     @ApiOperation({ summary: '스터디 그룹 탈퇴' })
     async leave(
@@ -174,11 +176,40 @@ export class StudyGroupController {
         return { success: true, message: '스터디 그룹을 탈퇴했습니다.' };
     }
 
-    
+    // 카테고리별 스터디 그룹 통계
     @Get('categories/stats')
     @ApiOperation({ summary: '카테고리별 스터디 그룹 통계' })
     async getCategoryStats(): Promise<DataResponse<CategoryDto[]>> {
         const stats = await this.studyGroupService.getCategoryStats();
         return { success: true, data: stats };
+    }
+
+    // 내 스터디 목록 조회
+    @Get('my-studies')
+    @ApiOperation({ summary: '내 스터디 목록 조회' })
+    @ApiResponse({
+        status: 200,
+        description: '내가 생성하거나 참여한 스터디 목록',
+        type: StudyGroup,
+        isArray: true
+    })
+    @ApiUnauthorizedResponse({ description: '로그인이 필요합니다' })
+    async getMyStudies(
+        @Session() session: CustomSession
+    ): Promise<DataResponse<{ created: StudyGroup[], joined: StudyGroup[] }>> {
+        if (!session.user) {
+            throw new UnauthorizedException('로그인이 필요합니다.');
+        }
+
+        try {
+            const studies = await this.studyGroupService.getMyStudies(session.user.id);
+            return { 
+                success: true,
+                message: '스터디 목록을 성공적으로 조회했습니다.',
+                data: studies
+            };
+        } catch (error) {
+            throw new InternalServerErrorException('스터디 목록을 조회하는 중 오류가 발생했습니다.');
+        }
     }
 }

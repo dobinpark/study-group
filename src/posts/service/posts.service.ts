@@ -12,11 +12,13 @@ interface CreatePostParams extends CreatePostDto {
 
 @Injectable()
 export class PostsService {
+
     constructor(
         @InjectRepository(Post)
         private readonly postRepository: Repository<Post>
     ) {}
 
+    // 게시물 생성
     async createPost(params: CreatePostParams): Promise<Post> {
         const { title, content, category, authorId } = params;
 
@@ -36,6 +38,7 @@ export class PostsService {
         return await this.postRepository.save(post);
     }
 
+    // 카테고리별 게시물 조회
     async findByCategory(
         category: PostCategory,
         page: number = 1,
@@ -65,6 +68,7 @@ export class PostsService {
         };
     }
 
+    // 게시물 상세 조회
     async findOne(id: number): Promise<Post> {
         const post = await this.postRepository.findOne({
             where: { id },
@@ -82,6 +86,7 @@ export class PostsService {
         return post;
     }
 
+    // 게시물 수정
     async updatePost(id: number, updatePostDto: UpdatePostDto, userId: number): Promise<Post> {
         const post = await this.findOne(id);
 
@@ -103,6 +108,7 @@ export class PostsService {
         await this.postRepository.delete(id);
     }
 
+    // 좋아요 기능
     async toggleLike(postId: number, userId: number): Promise<{ liked: boolean }> {
         const post = await this.findOne(postId);
         // TODO: 좋아요 기능 구현

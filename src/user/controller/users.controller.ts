@@ -16,6 +16,7 @@ export class UsersController {
 
     constructor(private readonly usersService: UsersService) { }
 
+    // 사용자 프로필 조회
     @ApiOperation({ summary: '사용자 프로필 조회' })
     @ApiParam({
         name: 'id',
@@ -37,7 +38,7 @@ export class UsersController {
         };
     }
 
-    
+    // 사용자 프로필 수정
     @ApiOperation({ summary: '프로필 수정' })
     @ApiBody({ type: UpdateUserDto })
     @ApiOkResponse({

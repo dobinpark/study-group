@@ -35,11 +35,16 @@ const form = reactive({
 
 const handleSubmit = async () => {
   try {
-    const response = await userStore.login(form);
-    if (response) {
-      router.push('/');
+    const success = await userStore.login(form);
+    if (success) {
+      console.log('로그인 성공, 홈으로 이동');
+      await router.push('/');
+    } else {
+      console.log('로그인 실패');
+      alert('로그인에 실패했습니다');
     }
   } catch (error: any) {
+    console.error('로그인 에러:', error);
     alert(error.response?.data?.message || '로그인에 실패했습니다');
   }
 };

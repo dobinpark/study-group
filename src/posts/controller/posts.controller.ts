@@ -31,6 +31,7 @@ export class PostsController {
 
     constructor(private readonly postsService: PostsService) {}
 
+    // 카테고리별 게시물 조회
     @Get()
     @ApiOperation({ summary: '카테고리별 게시물 조회' })
     @ApiQuery({ name: 'category', required: true, description: '게시물 카테고리' })
@@ -46,7 +47,7 @@ export class PostsController {
         return await this.postsService.findByCategory(category, page, limit, search);
     }
 
-
+    // 게시물 생성
     @Post()
     @ApiOperation({ summary: '게시물 생성' })
     @HttpCode(HttpStatus.CREATED)
@@ -63,14 +64,14 @@ export class PostsController {
         });
     }
 
-
+    // 게시물 상세 조회
     @Get(':id')
     @ApiOperation({ summary: '게시물 상세 조회' })
     async findOne(@Param('id') id: number) {
         return await this.postsService.findOne(id);
     }
 
-
+    // 게시물 좋아요
     @Post(':id/like')
     @ApiOperation({ summary: '게시물 좋아요' })
     async toggleLike(
@@ -83,7 +84,7 @@ export class PostsController {
         return await this.postsService.toggleLike(id, session.user.id);
     }
 
-
+    // 게시물 수정
     @Put(':id')
     @ApiOperation({ summary: '게시물 수정' })
     async updatePost(
@@ -97,7 +98,7 @@ export class PostsController {
         return await this.postsService.updatePost(id, updatePostDto, session.user.id);
     }
 
-    
+    // 게시물 삭제
     @Delete(':id')
     @ApiOperation({ summary: '게시물 삭제' })
     async deletePost(

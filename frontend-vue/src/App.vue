@@ -18,7 +18,13 @@ const initialized = ref(false);
 
 onMounted(async () => {
 	try {
-		await userStore.checkAuth();
+		// localStorage에서 상태 복원
+		userStore.initializeFromStorage();
+		
+		// 로그인 상태라면 서버와 세션 확인
+		if (userStore.isLoggedIn) {
+			await userStore.checkAuth();
+		}
 	} finally {
 		initialized.value = true;
 	}

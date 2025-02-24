@@ -12,6 +12,10 @@ export class StudyGroup {
     @Column()
     name!: string;
 
+    @ApiProperty({ description: '스터디 그룹 설명' })
+    @Column('text')
+    content!: string;
+
     @ApiProperty({ description: '대분류' })
     @Column()
     mainCategory!: string;
@@ -24,10 +28,6 @@ export class StudyGroup {
     @Column()
     detailCategory!: string;
 
-    @ApiProperty({ description: '스터디 그룹 설명' })
-    @Column('text')
-    content!: string;
-
     @ApiProperty({ description: '최대 인원 수' })
     @Column()
     maxMembers!: number;
@@ -36,23 +36,28 @@ export class StudyGroup {
     @Column({ default: 1 })
     currentMembers!: number;
 
+    @ApiProperty({ description: '생성자 ID' })
+    @Column()
+    creatorId!: number;
+
     @ApiProperty({ 
         description: '스터디 그룹 생성자',
         type: () => User
     })
-    @ManyToOne(() => User, user => user.createdStudyGroups, {
-        nullable: false,
-        onDelete: 'CASCADE'
-    })
-    @JoinColumn({ name: 'creator_id' })
+    @ManyToOne(() => User, { eager: true })
+    @JoinColumn({ name: 'creatorId' })
     creator!: User;
 
     @ApiProperty({ 
         description: '스터디 그룹 멤버들',
         type: () => [User]
     })
-    @ManyToMany(() => User, user => user.joinedStudyGroups)
-    @JoinTable()
+    @ManyToMany(() => User, { eager: true })
+    @JoinTable({
+        name: 'study_group_members',
+        joinColumn: { name: 'studyGroupId', referencedColumnName: 'id' },
+        inverseJoinColumn: { name: 'userId', referencedColumnName: 'id' }
+    })
     members!: User[];
 
     @ApiProperty({ description: '생성일' })
