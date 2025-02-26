@@ -4,23 +4,26 @@ import { ValidationPipe } from '@nestjs/common';
 import * as session from 'express-session';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as passport from 'passport';
+import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
+    const configService = app.get(ConfigService);
 
     // API prefix 설정
     app.setGlobalPrefix('/api');
 
     // 세션 미들웨어 설정
+    const sessionSecret = configService.getOrThrow<string>('SESSION_SECRET');
     app.use(
         session({
-            secret: process.env.SESSION_SECRET || 'your-secret-key',
+            secret: sessionSecret,
             resave: false,
             saveUninitialized: false,
             cookie: {
-                maxAge: 1000 * 60 * 60 * 24, // 24시간
+                maxAge: configService.get<number>('SESSION_MAX_AGE'),
                 httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
+                secure: configService.get<string>('NODE_ENV') === 'production',
                 sameSite: 'lax'
             },
             name: 'sessionId'
@@ -53,6 +56,8 @@ async function bootstrap() {
     const document = SwaggerModule.createDocument(app, config);
     SwaggerModule.setup('api', app, document);
 
-    await app.listen(3000);
+    const port = configService.get<number>('PORT') || 3000;
+    await app.listen(port);
+    console.log(`Application is running on port ${port}`);
 }
 bootstrap();

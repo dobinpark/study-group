@@ -47,7 +47,7 @@ import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from '../../utils/axios';
 import { useUserStore } from '../../store/user';
-import type { Category } from '../../types/category';
+import type { Category } from '../../types/models';
 
 // 사용자 인터페이스 정의
 interface User {
@@ -187,8 +187,8 @@ watch(studyGroups, () => {
 const filteredCategories = computed(() => {
   return categories.value.filter(
     (category) =>
-      category.mainCategory === currentMainCategory.value &&
-      category.subCategory === currentSubCategory.value,
+      category.name === currentMainCategory.value &&
+      category.subCategories.some(sub => sub.name === currentSubCategory.value),
   );
 });
 

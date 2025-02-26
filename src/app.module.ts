@@ -11,18 +11,12 @@ import { validate } from './config/env.validation';
 import { RedisClientOptions } from 'redis';
 import { PassportModule } from '@nestjs/passport';
 
-console.log(process.env.DB_PORT);
-
-if (!process.env.DB_PORT) {
-    throw new Error('DB_PORT 환경 변수가 정의되지 않았습니다.');
-}
-
 @Module({
     imports: [
         ConfigModule.forRoot({
             validate,
             envFilePath: `.env.${process.env.NODE_ENV || 'development'}`,
-            ignoreEnvFile: false,
+            isGlobal: true,
         }),
         TypeOrmModule.forRootAsync({
             imports: [ConfigModule],

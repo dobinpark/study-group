@@ -1,33 +1,16 @@
 <template>
 	<div id="app">
-		<Header v-if="initialized" />
-		<router-view v-if="initialized"></router-view>
-		<div v-else class="loading">
-			<span>Loading...</span>
-		</div>
+		<Header />
+		<router-view></router-view>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
-import { useUserStore } from './store/user';
+import { onMounted } from 'vue';
 import Header from './components/Header.vue'
 
-const userStore = useUserStore();
-const initialized = ref(false);
-
-onMounted(async () => {
-	try {
-		// localStorage에서 상태 복원
-		userStore.initializeFromStorage();
-		
-		// 로그인 상태라면 서버와 세션 확인
-		if (userStore.isLoggedIn) {
-			await userStore.checkAuth();
-		}
-	} finally {
-		initialized.value = true;
-	}
+onMounted(() => {
+	userStore.checkAuth();
 });
 </script>
 

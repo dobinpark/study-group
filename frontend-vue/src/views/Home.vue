@@ -4,7 +4,7 @@
     <div class="home">
       <h1 class="main-title">함공과 함께라면<br>공부도 즐거움이 됩니다.</h1>
       <h2 class="sub-title">함께 공부하는 공간, 함공</h2>
-      <button class="create-study-btn" @click="handleCreateStudy">
+      <button class="create-study-btn" @click="onCreateStudyGroup">
         스터디 그룹 생성
         <span class="btn-arrow">→</span>
       </button>
@@ -12,22 +12,19 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { useRouter } from 'vue-router';
 import { useUserStore } from '../store/user';
 
 const router = useRouter();
 const userStore = useUserStore();
 
-// 스터디 그룹 생성 버튼 클릭 시 처리
-const handleCreateStudy = () => {
-  const isAuthenticated = userStore.isLoggedIn;
-  if (!isAuthenticated) {
-    alert('로그인이 필요한 서비스입니다.');
+const onCreateStudyGroup = () => {
+  if (userStore.isLoggedIn) {
+    router.push('/study-groups/create');
+  } else {
     router.push('/login');
-    return;
   }
-  router.push('/study-groups/create');
 };
 </script>
 

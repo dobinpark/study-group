@@ -634,13 +634,8 @@ const chunkSubCategories = (subCategories: SubCategory[], size: number): SubCate
 
 // 로그아웃 처리
 const handleLogout = async () => {
-  try {
-    await userStore.logout();
-    router.push('/');
-  } catch (error) {
-    console.error('로그아웃 실패:', error);
-    alert('로그아웃에 실패했습니다.');
-  }
+  await userStore.logout();
+  router.push('/login');
 };
 
 // 모바일 화면 체크 함수
