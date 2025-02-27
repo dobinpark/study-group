@@ -7,7 +7,10 @@
         </header>
 
         <main class="page-content">
-          <div v-if="loading">로딩 중...</div>
+          <div v-if="loading" class="loading">
+            <div class="loading-spinner"></div>
+            <p>로딩 중...</p>
+          </div>
           <div v-else-if="post" class="post-detail">
             <div class="post-header">
               <h2 class="post-title">{{ post.title }}</h2>
@@ -19,8 +22,8 @@
                   <span>좋아요: {{ post.likes }}</span>
                 </div>
                 <div v-if="isAuthor" class="author-actions">
-                  <button @click="editPost">수정</button>
-                  <button @click="deletePost">삭제</button>
+                  <button @click="editPost" class="btn btn-secondary">수정</button>
+                  <button @click="deletePost" class="btn btn-danger">삭제</button>
                 </div>
               </div>
             </div>
@@ -28,12 +31,12 @@
             <div class="post-content">{{ post.content }}</div>
 
             <div class="post-actions">
-              <button @click="handleLike">좋아요</button>
+              <button @click="handleLike" class="btn btn-primary">좋아요</button>
             </div>
           </div>
 
           <div class="button-group">
-            <button @click="goBack">목록으로</button>
+            <button @click="goBack" class="btn btn-secondary">목록으로</button>
           </div>
         </main>
       </div>
@@ -131,9 +134,7 @@ onMounted(fetchPost);
 </script>
 
 <style scoped>
-/* 페이지별 고유한 스타일만 추가 */
 .post-detail {
-  background: white;
   border-radius: 8px;
 }
 
@@ -181,8 +182,8 @@ onMounted(fetchPost);
   margin: 2rem 0;
 }
 
-.liked {
-  background: #e53e3e !important;
+.btn-primary.liked {
+  background: var(--danger-color) !important;
 }
 
 .author-actions {

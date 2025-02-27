@@ -1,22 +1,22 @@
 import { defineStore } from 'pinia';
 import type { User } from '../types/models';
-import axios from 'axios';
+import axios from '../utils/axios';
 import { PersistOptions } from 'pinia-plugin-persist';
+import type { LoginDto } from '../types/dto';
 
 interface UserState {
   user: User | null;
   isLoggedIn: boolean;
-}
-
-interface LoginCredentials {
-  username: string;
-  password: string;
+  loading: boolean;
+  error: string | null;
 }
 
 export const useUserStore = defineStore('user', {
   state: (): UserState => ({
     user: null,
-    isLoggedIn: false
+    isLoggedIn: false,
+    loading: false,
+    error: null
   }),
 
   getters: {
@@ -25,23 +25,28 @@ export const useUserStore = defineStore('user', {
   },
 
   actions: {
-    async login(credentials: LoginCredentials): Promise<boolean> {
+    async login(credentials: LoginDto): Promise<boolean> {
+      this.loading = true;
+      this.error = null;
+      
       try {
-        const response = await axios.post<{ success: boolean; data: User }>('/auth/login', credentials, {
-          withCredentials: true
-        });
-
+        console.log('로그인 요청 URL:', `${axios.defaults.baseURL}/auth/login`);
+        const response = await axios.post('/auth/login', credentials);
+        
         if (response.data.success) {
-          this.$patch({
-            user: response.data.data,
-            isLoggedIn: true
-          });
+          this.user = response.data.data;
+          this.isLoggedIn = true;
           return true;
+        } else {
+          this.error = response.data.message || '로그인에 실패했습니다';
+          return false;
         }
+      } catch (error: any) {
+        console.error('로그인 에러:', error);
+        this.error = error.response?.data?.message || '로그인 중 오류가 발생했습니다';
         return false;
-      } catch (error) {
-        console.error('로그인 실패:', error);
-        return false;
+      } finally {
+        this.loading = false;
       }
     },
 

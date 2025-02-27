@@ -67,6 +67,32 @@
                   </li>
                 </ul>
               </li>
+              <li class="menu-item" :class="{ 'mobile-menu-item': isMobile }">
+                커뮤니티
+                <ul class="sub-menu">
+                  <li class="sub-menu-column">
+                    <ul>
+                      <li v-for="category in communityCategories" :key="category.name" 
+                        class="sub-menu-item" @click="handleCommunityClick(category.name)">
+                        {{ category.name }}
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
+              <li class="menu-item" :class="{ 'mobile-menu-item': isMobile }">
+                고객센터
+                <ul class="sub-menu">
+                  <li class="sub-menu-column">
+                    <ul>
+                      <li v-for="category in supportCategories" :key="category.name" 
+                        class="sub-menu-item" @click="handleSupportClick(category.name)">
+                        {{ category.name }}
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </li>
             </ul>
           </nav>
         </div>
@@ -589,39 +615,24 @@ const categories = ref<Category[]>([
         ]
       }
     ]
-  },
-  {
-    id: 4,
-    "name": "커뮤니티",
-    "subCategories": [
-      {
-        "name": "자유게시판"
-      },
-      {
-        "name": "질문게시판"
-      },
-      {
-        "name": "건의게시판"
-      }
-    ]
-  },
-  {
-    id: 5,
-    "name": "고객센터",
-    "subCategories": [
-      {
-        "name": "공지사항"
-      },
-      {
-        "name": "자주묻는질문"
-      },
-      {
-        "name": "1:1문의"
-      }
-    ]
   }
 ]);
 
+// 커뮤니티 카테고리 분리
+const communityCategories = ref<SubCategory[]>([
+  { name: "자유게시판" },
+  { name: "질문게시판" },
+  { name: "건의게시판" }
+]);
+
+// 고객센터 카테고리 분리
+const supportCategories = ref<SubCategory[]>([
+  { name: "공지사항" },
+  { name: "자주묻는질문" },
+  { name: "1:1문의" }
+]);
+
+// 카테고리 청크 분할
 const chunkSubCategories = (subCategories: SubCategory[], size: number): SubCategory[][] => {
   if (!subCategories) return [];
 
@@ -656,6 +667,7 @@ const navigateToStudyList = (subCategory: string, item: string) => {
   });
 };
 
+// 서브 카테고리 클릭 시 이동
 const handleSubCategoryClick = (mainCategory: string, subCategory: string) => {
   if (!mainCategory || !subCategory) return;
 
@@ -668,11 +680,39 @@ const handleSubCategoryClick = (mainCategory: string, subCategory: string) => {
   });
 };
 
+// 커뮤니티 카테고리 클릭 핸들러
+const handleCommunityClick = (category: string) => {
+  // 카테고리에 따라 다른 라우팅 처리
+  const categoryMap: Record<string, string> = {
+    "자유게시판": "FREE",
+    "질문게시판": "QUESTION",
+    "건의게시판": "SUGGESTION"
+  };
+  
+  const routeCategory = categoryMap[category] || "FREE";
+  router.push(`/posts?category=${routeCategory}`);
+};
+
+// 고객센터 카테고리 클릭 핸들러
+const handleSupportClick = (category: string) => {
+  switch (category) {
+    case "공지사항":
+      router.push('/supports');
+      break;
+    case "자주묻는질문":
+      router.push('/supports/categories/FAQ');
+      break;
+    case "1:1문의":
+      router.push('/supports/categories/INQUIRY');
+      break;
+  }
+};
+
 // 컴포넌트 마운트 시 로그인 상태 확인
 onMounted(async () => {
   try {
     // 로딩 상태 표시
-    userStore.setLoading(true);
+    userStore.loading = true;
     
     // localStorage에서 상태를 확인하고 서버와 동기화
     if (userStore.isLoggedIn && userStore.user) {
@@ -681,7 +721,7 @@ onMounted(async () => {
   } catch (error) {
     console.error('로그인 상태 확인 중 오류:', error);
   } finally {
-    userStore.setLoading(false);
+    userStore.loading = false;
     checkMobile();
     window.addEventListener('resize', checkMobile);
   }

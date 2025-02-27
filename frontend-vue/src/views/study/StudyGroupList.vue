@@ -1,6 +1,5 @@
 <template>
   <div class="study-list-container">
-    <h1 class="title">스터디 그룹 목록</h1>
     <div v-if="route.query.mainCategory" class="category-path">
       <span class="main-category">{{ route.query.mainCategory }}</span>
       <span v-if="route.query.subCategory" class="path-separator"> > </span>
@@ -232,7 +231,6 @@ watch(
 }
 
 .study-group-card {
-  background: white;
   border-radius: 8px;
   padding: 1.5rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -352,7 +350,6 @@ watch(
   text-align: center;
   margin-bottom: 2rem;
   padding: 1rem;
-  background-color: #f7fafc;
   border-radius: 8px;
   color: #4a5568;
 }
@@ -375,7 +372,6 @@ watch(
 .category-section {
   margin: 2rem 0;
   padding: 1rem;
-  background-color: #f8f9fa;
   border-radius: 8px;
 }
 
@@ -388,7 +384,6 @@ watch(
 
 .category-item {
   padding: 0.5rem 1rem;
-  background-color: white;
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s;

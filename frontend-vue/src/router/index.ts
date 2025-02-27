@@ -109,6 +109,55 @@ const routes = [
         component: () => import('../views/community/PostDetail.vue')
       }
     ]
+  },
+  {
+    path: '/supports',
+    name: 'supports',
+    children: [
+      {
+        path: '',
+        name: 'supportList',
+        component: () => import('../views/support/SupportList.vue'),
+      },
+      {
+        path: 'create',
+        name: 'supportCreate',
+        component: () => import('../views/support/CreateSupport.vue'),
+        meta: { requiresAuth: true }
+      },
+      {
+        path: ':id',
+        name: 'supportDetail',
+        component: () => import('../views/support/SupportDetail.vue')
+      },
+      {
+        path: ':id/edit',
+        name: 'supportEdit',
+        component: () => import('../views/support/EditSupport.vue'),
+        meta: { requiresAuth: true }
+      },
+      {
+        path: 'categories/:category',
+        name: 'supportsByCategory',
+        component: () => import('../views/support/SupportList.vue')
+      },
+      {
+        path: 'search',
+        name: 'searchSupports',
+        component: () => import('../views/support/SupportList.vue')
+      },
+      {
+        path: 'my',
+        name: 'mySupports',
+        component: () => import('../views/support/SupportList.vue'),
+        meta: { requiresAuth: true }
+      },
+      {
+        path: ':id/comments',
+        name: 'supportComments',
+        component: () => import('../views/support/SupportDetail.vue')
+      }
+    ]
   }
 ];
 

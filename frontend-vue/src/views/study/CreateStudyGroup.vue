@@ -233,7 +233,6 @@ const fetchStudyGroupCounts = () => {
 }
 
 .study-card {
-  background: white;
   border-radius: 20px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
   overflow: hidden;
@@ -245,7 +244,6 @@ const fetchStudyGroupCounts = () => {
 }
 
 .study-header {
-  background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
   padding: 2rem;
   text-align: center;
 }

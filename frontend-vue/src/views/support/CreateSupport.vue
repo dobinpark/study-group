@@ -33,7 +33,7 @@
 import { reactive, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from '../../utils/axios';
-import { PostCategoryKorean } from '../../types/models';
+import { SupportCategoryKorean } from '../../types/models';
 
 const route = useRoute();
 const router = useRouter();
@@ -47,16 +47,16 @@ const form = reactive({
 
 // 카테고리 제목 표시
 const categoryTitle = computed(() => {
-  const category = route.params.category as keyof typeof PostCategoryKorean;
-  return PostCategoryKorean[category] || '게시판';
+  const category = route.params.category as keyof typeof SupportCategoryKorean;
+  return SupportCategoryKorean[category] || '게시판';
 });
 
 // 단순 API 호출
 const handleSubmit = async () => {
   try {
-    const response = await axios.post('/posts', form);
+    const response = await axios.post('/supports', form);
     if (response.data.success) {
-      router.push(`/posts/${response.data.data.id}`);
+      router.push(`/supports/${response.data.data.id}`);
     }
   } catch (error: any) {
     alert(error.response?.data?.message || '게시글 작성에 실패했습니다');
@@ -64,7 +64,7 @@ const handleSubmit = async () => {
 };
 
 const goBack = () => {
-  router.push('/posts');
+  router.push('/supports');
 };
 </script>
 

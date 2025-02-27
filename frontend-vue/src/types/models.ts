@@ -67,3 +67,30 @@ export interface StudyGroupResponse {
     joined: StudyGroup[];
   };
 }
+
+export interface Support {
+  id: number;
+  title: string;
+  content: string;
+  category: string;
+  createdAt: string;
+  updatedAt: string;
+  userId: number;
+  nickname: string;
+  commentCount: number;
+}
+
+export interface SupportResponse {
+  success: boolean;
+  message?: string;
+  data: {
+    created: Support[];
+    joined: Support[];
+  };
+}
+
+export interface SupportCategory {
+  id: number;
+  name: string;
+  description: string;
+}

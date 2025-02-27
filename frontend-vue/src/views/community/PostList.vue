@@ -3,48 +3,70 @@
     <div class="page-inner">
       <div class="content-card">
         <header class="page-header">
-          <h2>{{ categoryTitle }}</h2>
+          <h1>{{ categoryTitle }}</h1>
         </header>
-
         <main class="page-content">
-          <div v-if="loading">로딩 중...</div>
-          <div v-else>
-            <table class="post-list">
+          <!-- 액션 바 (검색 및 글쓰기 버튼) -->
+          <div class="action-bar">
+            <div class="search-box">
+              <input 
+                type="text" 
+                v-model="searchQuery" 
+                placeholder="검색어 입력" 
+                @keyup.enter="search"
+              />
+              <button class="search-button" @click="search">검색</button>
+            </div>
+            <button class="write-button" @click="createPost" v-if="userStore.isLoggedIn">글쓰기</button>
+          </div>
+          
+          <!-- 게시글 목록 - 데이터가 없어도 테이블 구조를 보여줌 -->
+          <div class="post-list" v-if="!loading">
+            <table>
               <thead>
                 <tr>
-                  <th>번호</th>
-                  <th>제목</th>
-                  <th>작성자</th>
-                  <th>작성일</th>
-                  <th>조회수</th>
-                  <th>좋아요</th>
+                  <th width="10%">번호</th>
+                  <th width="50%">제목</th>
+                  <th width="15%">작성자</th>
+                  <th width="15%">작성일</th>
+                  <th width="10%">조회수</th>
                 </tr>
               </thead>
               <tbody>
+                <tr v-if="posts.length === 0">
+                  <td colspan="5" class="no-posts">게시글이 없습니다.</td>
+                </tr>
                 <tr v-for="post in posts" :key="post.id" @click="viewPost(post.id)">
                   <td>{{ post.id }}</td>
-                  <td>{{ post.title }}</td>
-                  <td>{{ post.author.nickname }}</td>
+                  <td class="title">{{ post.title }}</td>
+                  <td>{{ post.author?.nickname || '알 수 없음' }}</td>
                   <td>{{ formatDate(post.createdAt) }}</td>
                   <td>{{ post.views }}</td>
-                  <td>{{ post.likes }}</td>
                 </tr>
               </tbody>
             </table>
-
-            <div class="action-bar">
-              <div class="search-box">
-                <input v-model="searchQuery" @keyup.enter="search" placeholder="검색어 입력" />
-                <button @click="search">검색</button>
-              </div>
-              <button @click="createPost">글쓰기</button>
-            </div>
-
-            <div class="pagination">
-              <button :disabled="page === 1" @click="changePage(page - 1)">이전</button>
-              <span>{{ page }} / {{ totalPages }}</span>
-              <button :disabled="page === totalPages" @click="changePage(page + 1)">다음</button>
-            </div>
+          </div>
+          
+          <!-- 로딩 중일 때 표시 -->
+          <div v-if="loading" class="loading">
+            게시글을 불러오는 중입니다...
+          </div>
+          
+          <!-- 페이지네이션 -->
+          <div class="pagination" v-if="totalPages > 0">
+            <button 
+              :disabled="page === 1" 
+              @click="changePage(page - 1)"
+            >
+              이전
+            </button>
+            <span>{{ page }} / {{ totalPages }}</span>
+            <button 
+              :disabled="page === totalPages || totalPages === 0" 
+              @click="changePage(page + 1)"
+            >
+              다음
+            </button>
           </div>
         </main>
       </div>
@@ -56,6 +78,7 @@
 import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from '../../utils/axios';
+import { useUserStore } from '../../store/user';
 
 // 게시글 타입 정의
 interface Post {
@@ -73,6 +96,7 @@ interface Post {
 
 const route = useRoute();
 const router = useRouter();
+const userStore = useUserStore();
 
 const posts = ref<Post[]>([]);
 const loading = ref(true);
@@ -92,6 +116,7 @@ const categoryTitle = computed(() => {
 });
 
 const fetchPosts = async () => {
+  loading.value = true;
   try {
     const response = await axios.get('/posts', {
       params: {
@@ -103,6 +128,7 @@ const fetchPosts = async () => {
     posts.value = response.data.data.items;
     totalPages.value = Math.ceil(response.data.data.total / 10);
   } catch (error) {
+    console.error('게시글 목록을 불러올 수 없습니다', error);
     alert('게시글 목록을 불러올 수 없습니다');
   } finally {
     loading.value = false;
@@ -121,7 +147,12 @@ const changePage = (newPage: number) => {
   fetchPosts();
 };
 
-const createPost = () => router.push('/posts/create');
+const createPost = () => {
+  router.push({
+    path: '/posts/create',
+    query: { category: route.query.category }
+  });
+};
 
 const viewPost = (id: number) => router.push(`/posts/${id}`);
 
@@ -129,33 +160,6 @@ onMounted(fetchPosts);
 </script>
 
 <style scoped>
-/* 페이지별 고유한 스타일만 추가 */
-.category-path {
-  margin-top: 1rem;
-  color: rgba(255, 255, 255, 0.9);
-}
-
-/* 테이블 스타일 등 페이지별 특수한 스타일 */
-.post-list-container {
-  max-width: 1200px;
-  margin: 2rem auto;
-  padding: 0 1rem;
-}
-
-.title {
-  font-size: 2rem;
-  color: #2d3748;
-  margin-bottom: 2rem;
-  text-align: center;
-}
-
-.board-title {
-  font-size: 2rem;
-  color: white;
-  margin-bottom: 2rem;
-  text-align: center;
-}
-
 .post-list table {
   width: 100%;
   border-collapse: collapse;
@@ -181,6 +185,7 @@ onMounted(fetchPosts);
 
 .post-list tr:hover {
   background-color: #f8f9fa;
+  cursor: pointer;
 }
 
 .action-bar {
@@ -201,8 +206,7 @@ onMounted(fetchPosts);
   width: 300px;
 }
 
-.search-button,
-.write-button {
+.search-button, .write-button {
   padding: 0.5rem 1rem;
   border: none;
   border-radius: 4px;
@@ -232,6 +236,12 @@ onMounted(fetchPosts);
   display: flex;
   justify-content: center;
   gap: 0.5rem;
+  align-items: center;
+  margin-top: 2rem;
+}
+
+.pagination span {
+  padding: 0 1rem;
 }
 
 .pagination button {
@@ -241,14 +251,24 @@ onMounted(fetchPosts);
   cursor: pointer;
 }
 
-.pagination button.active {
-  background-color: #4A90E2;
-  color: white;
-  border-color: #4A90E2;
+.pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
-.pagination button:disabled {
-  background-color: #f8f9fa;
-  cursor: not-allowed;
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  font-size: 1.2rem;
+  color: #666;
+}
+
+.no-posts {
+  text-align: center;
+  padding: 2rem;
+  color: #718096;
+  font-size: 0.95rem;
 }
 </style>

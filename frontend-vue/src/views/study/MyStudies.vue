@@ -192,7 +192,6 @@ onMounted(() => {
 }
 
 .study-card {
-  background: white;
   border-radius: 15px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   overflow: hidden;
@@ -278,7 +277,6 @@ onMounted(() => {
 .empty-state {
   text-align: center;
   padding: 2rem;
-  background: #f8fafc;
   border-radius: 8px;
   color: #64748b;
 }

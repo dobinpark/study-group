@@ -74,7 +74,6 @@ onMounted(fetchPost);
 </script>
 
 <style scoped>
-/* 페이지별 고유한 스타일만 추가 */
 .error-message {
   color: #e53e3e;
   font-size: 0.875rem;
@@ -92,5 +91,9 @@ onMounted(fetchPost);
 textarea {
   resize: vertical;
   min-height: 200px;
+}
+
+.form-group textarea {
+  min-height: 300px;
 }
 </style>

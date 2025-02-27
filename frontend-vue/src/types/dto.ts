@@ -36,3 +36,21 @@ export interface CreatePostDto {
   content: string;
   category: string;
 }
+
+export interface UpdatePostDto {
+  title?: string;
+  content?: string;
+  category?: string;
+}
+
+export interface CreateSupportDto {
+  title: string;
+  content: string;
+  category: string;
+}
+
+export interface UpdateSupportDto {
+  title?: string;
+  content?: string;
+  category?: string;
+}

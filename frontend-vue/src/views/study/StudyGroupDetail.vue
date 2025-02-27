@@ -202,14 +202,12 @@ onMounted(async () => {
 }
 
 .study-detail {
-  background: white;
   border-radius: 12px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   overflow: hidden;
 }
 
 .header-section {
-  background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
   color: white;
   padding: 2rem;
   text-align: center;
@@ -237,7 +235,6 @@ onMounted(async () => {
 }
 
 .info-card {
-  background: #f8fafc;
   border-radius: 8px;
   padding: 1.5rem;
   margin-bottom: 2rem;
@@ -273,7 +270,6 @@ onMounted(async () => {
 }
 
 .members-card {
-  background: #f8fafc;
   border-radius: 8px;
   padding: 1.5rem;
   margin-bottom: 2rem;
@@ -298,7 +294,6 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  background: white;
   padding: 0.75rem 1rem;
   border-radius: 50px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
