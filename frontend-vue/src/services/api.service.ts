@@ -15,15 +15,15 @@ export const authService = {
     return axios.get(`${API_BASE_URL}/session`);
   },
 
-  async signup(signupData: any) { // signupData 타입 정의 필요
+  async signup(signupData: any) {
     return axios.post(`${API_BASE_URL}/signup`, signupData);
   },
 
-  async findPassword(findPasswordData: any) { // findPasswordData 타입 정의 필요
+  async findPassword(findPasswordData: any) {
     return axios.post(`${API_BASE_URL}/find-password`, findPasswordData);
   },
 
   async getMe() {
     return axios.get(`${API_BASE_URL}/me`);
   }
-}; 
+};

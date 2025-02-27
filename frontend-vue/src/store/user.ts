@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import type { User } from '../types/models';
 import axios from 'axios';
+import { PersistOptions } from 'pinia-plugin-persist';
 
 interface UserState {
   user: User | null;
@@ -29,7 +30,7 @@ export const useUserStore = defineStore('user', {
         const response = await axios.post<{ success: boolean; data: User }>('/auth/login', credentials, {
           withCredentials: true
         });
-        
+
         if (response.data.success) {
           this.$patch({
             user: response.data.data,
@@ -62,7 +63,7 @@ export const useUserStore = defineStore('user', {
         const response = await axios.get<{ data: { isAuthenticated: boolean; user: User | null } }>('/auth/session', {
           withCredentials: true
         });
-        
+
         const { isAuthenticated, user } = response.data.data;
         this.$patch({
           isLoggedIn: isAuthenticated,
@@ -77,5 +78,9 @@ export const useUserStore = defineStore('user', {
     }
   },
 
-  persist: true
+  persist: {
+    key: 'user-store',
+    storage: () => localStorage,
+    enabled: true
+  } as PersistOptions
 });
