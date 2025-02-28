@@ -2,9 +2,6 @@
   <div class="page-container">
     <div class="page-inner">
       <div class="content-card">
-        <header class="page-header">
-          <h1>{{ categoryTitle }}</h1>
-        </header>
         <main class="page-content">
           <!-- 액션 바 (검색 및 글쓰기 버튼) -->
           <div class="action-bar">
@@ -37,7 +34,7 @@
                   <td colspan="5" class="no-posts">게시글이 없습니다.</td>
                 </tr>
                 <tr v-for="post in posts" :key="post.id" @click="viewPost(post.id)">
-                  <td>{{ post.id }}</td>
+                  <td>{{ post.displayNumber }}</td>
                   <td class="title">{{ post.title }}</td>
                   <td>{{ post.author?.nickname || '알 수 없음' }}</td>
                   <td>{{ formatDate(post.createdAt) }}</td>
@@ -75,7 +72,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from '../../utils/axios';
 import { useUserStore } from '../../store/user';
@@ -92,6 +89,7 @@ interface Post {
   createdAt: string;
   views: number;
   likes: number;
+  displayNumber: number;
 }
 
 const route = useRoute();
@@ -118,13 +116,18 @@ const categoryTitle = computed(() => {
 const fetchPosts = async () => {
   loading.value = true;
   try {
+    const category = route.query.category || 'FREE';
+    console.log('Fetching posts for category:', category);
+    
     const response = await axios.get('/posts', {
       params: {
-        category: route.query.category,
-        page: page.value,
+        category: category,
+        page: Number(page.value),
         search: searchQuery.value
       }
     });
+    
+    console.log('게시글 응답:', response.data);
     posts.value = response.data.data.items;
     totalPages.value = Math.ceil(response.data.data.total / 10);
   } catch (error) {
@@ -155,6 +158,15 @@ const createPost = () => {
 };
 
 const viewPost = (id: number) => router.push(`/posts/${id}`);
+
+// 라우트 변경 감지하여 게시글 다시 불러오기
+watch(
+  () => route.query.category,
+  () => {
+    page.value = 1;
+    fetchPosts();
+  }
+);
 
 onMounted(fetchPosts);
 </script>
@@ -270,5 +282,34 @@ onMounted(fetchPosts);
   padding: 2rem;
   color: #718096;
   font-size: 0.95rem;
+}
+
+/* 카테고리 탭 스타일 추가 */
+.category-tabs {
+  display: flex;
+  margin-top: 1rem;
+  gap: 0.5rem;
+}
+
+.category-tab {
+  padding: 0.5rem 1rem;
+  border: 1px solid #ddd;
+  background: #f8f9fa;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.category-tab.active {
+  background: #4A90E2;
+  color: white;
+  border-color: #4A90E2;
+}
+
+.category-tab:hover {
+  background: #e9ecef;
+}
+
+.category-tab.active:hover {
+  background: #357ABD;
 }
 </style>

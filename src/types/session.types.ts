@@ -1,14 +1,13 @@
-import { SessionData, Session as ExpressSession } from 'express-session';
-import { UserRole, User } from '../user/entities/user.entity';
+import { Session } from 'express-session';
+import { User } from '../user/entities/user.entity';
 
-export interface SessionUser {
-    id: number;
-    username: string;
-    nickname: string;
-    role: UserRole;
-}
+// 세션에 저장되는 사용자 정보 타입
+export type SessionUser = Omit<User, 'password'>;
 
-export interface CustomSession extends ExpressSession {
-    destroy(callback: (err?: any) => void): this;
-    user?: Omit<User, 'password'>;
+// Express 세션 확장 인터페이스
+export interface CustomSession extends Session {
+  user?: SessionUser;
+  passport?: {
+    user: number; // 사용자 ID가 저장됨
+  };
 }

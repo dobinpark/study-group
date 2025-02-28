@@ -246,6 +246,7 @@ const fetchStudyGroupCounts = () => {
 .study-header {
   padding: 2rem;
   text-align: center;
+  background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
 }
 
 .study-header h1 {

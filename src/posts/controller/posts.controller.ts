@@ -13,6 +13,7 @@ import {
     HttpStatus,
     UseInterceptors,
     ClassSerializerInterceptor,
+    Req,
 } from '@nestjs/common';
 import { PostsService } from '../service/posts.service';
 import { CreatePostDto } from '../dto/create-post.dto';
@@ -22,6 +23,7 @@ import { PostCategory } from '../enum/post-category.enum';
 import { ApiOperation, ApiResponse, ApiTags, ApiQuery } from '@nestjs/swagger';
 import { CustomSession } from '../../types/session.types';
 import { TransformInterceptor } from '../../interceptors/response.interceptor';
+import { Request } from 'express';
 
 @ApiTags('게시판')
 @Controller('posts')
@@ -29,7 +31,7 @@ import { TransformInterceptor } from '../../interceptors/response.interceptor';
 @UseInterceptors(TransformInterceptor)
 export class PostsController {
 
-    constructor(private readonly postsService: PostsService) {}
+    constructor(private readonly postsService: PostsService) { }
 
     // 카테고리별 게시물 조회
     @Get()
@@ -40,11 +42,15 @@ export class PostsController {
     @ApiQuery({ name: 'search', required: false, description: '검색어' })
     async findByCategory(
         @Query('category') category: PostCategory,
-        @Query('page') page: number = 1,
-        @Query('limit') limit: number = 10,
+        @Query('page') page?: string,
+        @Query('limit') limit?: string,
         @Query('search') search?: string
     ) {
-        return await this.postsService.findByCategory(category, page, limit, search);
+        const pageNum = page ? parseInt(page, 10) : 1;
+        const limitNum = limit ? parseInt(limit, 10) : 10;
+        
+        console.log(`카테고리 조회: ${category}, 페이지: ${pageNum}, 검색어: ${search || '없음'}`);
+        return await this.postsService.findByCategory(category, pageNum, limitNum, search);
     }
 
     // 게시물 생성
@@ -53,14 +59,19 @@ export class PostsController {
     @HttpCode(HttpStatus.CREATED)
     async createPost(
         @Body() createPostDto: CreatePostDto,
-        @Session() session: CustomSession
+        @Req() req: Request
     ): Promise<PostEntity> {
-        if (!session.user) {
+        const userId = req.session?.user?.id;
+
+        if (!userId) {
             throw new UnauthorizedException('로그인이 필요합니다.');
         }
+
+        console.log('Session:', req.session);
+
         return await this.postsService.createPost({
             ...createPostDto,
-            authorId: session.user.id
+            authorId: userId
         });
     }
 

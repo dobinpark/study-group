@@ -44,4 +44,26 @@ export class PostsRepository extends Repository<Post> {
     async createPost(post: Post): Promise<Post> {
         return await this.save(post);
     }
+
+    // 좋아요 증가
+    async incrementLike(postId: number): Promise<void> {
+        await this.increment({ id: postId }, 'likes', 1);
+    }
+
+    // 좋아요 감소
+    async decrementLike(postId: number): Promise<void> {
+        await this.createQueryBuilder()
+            .update(Post)
+            .set({ likes: () => "likes - 1" })
+            .where("id = :id AND likes > 0", { id: postId })
+            .execute();
+    }
+
+    // 게시물 좋아요 여부 확인 (세션 스토리지 또는 상태 관리로 처리)
+    async checkLikeStatus(postId: number, userId: number): Promise<boolean> {
+        // 실제 구현에서는 다른 테이블이나 세션 스토리지를 사용해서 저장/확인할 수 있습니다
+        // 지금은 임시로 게시물이 존재하는지만 확인
+        const post = await this.findOne({ where: { id: postId } });
+        return !!post; // 게시물이 존재하면 true 반환 (실제로는 좋아요 상태 반환)
+    }
 }

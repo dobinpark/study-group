@@ -11,8 +11,10 @@
           </div>
           <div class="right-section">
             <div class="auth-container" :class="{ 'mobile-auth': isMobile }">
-              <template v-if="isLoggedIn && user">
-                <span class="welcome-text">{{ user.nickname }}님 환영합니다!</span>
+              <template v-if="isLoggedIn && currentUser">
+                <span class="welcome-text">
+                  {{ currentUser.nickname || currentUser.username }}님 환영합니다!
+                </span>
                 <div class="nav-buttons" :class="{ 'mobile-nav-buttons': isMobile }">
                   <router-link class="nav-button" to="/my-studies">
                     내 스터디
@@ -21,8 +23,8 @@
                     프로필
                   </router-link>
                 </div>
-                <button class="logout-button" @click="handleLogout">
-                  로그아웃
+                <button class="logout-button" @click="handleLogout" :disabled="isLoggingOut">
+                  {{ isLoggingOut ? '로그아웃 중...' : '로그아웃' }}
                 </button>
               </template>
               <template v-else>
@@ -33,9 +35,6 @@
                     로그인
                   </button>
                 </router-link>
-              </template>
-              <template v-if="loading">
-                <span>로그인 상태 확인 중...</span>
               </template>
             </div>
           </div>
@@ -105,10 +104,11 @@
 import { ref, provide, computed, onMounted, onUnmounted, watch } from 'vue';
 import mitt from 'mitt';
 import { useUserStore } from '../store/user';
+import type { UserStore } from '../store/user';
 import { useRouter } from 'vue-router';
 import type { Category, SubCategory } from '../types/models';
 
-const userStore = useUserStore();
+const userStore = useUserStore() as unknown as UserStore;
 const router = useRouter();
 
 // 이벤트 버스 생성 및 제공
@@ -116,9 +116,10 @@ const emitter = mitt();
 provide('emitter', emitter);
 
 // 로그인 상태 관리
-const isLoggedIn = computed(() => userStore.isLoggedIn);
-const user = computed(() => userStore.user);
+const isLoggedIn = computed(() => userStore.isAuthenticated);
+const currentUser = computed(() => userStore.user);
 const loading = computed(() => userStore.loading);
+const isLoggingOut = ref(false);
 
 // 모바일 화면 여부
 const isMobile = ref(false);
@@ -645,8 +646,20 @@ const chunkSubCategories = (subCategories: SubCategory[], size: number): SubCate
 
 // 로그아웃 처리
 const handleLogout = async () => {
-  await userStore.logout();
-  router.push('/login');
+  if (isLoggingOut.value) return;
+  
+  isLoggingOut.value = true;
+  try {
+    console.log('로그아웃 시도');
+    await userStore.logout();
+    console.log('로그아웃 성공, 홈페이지로 이동');
+    router.push('/');
+  } catch (error) {
+    console.error('로그아웃 실패:', error);
+    alert('로그아웃 중 오류가 발생했습니다.');
+  } finally {
+    isLoggingOut.value = false;
+  }
 };
 
 // 모바일 화면 체크 함수
@@ -681,16 +694,17 @@ const handleSubCategoryClick = (mainCategory: string, subCategory: string) => {
 };
 
 // 커뮤니티 카테고리 클릭 핸들러
-const handleCommunityClick = (category: string) => {
-  // 카테고리에 따라 다른 라우팅 처리
-  const categoryMap: Record<string, string> = {
-    "자유게시판": "FREE",
-    "질문게시판": "QUESTION",
-    "건의게시판": "SUGGESTION"
+const handleCommunityClick = (categoryName: string) => {
+  const categoryMap = {
+    '자유게시판': 'FREE',
+    '질문게시판': 'QUESTION',
+    '건의게시판': 'SUGGESTION'
   };
   
-  const routeCategory = categoryMap[category] || "FREE";
-  router.push(`/posts?category=${routeCategory}`);
+  router.push({
+    path: '/posts',
+    query: { category: categoryMap[categoryName as keyof typeof categoryMap] }
+  });
 };
 
 // 고객센터 카테고리 클릭 핸들러
@@ -708,23 +722,12 @@ const handleSupportClick = (category: string) => {
   }
 };
 
-// 컴포넌트 마운트 시 로그인 상태 확인
+// 컴포넌트 마운트 시 인증 상태 다시 확인
 onMounted(async () => {
-  try {
-    // 로딩 상태 표시
-    userStore.loading = true;
-    
-    // localStorage에서 상태를 확인하고 서버와 동기화
-    if (userStore.isLoggedIn && userStore.user) {
-      await userStore.checkAuth();
-    }
-  } catch (error) {
-    console.error('로그인 상태 확인 중 오류:', error);
-  } finally {
-    userStore.loading = false;
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-  }
+  // 모바일 화면 체크
+  checkMobile();
+  window.addEventListener('resize', checkMobile);
+  await userStore.checkAuth();
 });
 
 // 컴포넌트 언마운트 시 이벤트 리스너 제거
@@ -737,6 +740,20 @@ watch(activeSubCategoryName, (newValue, oldValue) => {
   if (newValue !== oldValue) {
     // 서브 카테고리 변경 시 처리
   }
+});
+
+// 컴포넌트 내보내기 추가
+defineExpose({
+  userStore,
+  isLoggedIn,
+  currentUser,
+  handleLogout,
+  checkMobile,
+  navigateToStudyList,
+  handleSubCategoryClick,
+  handleCommunityClick,
+  handleSupportClick,
+  isMobile
 });
 </script>
 
@@ -994,27 +1011,27 @@ watch(activeSubCategoryName, (newValue, oldValue) => {
 }
 
 .nav-button {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.4rem;
-  padding: 0.4rem 0.7rem;
-  color: #4a90e2;
-  text-decoration: none;
-  font-weight: 600;
+  padding: 0.5rem 1rem;
+  background-color: #4a90e2;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
   font-size: 0.9rem;
-  border-radius: 6px;
   transition: all 0.3s ease;
-  background-color: rgba(74, 144, 226, 0.1);
-  border: 2px solid transparent;
-  width: 65px;
-  text-align: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  text-decoration: none;
+  min-width: 100px;
 }
 
 .nav-button:hover {
-  background-color: rgba(74, 144, 226, 0.15);
+  background-color: #357abd;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.15);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
 .login-button {

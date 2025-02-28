@@ -1,6 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn, JoinColumn, OneToMany } from 'typeorm';
 import { User } from '../../user/entities/user.entity';
 import { PostCategory } from '../enum/post-category.enum';
+import { PostLike } from './post-like.entity';
 
 @Entity()
 export class Post {
@@ -31,6 +32,9 @@ export class Post {
 
     @Column({ default: 0 })
     likes!: number; // 좋아요 수
+
+    @OneToMany(() => PostLike, postLike => postLike.post)
+    postLikes!: PostLike[]; // 게시물 좋아요 관계
 
     @CreateDateColumn()
     createdAt!: Date; // 생성일

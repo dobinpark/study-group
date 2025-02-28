@@ -34,27 +34,50 @@ import { reactive, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from '../../utils/axios';
 import { PostCategoryKorean } from '../../types/models';
+import { useUserStore } from '../../store/user';
+import type { UserStore } from '../../store/user';
 
 const route = useRoute();
 const router = useRouter();
+const userStore = useUserStore() as unknown as UserStore;
 
-// 단순한 폼 데이터 관리
+// 폼 데이터에 카테고리 자동 설정
 const form = reactive({
   title: '',
   content: '',
-  category: route.params.category
+  category: String(route.query.category || 'FREE')
 });
 
 // 카테고리 제목 표시
 const categoryTitle = computed(() => {
-  const category = route.params.category as keyof typeof PostCategoryKorean;
+  const category = route.query.category as keyof typeof PostCategoryKorean;
   return PostCategoryKorean[category] || '게시판';
 });
 
 // 단순 API 호출
 const handleSubmit = async () => {
   try {
-    const response = await axios.post('/posts', form);
+    // 로그인 상태 확인
+    if (!userStore.isLoggedIn) {
+      alert('로그인이 필요합니다.');
+      router.push('/login');
+      return;
+    }
+
+    // 세션 확인 추가
+    await userStore.checkAuth();
+    
+    // 다시 로그인 상태 확인
+    if (!userStore.isLoggedIn) {
+      alert('세션이 만료되었습니다. 다시 로그인해주세요.');
+      router.push('/login');
+      return;
+    }
+    
+    const response = await axios.post('/posts', {
+      ...form,
+      category: form.category.toUpperCase()
+    });
     if (response.data.success) {
       router.push(`/posts/${response.data.data.id}`);
     }
@@ -64,7 +87,10 @@ const handleSubmit = async () => {
 };
 
 const goBack = () => {
-  router.push('/posts');
+  router.push({
+    path: '/posts',
+    query: { category: form.category }
+  });
 };
 </script>
 

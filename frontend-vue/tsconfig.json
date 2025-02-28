@@ -13,11 +13,10 @@
         "forceConsistentCasingInFileNames": true,
         "useDefineForClassFields": true,
         "sourceMap": true,
+        "resolveJsonModule": true,
         "baseUrl": ".",
         "types": [
-            "webpack-env",
-            "node",
-            "@types/node"
+            "webpack-env"
         ],
         "paths": {
             "@/*": ["src/*"]
@@ -28,6 +27,7 @@
         "src/**/*.ts",
         "src/**/*.tsx",
         "src/**/*.vue",
+        "src/**/*.json",
         "tests/**/*.ts",
         "tests/**/*.tsx",
         "*.js",

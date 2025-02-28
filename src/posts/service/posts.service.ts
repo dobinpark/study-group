@@ -5,6 +5,8 @@ import { Post } from '../entities/post.entity';
 import { CreatePostDto } from '../dto/create-post.dto';
 import { UpdatePostDto } from '../dto/update-post.dto';
 import { PostCategory } from '../enum/post-category.enum';
+import { PostsRepository } from '../repository/posts.repository';
+import { PostLike } from '../entities/post-like.entity';
 
 interface CreatePostParams extends CreatePostDto {
     authorId: number;
@@ -12,10 +14,12 @@ interface CreatePostParams extends CreatePostDto {
 
 @Injectable()
 export class PostsService {
-
     constructor(
         @InjectRepository(Post)
-        private readonly postRepository: Repository<Post>
+        private readonly postRepository: Repository<Post>,
+        @InjectRepository(PostLike)
+        private readonly postLikeRepository: Repository<PostLike>,
+        private readonly postsRepository: PostsRepository
     ) {}
 
     // 게시물 생성
@@ -45,26 +49,62 @@ export class PostsService {
         limit: number = 10,
         search?: string
     ) {
-        const query = this.postRepository.createQueryBuilder('post')
-            .leftJoinAndSelect('post.author', 'author')
+        console.log('Searching posts with category:', category);
+        
+        // 숫자 타입 보장
+        const pageNum = Number(page) || 1;
+        const limitNum = Number(limit) || 10;
+        
+        // 카테고리별 총 게시글 수 먼저 조회
+        const totalQuery = this.postRepository.createQueryBuilder('post')
             .where('post.category = :category', { category });
+        
+        if (search) {
+            totalQuery.andWhere(
+                '(post.title LIKE :search OR post.content LIKE :search)',
+                { search: `%${search}%` }
+            );
+        }
+        
+        const total = await totalQuery.getCount();
+        
+        const queryBuilder = this.postRepository.createQueryBuilder('post')
+            .leftJoinAndSelect('post.author', 'author')
+            .where('post.category = :category', { category })
+            .orderBy('post.createdAt', 'DESC');
 
         if (search) {
-            query.andWhere('(post.title LIKE :search OR post.content LIKE :search)', 
-                { search: `%${search}%` });
+            queryBuilder.andWhere(
+                '(post.title LIKE :search OR post.content LIKE :search)',
+                { search: `%${search}%` }
+            );
         }
 
-        const [posts, total] = await query
-            .orderBy('post.createdAt', 'DESC')
-            .skip((page - 1) * limit)
-            .take(limit)
-            .getManyAndCount();
+        const skip = (pageNum - 1) * limitNum;
+        console.log('Skip value:', skip, 'Type:', typeof skip);
+
+        const items = await queryBuilder
+            .skip(skip)
+            .take(limitNum)
+            .getMany();
+
+        // 카테고리 내에서의 번호 계산하여 아이템에 추가
+        const startNumber = total - skip;
+        const processedItems = items.map((item, index) => {
+            return {
+                ...item,
+                displayNumber: startNumber - index
+            };
+        });
+
+        console.log('Found posts:', items.length, 'Total:', total);
 
         return {
-            posts,
+            items: processedItems,
             total,
-            page,
-            lastPage: Math.ceil(total / limit)
+            page: pageNum,
+            limit: limitNum,
+            totalPages: Math.ceil(total / limitNum)
         };
     }
 
@@ -111,8 +151,28 @@ export class PostsService {
     // 좋아요 기능
     async toggleLike(postId: number, userId: number): Promise<{ liked: boolean }> {
         const post = await this.findOne(postId);
-        // TODO: 좋아요 기능 구현
-        // 현재는 임시로 true 반환
-        return { liked: true };
+        
+        // 데이터베이스에서 좋아요 관계 확인
+        const likeRecord = await this.postLikeRepository.findOne({
+            where: { postId, userId }
+        });
+        
+        if (likeRecord) {
+            // 좋아요 수 감소
+            await this.postLikeRepository.remove(likeRecord);
+            await this.postsRepository.decrementLike(postId);
+            
+            return { liked: false };
+        } else {
+            // 좋아요 수 증가
+            const newLike = this.postLikeRepository.create({
+                postId,
+                userId
+            });
+            await this.postLikeRepository.save(newLike);
+            await this.postsRepository.incrementLike(postId);
+            
+            return { liked: true };
+        }
     }
 }

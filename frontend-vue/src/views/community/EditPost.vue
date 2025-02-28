@@ -39,7 +39,8 @@ const router = useRouter();
 
 const form = reactive({
   title: '',
-  content: ''
+  content: '',
+  category: ''
 });
 
 const fetchPost = async () => {
@@ -48,6 +49,7 @@ const fetchPost = async () => {
     if (response.data.success) {
       form.title = response.data.data.title;
       form.content = response.data.data.content;
+      form.category = response.data.data.category;
     }
   } catch (error: any) {
     alert('게시글을 불러올 수 없습니다');

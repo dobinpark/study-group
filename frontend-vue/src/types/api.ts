@@ -4,7 +4,8 @@
 export interface ApiResponse<T> {
   success: boolean;
   message?: string;
-  data: T;
+  data?: T;
+  error?: string;
 }
 
 // 페이지네이션된 응답을 위한 타입
@@ -19,4 +20,18 @@ export interface PaginatedResponse<T> {
 export interface PaginationParams {
   page?: number;
   pageSize?: number;
+}
+
+export interface AuthResponse {
+  isAuthenticated: boolean;
+  user: UserResponse;
+}
+
+export interface UserResponse {
+  id: number;
+  username: string;
+  nickname: string;
+  email: string;
+  role: string;
+  createdAt: string;
 }
