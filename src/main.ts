@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe, Logger } from '@nestjs/common';
+import { INestApplication } from '@nestjs/common';
 import * as session from 'express-session';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as passport from 'passport';
@@ -50,7 +51,7 @@ async function bootstrap() {
 }
 
 // Redis 설정 함수
-async function setupRedis(app, configService: ConfigService, logger: Logger) {
+async function setupRedis(app: INestApplication, configService: ConfigService, logger: Logger) {
     const redisClient = createClient({
         url: `redis://${configService.get<string>('REDIS_HOST', 'localhost')}:${configService.get<number>('REDIS_PORT', 6379)}`,
     });
@@ -111,14 +112,14 @@ async function setupRedis(app, configService: ConfigService, logger: Logger) {
 }
 
 // 인증 설정 함수
-function setupAuthentication(app, configService: ConfigService) {
+function setupAuthentication(app: INestApplication, configService: ConfigService) {
     // Passport 초기화
     app.use(passport.initialize());
     app.use(passport.session());
 }
 
 // CORS 설정 함수
-function setupCors(app, isProduction: boolean, configService: ConfigService) {
+function setupCors(app: INestApplication, isProduction: boolean, configService: ConfigService) {
     app.enableCors({
         origin: isProduction
             ? configService.get<string>('ALLOWED_ORIGINS', '').split(',')
@@ -140,7 +141,7 @@ function setupCors(app, isProduction: boolean, configService: ConfigService) {
 }
 
 // 글로벌 미들웨어 설정 함수
-function setupGlobalMiddleware(app) {
+function setupGlobalMiddleware(app: INestApplication) {
     // 검증 파이프 설정
     app.useGlobalPipes(new ValidationPipe({
         transform: true,
@@ -157,7 +158,7 @@ function setupGlobalMiddleware(app) {
 }
 
 // Swagger 설정 함수
-function setupSwagger(app) {
+function setupSwagger(app: INestApplication) {
     const swaggerConfig = new DocumentBuilder()
         .setTitle('스터디 그룹 API')
         .setDescription('스터디 그룹 애플리케이션 API 문서')

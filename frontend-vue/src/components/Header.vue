@@ -71,7 +71,7 @@
                 <ul class="sub-menu">
                   <li class="sub-menu-column">
                     <ul>
-                      <li v-for="category in communityCategories" :key="category.name" 
+                      <li v-for="category in communityCategories" :key="category.name"
                         class="sub-menu-item" @click="handleCommunityClick(category.name)">
                         {{ category.name }}
                       </li>
@@ -84,7 +84,7 @@
                 <ul class="sub-menu">
                   <li class="sub-menu-column">
                     <ul>
-                      <li v-for="category in supportCategories" :key="category.name" 
+                      <li v-for="category in supportCategories" :key="category.name"
                         class="sub-menu-item" @click="handleSupportClick(category.name)">
                         {{ category.name }}
                       </li>
@@ -647,7 +647,7 @@ const chunkSubCategories = (subCategories: SubCategory[], size: number): SubCate
 // 로그아웃 처리
 const handleLogout = async () => {
   if (isLoggingOut.value) return;
-  
+
   isLoggingOut.value = true;
   try {
     console.log('로그아웃 시도');
@@ -700,7 +700,7 @@ const handleCommunityClick = (categoryName: string) => {
     '질문게시판': 'QUESTION',
     '건의게시판': 'SUGGESTION'
   };
-  
+
   router.push({
     path: '/posts',
     query: { category: categoryMap[categoryName as keyof typeof categoryMap] }
