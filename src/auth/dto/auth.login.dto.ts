@@ -6,7 +6,8 @@ export class AuthLoginDto {
 
     @ApiProperty({
         example: 'user123',
-        description: '사용자 아이디'
+        description: '사용자 아이디',
+        required: true
     })
     @IsString()
     @IsNotEmpty({ message: '아이디는 필수입니다.' })
@@ -14,7 +15,9 @@ export class AuthLoginDto {
 
     @ApiProperty({
         example: 'password123!',
-        description: '비밀번호'
+    description: '비밀번호 (최소 8자, 영문/숫자/특수문자 조합)',
+        required: true,
+        minLength: 8
     })
     @IsString()
     @IsNotEmpty({ message: '비밀번호는 필수입니다.' })

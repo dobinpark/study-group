@@ -7,29 +7,29 @@ import {
     Body,
     Param,
     Query,
-    Session,
     UnauthorizedException,
-    HttpCode,
-    HttpStatus,
     UseInterceptors,
     ClassSerializerInterceptor,
     Req,
+    UseGuards,
+    Logger,
 } from '@nestjs/common';
 import { PostsService } from '../service/posts.service';
 import { CreatePostDto } from '../dto/create-post.dto';
 import { UpdatePostDto } from '../dto/update-post.dto';
 import { Post as PostEntity } from '../entities/post.entity';
 import { PostCategory } from '../enum/post-category.enum';
-import { ApiOperation, ApiResponse, ApiTags, ApiQuery } from '@nestjs/swagger';
-import { CustomSession } from '../../types/session.types';
+import { ApiOperation, ApiResponse, ApiTags, ApiQuery, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
 import { TransformInterceptor } from '../../interceptors/response.interceptor';
 import { Request } from 'express';
+import { AuthenticatedGuard } from '../../auth/guards/authenticated.guard';
 
 @ApiTags('게시판')
 @Controller('posts')
 @UseInterceptors(ClassSerializerInterceptor)
 @UseInterceptors(TransformInterceptor)
 export class PostsController {
+    private readonly logger = new Logger(PostsController.name);
 
     constructor(private readonly postsService: PostsService) { }
 
@@ -55,20 +55,22 @@ export class PostsController {
 
     // 게시물 생성
     @Post()
-    @ApiOperation({ summary: '게시물 생성' })
-    @HttpCode(HttpStatus.CREATED)
+    @UseGuards(AuthenticatedGuard)
+    @ApiOperation({ summary: '게시글 작성' })
+    @ApiBearerAuth()
     async createPost(
         @Body() createPostDto: CreatePostDto,
         @Req() req: Request
     ): Promise<PostEntity> {
-        const userId = req.session?.user?.id;
-
-        if (!userId) {
-            throw new UnauthorizedException('로그인이 필요합니다.');
+        const user = req.user as any;
+        
+        if (!user || !user.id) {
+            throw new UnauthorizedException('로그인이 필요합니다');
         }
-
-        console.log('Session:', req.session);
-
+        
+        const userId = user.id;
+        this.logger.debug(`게시글 작성 요청: 사용자 ID ${userId}`);
+        
         return await this.postsService.createPost({
             ...createPostDto,
             authorId: userId
@@ -77,49 +79,59 @@ export class PostsController {
 
     // 게시물 상세 조회
     @Get(':id')
-    @ApiOperation({ summary: '게시물 상세 조회' })
-    async findOne(@Param('id') id: number) {
-        return await this.postsService.findOne(id);
-    }
-
-    // 게시물 좋아요
-    @Post(':id/like')
-    @ApiOperation({ summary: '게시물 좋아요' })
-    async toggleLike(
-        @Param('id') id: number,
-        @Session() session: CustomSession
-    ): Promise<{ liked: boolean }> {
-        if (!session.user) {
-            throw new UnauthorizedException('로그인이 필요합니다.');
-        }
-        return await this.postsService.toggleLike(id, session.user.id);
+    @ApiOperation({ summary: '게시글 상세 조회' })
+    @ApiParam({ name: 'id', description: '게시글 ID' })
+    async findOne(@Param('id') id: string) {
+        this.logger.debug(`게시글 상세 조회: ${id}`);
+        const post = await this.postsService.findOne(+id);
+        
+        return {
+            success: true,
+            data: post
+        };
     }
 
     // 게시물 수정
     @Put(':id')
-    @ApiOperation({ summary: '게시물 수정' })
+    @UseGuards(AuthenticatedGuard)
+    @ApiOperation({ summary: '게시글 수정' })
+    @ApiBearerAuth()
     async updatePost(
-        @Param('id') id: number,
+        @Param('id') id: string,
         @Body() updatePostDto: UpdatePostDto,
-        @Session() session: CustomSession
+        @Req() req: Request
     ): Promise<PostEntity> {
-        if (!session.user) {
-            throw new UnauthorizedException('로그인이 필요합니다.');
+        const user = req.user as any;
+        
+        if (!user || !user.id) {
+            throw new UnauthorizedException('로그인이 필요합니다');
         }
-        return await this.postsService.updatePost(id, updatePostDto, session.user.id);
+        
+        const userId = user.id;
+        this.logger.debug(`게시글 수정 요청: ID ${id}, 사용자 ID ${userId}`);
+        
+        return await this.postsService.updatePost(+id, updatePostDto, userId);
     }
 
     // 게시물 삭제
     @Delete(':id')
-    @ApiOperation({ summary: '게시물 삭제' })
+    @UseGuards(AuthenticatedGuard)
+    @ApiOperation({ summary: '게시글 삭제' })
+    @ApiBearerAuth()
     async deletePost(
-        @Param('id') id: number,
-        @Session() session: CustomSession
+        @Param('id') id: string,
+        @Req() req: Request
     ): Promise<{ message: string }> {
-        if (!session.user) {
-            throw new UnauthorizedException('로그인이 필요합니다.');
+        const user = req.user as any;
+        
+        if (!user || !user.id) {
+            throw new UnauthorizedException('로그인이 필요합니다');
         }
-        await this.postsService.deletePost(id, session.user.id);
-        return { message: '게시물이 성공적으로 삭제되었습니다.' };
+        
+        const userId = user.id;
+        this.logger.debug(`게시글 삭제 요청: ID ${id}, 사용자 ID ${userId}`);
+        
+        await this.postsService.deletePost(+id, userId);
+        return { message: '게시글이 성공적으로 삭제되었습니다' };
     }
 }

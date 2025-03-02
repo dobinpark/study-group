@@ -34,9 +34,9 @@
                   <td colspan="5" class="no-posts">게시글이 없습니다.</td>
                 </tr>
                 <tr v-for="post in posts" :key="post.id" @click="viewPost(post.id)">
-                  <td>{{ post.displayNumber }}</td>
+                  <td>{{ post.displayNumber || '-' }}</td>
                   <td class="title">{{ post.title }}</td>
-                  <td>{{ post.author?.nickname || '알 수 없음' }}</td>
+                  <td>{{ post.author?.nickname || post.author?.username || '알 수 없음' }}</td>
                   <td>{{ formatDate(post.createdAt) }}</td>
                   <td>{{ post.views }}</td>
                 </tr>
@@ -76,26 +76,29 @@ import { ref, onMounted, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from '../../utils/axios';
 import { useUserStore } from '../../store/user';
+import { useAuthStore } from '../../store/auth';
 
-// 게시글 타입 정의
+// 게시글 타입 정의 수정 - 백엔드 응답 구조에 맞게 조정
 interface Post {
   id: number;
   title: string;
   content: string;
   author: {
     id: number;
-    nickname: string;
-  };
+    username: string;
+    nickname?: string;
+  } | null;
   createdAt: string;
   views: number;
   likes: number;
-  displayNumber: number;
+  displayNumber?: number;
+  category?: string;
 }
 
 const route = useRoute();
 const router = useRouter();
 const userStore = useUserStore();
-
+const authStore = useAuthStore();
 const posts = ref<Post[]>([]);
 const loading = ref(true);
 const page = ref(1);
@@ -117,22 +120,52 @@ const fetchPosts = async () => {
   loading.value = true;
   try {
     const category = route.query.category || 'FREE';
-    console.log('Fetching posts for category:', category);
+    console.log('게시글 불러오기 시작 - 카테고리:', category);
     
     const response = await axios.get('/posts', {
       params: {
         category: category,
         page: Number(page.value),
-        search: searchQuery.value
+        limit: 10,
+        search: searchQuery.value || undefined
       }
     });
     
-    console.log('게시글 응답:', response.data);
-    posts.value = response.data.data.items;
-    totalPages.value = Math.ceil(response.data.data.total / 10);
+    console.log('API 응답:', response.data);
+    
+    // 데이터 구조 확인 및 안전하게 접근
+    if (response.data.success) {
+      // 응답 데이터 구조에 따라 조정 (배열 또는 페이지네이션 객체)
+      if (Array.isArray(response.data.data)) {
+        posts.value = response.data.data;
+        totalPages.value = 1;
+      } else if (response.data.data?.items) {
+        posts.value = response.data.data.items;
+        totalPages.value = Math.ceil((response.data.data.total || posts.value.length) / 10);
+      } else if (response.data.data) {
+        posts.value = [response.data.data];
+        totalPages.value = 1;
+      } else {
+        posts.value = [];
+        totalPages.value = 0;
+      }
+      
+      // 게시글 번호 추가
+      posts.value = posts.value.map((post, index) => ({
+        ...post,
+        displayNumber: post.displayNumber || (page.value - 1) * 10 + index + 1
+      }));
+      
+      console.log('처리된 게시글 데이터:', posts.value);
+    } else {
+      console.warn('API 응답 성공 상태가 false:', response.data);
+      posts.value = [];
+      totalPages.value = 0;
+    }
   } catch (error) {
-    console.error('게시글 목록을 불러올 수 없습니다', error);
-    alert('게시글 목록을 불러올 수 없습니다');
+    console.error('게시글 목록 불러오기 오류:', error);
+    posts.value = [];
+    totalPages.value = 0;
   } finally {
     loading.value = false;
   }

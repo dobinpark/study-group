@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
-import { useUserStore } from '../store/user';
+import { useAuthStore } from '../store/auth';
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -24,7 +24,7 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import('../components/FindPasswordModal.vue')
   },
   {
-    path: '/my-studies',
+path: '/my-studies',
     name: 'myStudyGroups',
     component: () => import('../views/study/MyStudies.vue'),
     meta: { requiresAuth: true }
@@ -164,44 +164,34 @@ const routes: Array<RouteRecordRaw> = [
 
 const router = createRouter({
   history: createWebHistory(process.env.BASE_URL),
-  routes
+  routes,
+  scrollBehavior() {
+    return { top: 0 };
+  },
 });
 
-// 라우터 가드 설정
+// 전역 네비게이션 가드
 router.beforeEach(async (to, from, next) => {
-  const userStore = useUserStore();
+  const authStore = useAuthStore();
   
-  // 페이지 방문시 인증 상태 확인
-  if (!to.meta.skipAuthCheck) {
-    try {
-      await userStore.checkAuth();
-    } catch (error) {
-      console.error('인증 상태 확인 중 오류:', error);
-    }
+  // 이미 세션을 체크했는지 확인
+  if (!authStore.sessionChecked) {
+    await authStore.checkSession();
   }
   
-  const isLoggedIn = userStore.isAuthenticated;
-  
-  // 인증이 필요한 페이지 (meta.requiresAuth가 true인 경우)
+  // 인증이 필요한 라우트에 대한 접근 제어
   if (to.matched.some(record => record.meta.requiresAuth)) {
-    if (!isLoggedIn) {
-      console.log('인증 필요한 페이지 접근, 로그인으로 리다이렉트');
-      return next({
+    if (!authStore.isAuthenticated) {
+      next({
         path: '/login',
         query: { redirect: to.fullPath }
       });
+    } else {
+      next();
     }
+  } else {
+    next();
   }
-  
-  // 게스트만 접근 가능한 페이지 (주로 로그인, 회원가입 페이지)
-  if (to.matched.some(record => record.meta.requiresGuest)) {
-    if (isLoggedIn) {
-      console.log('이미 로그인된 상태에서 게스트 페이지 접근, 홈으로 리다이렉트');
-      return next({ path: '/' });
-    }
-  }
-  
-  next();
 });
 
 export default router;

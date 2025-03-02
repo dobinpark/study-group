@@ -1,5 +1,6 @@
 const { defineConfig } = require('@vue/cli-service')
 const path = require('path')
+const webpack = require('webpack')
 
 module.exports = defineConfig({
   // 개발 서버 설정
@@ -10,7 +11,7 @@ module.exports = defineConfig({
         target: 'http://localhost:3000', // 백엔드 서버 주소
         changeOrigin: true,
         secure: false,
-        pathRewrite: { '^/api': '/api' } // 라우트 경로 유지
+        // pathRewrite: { '^/api': '' } // 필요한 경우 주석 해제
       }
     },
     client: {
@@ -35,7 +36,13 @@ module.exports = defineConfig({
       }
     },
     // 소스맵 설정 (개발 환경에서만 자세한 소스맵 사용)
-    devtool: process.env.NODE_ENV === 'production' ? 'source-map' : 'eval-source-map'
+    devtool: process.env.NODE_ENV === 'production' ? 'source-map' : 'eval-source-map',
+    // Vue 3 feature flags 설정은 plugins를 사용
+    plugins: [
+      new webpack.DefinePlugin({
+        __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: JSON.stringify(false)
+      })
+    ]
   },
   // TypeScript 설정
   chainWebpack: config => {

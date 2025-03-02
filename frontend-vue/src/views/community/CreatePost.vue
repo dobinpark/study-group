@@ -35,11 +35,12 @@ import { useRoute, useRouter } from 'vue-router';
 import axios from '../../utils/axios';
 import { PostCategoryKorean } from '../../types/models';
 import { useUserStore } from '../../store/user';
-import type { UserStore } from '../../store/user';
+import { useAuthStore } from '../../store/auth';
 
 const route = useRoute();
 const router = useRouter();
-const userStore = useUserStore() as unknown as UserStore;
+const userStore = useUserStore();
+const authStore = useAuthStore();
 
 // 폼 데이터에 카테고리 자동 설정
 const form = reactive({
@@ -65,15 +66,15 @@ const handleSubmit = async () => {
     }
 
     // 세션 확인 추가
-    await userStore.checkAuth();
-    
+    await authStore.checkSession();
+
     // 다시 로그인 상태 확인
     if (!userStore.isLoggedIn) {
       alert('세션이 만료되었습니다. 다시 로그인해주세요.');
       router.push('/login');
       return;
     }
-    
+
     const response = await axios.post('/posts', {
       ...form,
       category: form.category.toUpperCase()

@@ -30,12 +30,16 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { useAuthStore } from '../../store/auth';
+import { useUserStore } from '../../store/user';
 import axios from '../../utils/axios';
 
 const route = useRoute();
 const router = useRouter();
+const authStore = useAuthStore();
+const userStore = useUserStore();
 
 const form = reactive({
   title: '',
@@ -58,6 +62,16 @@ const fetchPost = async () => {
 };
 
 const handleSubmit = async () => {
+  if (!authStore.isAuthenticated) {
+    alert('로그인이 필요합니다.');
+    router.push('/login');
+    return;
+  }
+  
+  if (!authStore.sessionChecked) {
+    await authStore.checkSession();
+  }
+  
   try {
     const response = await axios.put(`/posts/${route.params.id}`, form);
     if (response.data.success) {
@@ -72,7 +86,13 @@ const goBack = () => {
   router.push(`/posts/${route.params.id}`);
 };
 
-onMounted(fetchPost);
+onMounted(async () => {
+  if (!authStore.sessionChecked) {
+    await authStore.checkSession();
+  }
+  
+  await fetchPost();
+});
 </script>
 
 <style scoped>

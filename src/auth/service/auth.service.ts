@@ -22,31 +22,17 @@ export class AuthService {
     ) { }
 
     // 로그인 유효성 검사
-    async loginWithCredentials(username: string, password: string): Promise<AuthLoginResponseDto> {
-        this.logger.debug(`로그인 시도: ${username}`);
-        try {
-            const user = await this.authRepository.findByUsername(username);
-            if (!user) {
-                this.logger.debug(`사용자 없음: ${username}`);
-                throw new UnauthorizedException('아이디 또는 비밀번호가 일치하지 않습니다.');
-            }
-
-            const isPasswordValid = await bcrypt.compare(password, user.password);
-            if (!isPasswordValid) {
-                this.logger.debug(`비밀번호 불일치: ${username}`);
-                throw new UnauthorizedException('아이디 또는 비밀번호가 일치하지 않습니다.');
-            }
-
-            this.logger.log(`로그인 성공: ${username} (ID: ${user.id})`);
-            const { password: _, ...result } = user;
-            return result as AuthLoginResponseDto;
-        } catch (error) {
-            if (error instanceof UnauthorizedException) {
-                throw error;
-            }
-            this.logger.error(`로그인 처리 중 오류: ${username}`, error);
-            throw new InternalServerErrorException('로그인 처리 중 오류가 발생했습니다.');
+    async loginWithCredentials(username: string, password: string): Promise<any> {
+        this.logger.debug(`사용자 로그인 시도: ${username}`);
+        const user = await this.validateUser(username, password);
+        
+        if (!user) {
+            this.logger.warn(`${username} 로그인 실패: 잘못된 사용자 정보`);
+            throw new UnauthorizedException('아이디 또는 비밀번호가 올바르지 않습니다.');
         }
+        
+        this.logger.debug(`${username} 로그인 성공`);
+        return user;
     }
 
     // 회원가입
@@ -121,26 +107,35 @@ export class AuthService {
     }
 
     // 사용자 검증
-    async validateUser(loginDto: AuthLoginDto): Promise<User> {
-        const { username, password } = loginDto;
-        
-        this.logger.debug(`사용자 검증: ${username}`);
-        const user = await this.usersRepository.findOne({ where: { username } });
-
-        if (!user) {
-            this.logger.debug(`검증 실패 - 사용자 없음: ${username}`);
-            throw new UnauthorizedException('존재하지 않는 사용자입니다.');
+    async validateUser(username: string, password: string): Promise<any> {
+        this.logger.debug(`사용자 인증: ${username}`);
+        try {
+            // 사용자 정보 조회
+            const user = await this.authRepository.findByUsername(username);
+            
+            if (!user) {
+                this.logger.warn(`${username} 사용자를 찾을 수 없음`);
+                return null;
+            }
+            
+            // 비밀번호 검증
+            const isPasswordValid = await bcrypt.compare(password, user.password);
+            
+            if (!isPasswordValid) {
+                this.logger.warn(`${username} 비밀번호 불일치`);
+                return null;
+            }
+            
+            this.logger.debug(`${username} 인증 성공`);
+            
+            // 비밀번호를 제외한 사용자 정보 반환
+            const { password: _, ...result } = user;
+            return result;
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+            this.logger.error(`인증 처리 중 오류: ${errorMessage}`);
+            throw error;
         }
-
-        const isPasswordValid = await bcrypt.compare(password, user.password);
-
-        if (!isPasswordValid) {
-            this.logger.debug(`검증 실패 - 비밀번호 불일치: ${username}`);
-            throw new UnauthorizedException('비밀번호가 일치하지 않습니다.');
-        }
-
-        this.logger.debug(`사용자 검증 성공: ${username}`);
-        return user;
     }
 
     // 로그아웃 처리

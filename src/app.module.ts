@@ -4,12 +4,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ScheduleModule } from '@nestjs/schedule';
 import { UserModule } from './user/user.module';
 import { StudyModule } from './study/study.module';
-import { CacheModule } from '@nestjs/cache-manager';
-import * as redisStore from 'cache-manager-redis-store';
 import { PostsModule } from './posts/posts.module';
 import { validate } from './config/env.validation';
-import { RedisClientOptions } from 'redis';
 import { PassportModule } from '@nestjs/passport';
+import { SessionSerializer } from './types/session.serializer';
+import { AuthModule } from './auth/auth.module';
+import { CacheModule } from '@nestjs/cache-manager';
 
 @Module({
     imports: [
@@ -35,19 +35,17 @@ import { PassportModule } from '@nestjs/passport';
         ScheduleModule.forRoot(),
         UserModule,
         StudyModule,
-        CacheModule.register<RedisClientOptions>({
+        AuthModule,
+        CacheModule.register({
             isGlobal: true,
-            store: redisStore,
-            socket: {
-                host: process.env.REDIS_HOST || 'localhost',
-                port: parseInt(process.env.REDIS_PORT || '6379', 10),
-            },
             ttl: 300,
         }),
         PostsModule,
         PassportModule.register({ session: true }),
     ],
     controllers: [],
-    providers: [],
+    providers: [
+        SessionSerializer
+    ],
 })
 export class AppModule { }

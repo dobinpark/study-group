@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, UnauthorizedException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException, ForbiddenException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Post } from '../entities/post.entity';
@@ -6,7 +6,9 @@ import { CreatePostDto } from '../dto/create-post.dto';
 import { UpdatePostDto } from '../dto/update-post.dto';
 import { PostCategory } from '../enum/post-category.enum';
 import { PostsRepository } from '../repository/posts.repository';
-import { PostLike } from '../entities/post-like.entity';
+import { Inject } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 
 interface CreatePostParams extends CreatePostDto {
     authorId: number;
@@ -14,12 +16,13 @@ interface CreatePostParams extends CreatePostDto {
 
 @Injectable()
 export class PostsService {
+    private readonly logger = new Logger(PostsService.name);
+
     constructor(
         @InjectRepository(Post)
         private readonly postRepository: Repository<Post>,
-        @InjectRepository(PostLike)
-        private readonly postLikeRepository: Repository<PostLike>,
-        private readonly postsRepository: PostsRepository
+        private readonly postsRepository: PostsRepository,
+        @Inject(CACHE_MANAGER) private cacheManager: Cache
     ) {}
 
     // 게시물 생성
@@ -36,10 +39,14 @@ export class PostsService {
             category,
             authorId,
             views: 0,
-            likes: 0
         });
 
-        return await this.postRepository.save(post);
+        const savedPost = await this.postRepository.save(post);
+        
+        // 게시판 캐시 무효화
+        await this.invalidateListCache();
+        
+        return savedPost;
     }
 
     // 카테고리별 게시물 조회
@@ -110,6 +117,15 @@ export class PostsService {
 
     // 게시물 상세 조회
     async findOne(id: number): Promise<Post> {
+        const cacheKey = `post_${id}`;
+        
+        // 캐시에서 데이터 조회 시도
+        const cachedPost = await this.cacheManager.get<Post>(cacheKey);
+        if (cachedPost) {
+            this.logger.debug(`캐시에서 게시글 반환: ${id}`);
+            return cachedPost;
+        }
+        
         const post = await this.postRepository.findOne({
             where: { id },
             relations: ['author']
@@ -123,6 +139,9 @@ export class PostsService {
         await this.postRepository.increment({ id }, 'views', 1);
         post.views += 1;
 
+        // 결과 캐싱
+        await this.cacheManager.set(cacheKey, post, 300); // 5분 캐싱
+
         return post;
     }
 
@@ -134,8 +153,13 @@ export class PostsService {
             throw new ForbiddenException('게시물을 수정할 권한이 없습니다.');
         }
 
-        await this.postRepository.update(id, updatePostDto);
-        return await this.findOne(id);
+        Object.assign(post, updatePostDto);
+        const updatedPost = await this.postRepository.save(post);
+        
+        // 캐시 무효화
+        await this.invalidateCache(id);
+        
+        return updatedPost;
     }
 
     async deletePost(id: number, userId: number): Promise<void> {
@@ -146,33 +170,28 @@ export class PostsService {
         }
 
         await this.postRepository.delete(id);
+        
+        // 캐시 무효화
+        await this.invalidateCache(id);
+        await this.invalidateListCache();
     }
 
-    // 좋아요 기능
-    async toggleLike(postId: number, userId: number): Promise<{ liked: boolean }> {
-        const post = await this.findOne(postId);
+    // 특정 게시글 캐시 무효화
+    private async invalidateCache(id: number): Promise<void> {
+        const cacheKey = `post_${id}`;
+        await this.cacheManager.del(cacheKey);
+        this.logger.debug(`게시글 캐시 무효화: ${id}`);
+    }
+
+    // 게시글 목록 캐시 무효화
+    private async invalidateListCache(): Promise<void> {
+        // 캐시 키 패턴은 지원되지 않으므로, 주요 목록만 무효화
+        const categories = ['all', 'FREE', 'QUESTION', 'SUGGESTION'];
         
-        // 데이터베이스에서 좋아요 관계 확인
-        const likeRecord = await this.postLikeRepository.findOne({
-            where: { postId, userId }
-        });
-        
-        if (likeRecord) {
-            // 좋아요 수 감소
-            await this.postLikeRepository.remove(likeRecord);
-            await this.postsRepository.decrementLike(postId);
-            
-            return { liked: false };
-        } else {
-            // 좋아요 수 증가
-            const newLike = this.postLikeRepository.create({
-                postId,
-                userId
-            });
-            await this.postLikeRepository.save(newLike);
-            await this.postsRepository.incrementLike(postId);
-            
-            return { liked: true };
+        for (const category of categories) {
+            await this.cacheManager.del(`posts_list_${category}_1_10`);
         }
+        
+        this.logger.debug('게시글 목록 캐시 무효화 완료');
     }
 }

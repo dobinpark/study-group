@@ -6,7 +6,6 @@ import { AuthRepository } from './repository/auth.repository';
 import { User } from '../user/entities/user.entity';
 import { PassportModule } from '@nestjs/passport';
 import { LocalStrategy } from '../types/local.strategy';
-import { SessionSerializer } from '../types/session.serializer';
 
 @Module({
     imports: [
@@ -18,7 +17,6 @@ import { SessionSerializer } from '../types/session.serializer';
         AuthService,
         AuthRepository,
         LocalStrategy,
-        SessionSerializer
     ],
     exports: [AuthService],
 })

@@ -16,6 +16,15 @@ const pinia = createPinia()
 pinia.use(piniaPluginPersistedstate)
 
 const app = createApp(App)
+
+// 전역 에러 핸들러 추가
+app.config.errorHandler = (err, instance, info) => {
+  console.error('Vue Error:', err)
+  if (process.env.NODE_ENV === 'development') {
+    console.error('Error Info:', info)
+  }
+}
+
 app.use(pinia)
 app.use(router)
 

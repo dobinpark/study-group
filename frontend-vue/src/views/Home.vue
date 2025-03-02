@@ -15,13 +15,33 @@
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted, computed } from 'vue';
+import { useAuthStore } from '../store/auth';
+import { useUserStore } from '../store/user';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
 
+const authStore = useAuthStore();
+const userStore = useUserStore();
+
+// 인증 상태는 authStore에서
+const isAuthenticated = computed(() => authStore.isAuthenticated);
+const isLoading = computed(() => authStore.isLoading);
+
+// 사용자 정보는 userStore에서
+const user = computed(() => userStore.user);
+
 const goToStudyGroups = () => {
   router.push('/study-groups/create');
 };
+
+onMounted(async () => {
+  // 세션 체크는 authStore 사용
+  if (!authStore.sessionChecked) {
+    await authStore.checkSession();
+  }
+});
 </script>
 
 <style scoped>

@@ -40,11 +40,13 @@
 <script setup lang="ts">
 import { reactive, ref, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { useTypedUserStore } from '../utils/store-helpers';
+import { useAuthStore } from '../store/auth';
+import { useUserStore } from '../store/user';
 
 const router = useRouter();
 const route = useRoute();
-const userStore = useTypedUserStore();
+const authStore = useAuthStore();
+const userStore = useUserStore();
 const isLoading = ref(false);
 const loginError = ref('');
 
@@ -61,16 +63,14 @@ const handleSubmit = async () => {
   try {
     console.log('로그인 시도:', { username: form.username, rememberMe: form.rememberMe });
     
-    const success = await userStore.login(form.username, form.password, form.rememberMe);
+    const success = await authStore.login(form.username, form.password);
     
     if (success) {
-      // 로그인 성공 시 홈 페이지로 이동
       console.log('로그인 성공, 메인 페이지로 이동');
-      // 로그인 성공 후 사용자 정보 갱신
-      await userStore.checkAuth();
-      router.push('/');
+      const redirectPath = route.query.redirect as string || '/';
+      router.push(redirectPath);
     } else {
-      loginError.value = userStore.error || '로그인에 실패했습니다.';
+      loginError.value = '로그인에 실패했습니다.';
     }
   } catch (error: any) {
     console.error('로그인 에러:', error);

@@ -13,7 +13,7 @@
             <div class="auth-container" :class="{ 'mobile-auth': isMobile }">
               <template v-if="isLoggedIn && currentUser">
                 <span class="welcome-text">
-                  {{ currentUser.nickname || currentUser.username }}님 환영합니다!
+                  {{ currentUser?.nickname || currentUser?.username }}님 환영합니다!
                 </span>
                 <div class="nav-buttons" :class="{ 'mobile-nav-buttons': isMobile }">
                   <router-link class="nav-button" to="/my-studies">
@@ -71,8 +71,8 @@
                 <ul class="sub-menu">
                   <li class="sub-menu-column">
                     <ul>
-                      <li v-for="category in communityCategories" :key="category.name"
-                        class="sub-menu-item" @click="handleCommunityClick(category.name)">
+                      <li v-for="category in communityCategories" :key="category.name" class="sub-menu-item"
+                        @click="handleCommunityClick(category.name)">
                         {{ category.name }}
                       </li>
                     </ul>
@@ -84,8 +84,8 @@
                 <ul class="sub-menu">
                   <li class="sub-menu-column">
                     <ul>
-                      <li v-for="category in supportCategories" :key="category.name"
-                        class="sub-menu-item" @click="handleSupportClick(category.name)">
+                      <li v-for="category in supportCategories" :key="category.name" class="sub-menu-item"
+                        @click="handleSupportClick(category.name)">
                         {{ category.name }}
                       </li>
                     </ul>
@@ -103,22 +103,22 @@
 <script setup lang="ts">
 import { ref, provide, computed, onMounted, onUnmounted, watch } from 'vue';
 import mitt from 'mitt';
+import { useAuthStore } from '../store/auth';
 import { useUserStore } from '../store/user';
-import type { UserStore } from '../store/user';
 import { useRouter } from 'vue-router';
 import type { Category, SubCategory } from '../types/models';
 
-const userStore = useUserStore() as unknown as UserStore;
 const router = useRouter();
+const authStore = useAuthStore();
+const userStore = useUserStore();
 
 // 이벤트 버스 생성 및 제공
 const emitter = mitt();
 provide('emitter', emitter);
 
 // 로그인 상태 관리
-const isLoggedIn = computed(() => userStore.isAuthenticated);
+const isLoggedIn = computed(() => authStore.isAuthenticated);
 const currentUser = computed(() => userStore.user);
-const loading = computed(() => userStore.loading);
 const isLoggingOut = ref(false);
 
 // 모바일 화면 여부
@@ -651,7 +651,7 @@ const handleLogout = async () => {
   isLoggingOut.value = true;
   try {
     console.log('로그아웃 시도');
-    await userStore.logout();
+    await authStore.logout();
     console.log('로그아웃 성공, 홈페이지로 이동');
     router.push('/');
   } catch (error) {
@@ -723,11 +723,13 @@ const handleSupportClick = (category: string) => {
 };
 
 // 컴포넌트 마운트 시 인증 상태 다시 확인
-onMounted(async () => {
+onMounted(() => {
   // 모바일 화면 체크
   checkMobile();
   window.addEventListener('resize', checkMobile);
-  await userStore.checkAuth();
+  if (!authStore.sessionChecked) {
+    authStore.checkSession();
+  }
 });
 
 // 컴포넌트 언마운트 시 이벤트 리스너 제거
@@ -742,7 +744,7 @@ watch(activeSubCategoryName, (newValue, oldValue) => {
   }
 });
 
-// 컴포넌트 내보내기 추가
+// export default 대신 defineExpose 사용
 defineExpose({
   userStore,
   isLoggedIn,

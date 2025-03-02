@@ -1,189 +1,120 @@
 import { defineStore } from 'pinia';
-import type { User } from '../types/models';
 import axios from '../utils/axios';
+
+export interface User {
+  id: number;
+  username: string;
+  email: string;
+  role?: string;
+  nickname?: string;
+  profileImage?: string;
+  bio?: string;
+  createdAt?: string;
+}
 
 interface UserState {
   user: User | null;
-  isLoggedIn: boolean;
-  loading: boolean;
-  error: string | null;
-  persistMode: 'local' | 'session' | 'none';
-}
-
-// 스토어 타입 정의
-export interface UserStore extends UserState {
-  currentUser: User | null;
-  isAuthenticated: boolean;
-  login: (username: string, password: string, rememberMe?: boolean) => Promise<boolean>;
-  logout: () => Promise<boolean>;
-  checkAuth: () => Promise<boolean>;
-  restoreUserFromStorage: () => void;
-  clearUserData: () => void;
+  isLoadingProfile: boolean;
 }
 
 export const useUserStore = defineStore('user', {
   state: (): UserState => ({
     user: null,
-    isLoggedIn: false,
-    loading: false,
-    error: null,
-    persistMode: 'none'
+    isLoadingProfile: false
   }),
 
   getters: {
-    currentUser: (state): User | null => state.user,
-    isAuthenticated(): boolean {
-      return this.isLoggedIn && !!this.user;
-    }
+    // 사용자 정보 관련 getters
+    userId: (state) => state.user?.id,
+    userName: (state) => state.user?.username,
+    userEmail: (state) => state.user?.email,
+    userRole: (state) => state.user?.role,
+    isAdmin: (state) => state.user?.role === 'admin',
+    isLoggedIn: (state) => !!state.user,
+
+    // 사용자 프로필 정보
+    profile: (state) => ({
+      name: state.user?.nickname || state.user?.username,
+      email: state.user?.email,
+      bio: state.user?.bio,
+      profileImage: state.user?.profileImage,
+      createdAt: state.user?.createdAt
+    })
   },
 
   actions: {
-async login(username: string, password: string, rememberMe: boolean = false): Promise<boolean> {
-      this.loading = true;
-      this.error = null;
-
-      try {
-        const response = await axios.post('/auth/login', { username, password });
-        console.log('로그인 응답:', response.data);
-
-        if (response.data.success) {
-          const { user } = response.data.data;
-          
-          this.user = user;
-          this.isLoggedIn = true;
-          this.persistMode = rememberMe ? 'local' : 'session';
-
-          // 사용자 정보 저장
-          const userData = {
-            user: this.user,
-            isLoggedIn: true,
-            loginTime: new Date().toISOString()
-          };
-
-          // 스토리지에 저장
-          const storage = rememberMe ? localStorage : sessionStorage;
-          storage.setItem('user-store', JSON.stringify(userData));
-          
-          return true;
-        } else {
-          this.error = response.data.message || '로그인에 실패했습니다';
-          return false;
-        }
-      } catch (error: any) {
-        console.error('로그인 실패:', error);
-        this.error = error.response?.data?.message || '로그인 중 오류가 발생했습니다';
-        return false;
-      } finally {
-        this.loading = false;
-      }
+    // 사용자 정보 설정
+    setUser(userData: User) {
+      this.user = userData;
     },
 
-    async logout(): Promise<boolean> {
-      try {
-        await axios.post('/auth/logout');
-        
-        // 사용자 세션 초기화
-        this.user = null;
-        this.isLoggedIn = false;
-        this.persistMode = 'none';
-
-        // 스토리지 초기화
-        localStorage.removeItem('user-store');
-        sessionStorage.removeItem('user-store');
-        
-        return true;
-      } catch (error) {
-        console.error('로그아웃 실패:', error);
-        
-        // 에러가 발생해도 로컬 상태 초기화
-        this.user = null;
-        this.isLoggedIn = false;
-        localStorage.removeItem('user-store');
-        sessionStorage.removeItem('user-store');
-        
-        return false;
-      }
-    },
-
-    async checkAuth(): Promise<boolean> {
-      this.loading = true;
-      
-      // 로컬 스토리지나 세션 스토리지에서 사용자 정보 복원
-      this.restoreUserFromStorage();
-      
-      try {
-        // 서버에 세션 상태 확인
-        const response = await axios.get('/auth/session');
-        
-        if (response.data.success && response.data.data.isAuthenticated) {
-          // 서버 세션이 유효하면 사용자 정보 업데이트
-          this.user = response.data.data.user;
-          this.isLoggedIn = true;
-          
-          // 스토리지 업데이트
-          if (this.persistMode !== 'none') {
-            const userData = {
-              user: this.user,
-              isLoggedIn: true,
-              loginTime: new Date().toISOString()
-            };
-            
-            const storage = this.persistMode === 'local' ? localStorage : sessionStorage;
-            storage.setItem('user-store', JSON.stringify(userData));
-          }
-          
-          return true;
-        } else {
-          // 서버 세션이 유효하지 않으면 로그아웃 상태로 전환
-          this.clearUserData();
-          // 세션 만료 이벤트 발생
-          window.dispatchEvent(new CustomEvent('auth:session-expired'));
-          return false;
-        }
-      } catch (error) {
-        console.error('인증 확인 실패:', error);
-        this.clearUserData();
-        // 인증 오류 이벤트 발생
-        window.dispatchEvent(new CustomEvent('auth:unauthorized'));
-        return false;
-      } finally {
-        this.loading = false;
-      }
-    },
-    
-    // 스토리지에서 사용자 정보 복원
-    restoreUserFromStorage() {
-      let storedData = null;
-      
-      const localData = localStorage.getItem('user-store');
-      if (localData) {
-        storedData = JSON.parse(localData);
-        this.persistMode = 'local';
-      } else {
-        const sessionData = sessionStorage.getItem('user-store');
-        if (sessionData) {
-          storedData = JSON.parse(sessionData);
-          this.persistMode = 'session';
-        }
-      }
-      
-      if (storedData && storedData.isLoggedIn && storedData.user) {
-        this.user = storedData.user;
-        this.isLoggedIn = true;
-      }
-    },
-    
-    // 사용자 데이터 초기화
-    clearUserData() {
+    // 사용자 정보 초기화
+    clearUser() {
       this.user = null;
-      this.isLoggedIn = false;
-      this.persistMode = 'none';
-      localStorage.removeItem('user-store');
-      sessionStorage.removeItem('user-store');
-    }
-  },
+    },
 
-  persist: {
-    enabled: false
-  } as any
+    // 사용자 프로필 가져오기
+    async fetchUserProfile() {
+      if (!this.user?.id) return;
+
+      this.isLoadingProfile = true;
+      try {
+        const response = await axios.get(`/users/${this.user.id}/profile`);
+
+        if (response.data?.success) {
+          // 프로필 정보로 user 객체 업데이트
+          this.user = {
+            ...this.user,
+            ...response.data.data.profile
+          };
+        }
+      } catch (error) {
+        console.error('프로필 정보 불러오기 실패:', error);
+      } finally {
+        this.isLoadingProfile = false;
+      }
+    },
+
+    // 사용자 프로필 업데이트
+    async updateProfile(profileData: Partial<User>) {
+      if (!this.user?.id) return false;
+
+      this.isLoadingProfile = true;
+      try {
+        const response = await axios.put(`/users/${this.user.id}/profile`, profileData);
+
+        if (response.data?.success) {
+          // 업데이트된 프로필 정보로 user 객체 갱신
+          this.user = {
+            ...this.user,
+            ...response.data.data.user
+          };
+          return true;
+        }
+        return false;
+      } catch (error) {
+        console.error('프로필 업데이트 실패:', error);
+        return false;
+      } finally {
+        this.isLoadingProfile = false;
+      }
+    },
+
+    // 비밀번호 변경
+    async changePassword(currentPassword: string, newPassword: string) {
+      if (!this.user?.id) return false;
+
+      try {
+        const response = await axios.put(`/users/${this.user.id}/password`, {
+          currentPassword,
+          newPassword
+        });
+
+        return response.data?.success || false;
+      } catch (error) {
+        console.error('비밀번호 변경 실패:', error);
+        return false;
+      }
+    }
+  }
 });

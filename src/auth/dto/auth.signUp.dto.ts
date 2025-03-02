@@ -4,33 +4,60 @@ import { PASSWORD_REGEX, PASSWORD_REGEX_MESSAGE } from '../../utils/validation';
 
 export class AuthSignupDto {
 
-    @ApiProperty({ example: 'user123', description: '사용자 아이디' })
+    @ApiProperty({
+        example: 'user123',
+        description: '사용자 아이디',
+        required: true
+    })
     @IsString()
     @IsNotEmpty({ message: '아이디는 필수입니다.' })
     username!: string;
 
-    @ApiProperty({ example: 'password123!', description: '사용자 비밀번호' })
+    @ApiProperty({
+        example: 'Password123!',
+        description: '사용자 비밀번호 (최소 8자, 영문/숫자/특수문자 조합)',
+        required: true,
+        minLength: 8
+    })
     @IsString()
     @IsNotEmpty({ message: '비밀번호는 필수입니다.' })
     @MinLength(8, { message: '비밀번호는 최소 8자 이상이어야 합니다.' })
     @Matches(PASSWORD_REGEX, { message: PASSWORD_REGEX_MESSAGE })
     password!: string;
 
-    @ApiProperty({ example: 'password123!', description: '비밀번호 재확인' })
+    @ApiProperty({
+        example: 'password123!',
+        description: '비밀번호 재확인',
+        required: true
+    })
     @IsString()
     @MinLength(8)
     confirmPassword!: string;
 
-    @ApiProperty({ example: 'nickName', description: '사용자 닉네임' })
+    @ApiProperty({
+        example: '홍길동',
+        description: '사용자 닉네임',
+        required: true
+    })
     @IsString()
     @IsNotEmpty({ message: '닉네임은 필수입니다.' })
     nickname!: string;
 
-    @ApiProperty({ example: 'user@email.com', description: '사용자 이메일' })
+    @ApiProperty({
+        example: 'user@example.com',
+        description: '사용자 이메일',
+        required: true,
+        format: 'email'
+    })
     @IsEmail()
     email!: string;
 
-    @ApiProperty({ example: '01012345678', description: '사용자 휴대전화' })
+    @ApiProperty({
+        example: '01012345678',
+        description: '사용자 휴대전화 (숫자만 11자리)',
+        required: true,
+        pattern: '^[0-9]{11}$'
+    })
     @IsString()
     @IsNotEmpty({ message: '전화번호는 필수입니다.' })
     @Matches(/^[0-9]{11}$/, { message: '올바른 전화번호 형식이 아닙니다. (예: 01012345678)' })

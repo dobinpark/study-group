@@ -30,17 +30,25 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from '../utils/axios';
+import { useAuthStore } from '../store/auth';
+import { useUserStore } from '../store/user';
 
 const router = useRouter();
+
+const authStore = useAuthStore();
+const userStore = useUserStore();
 
 const form = reactive({
   nickname: '',
   email: '',
   phoneNumber: ''
 });
+
+const isAuthenticated = computed(() => authStore.isAuthenticated);
+const currentUser = computed(() => userStore.user);
 
 const fetchProfile = async () => {
   try {
@@ -66,7 +74,15 @@ const handleSubmit = async () => {
   }
 };
 
-onMounted(fetchProfile);
+onMounted(() => {
+  if (!authStore.sessionChecked) {
+    authStore.checkSession();
+  }
+  
+  if (userStore.user) {
+    userStore.fetchUserProfile();
+  }
+});
 </script>
 
 <style scoped>

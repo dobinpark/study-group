@@ -3,53 +3,67 @@
 		<Header />
 		<main>
 			<router-view v-if="!isLoading"></router-view>
+			<div v-else class="loading">
+				<div class="loading-spinner"></div>
+				<p>로딩 중...</p>
+			</div>
 		</main>
+		<Footer />
 	</div>
 </template>
 
-<script setup lang="ts">
-import { onMounted, ref, onBeforeUnmount } from 'vue';
-import { defineAsyncComponent } from 'vue';
-const Header = defineAsyncComponent(() => import('./components/Header.vue'));
-import { useTypedUserStore } from './utils/store-helpers';
+<script lang="ts">
+import { defineComponent, computed, onMounted, onBeforeUnmount } from 'vue';
+import { useAuthStore } from './store/auth';
+import { useUserStore } from './store/user';
+import Header from './components/Header.vue';
 import { useRouter } from 'vue-router';
 
-const userStore = useTypedUserStore();
-const router = useRouter();
-const isLoading = ref(false);
+export default defineComponent({
+	name: 'App',
+	components: {
+		Header,
+	},
+	setup() {
+		const authStore = useAuthStore();
+		const userStore = useUserStore();
+		const router = useRouter();
+		const isLoading = computed(() => authStore.isLoading);
 
-// 401 오류 처리를 위한 이벤트 리스너
-const handleUnauthorized = () => {
-	console.log('인증되지 않은 요청 감지, 로그인 페이지로 리다이렉트');
-	userStore.clearUserData();
-	router.push('/login');
-};
+		// 401 오류 처리를 위한 이벤트 리스너
+		const handleUnauthorized = () => {
+			console.log('인증되지 않은 요청 감지, 로그인 페이지로 리다이렉트');
+			authStore.logout();
+		};
 
-// 세션 만료 처리를 위한 이벤트 리스너
-const handleSessionExpired = () => {
-	console.log('세션이 만료되었습니다, 다시 로그인해주세요');
-	userStore.clearUserData();
-	router.push('/login');
-};
+		// 세션 만료 처리를 위한 이벤트 리스너
+		const handleSessionExpired = () => {
+			console.log('세션이 만료되었습니다, 다시 로그인해주세요');
+			authStore.logout();
+		};
 
-// 앱 마운트 시 이벤트 리스너 등록
-onMounted(() => {
-	// 401 오류 이벤트 리스너 등록
-	window.addEventListener('auth:unauthorized', handleUnauthorized);
-	window.addEventListener('auth:session-expired', handleSessionExpired);
+		// 앱 마운트 시 이벤트 리스너 등록
+		onMounted(async () => {
+			// 앱 마운트 시 한 번만 세션 체크
+			if (!authStore.sessionChecked) {
+				await authStore.checkSession();
+			}
 
-	// 앱 시작 시 세션 상태 확인
-	userStore.checkAuth().then(isAuthenticated => {
-		console.log('초기 세션 상태 확인 완료:', isAuthenticated ? '로그인됨' : '로그인되지 않음');
-	}).catch(error => {
-		console.error('세션 상태 확인 중 오류:', error);
-	});
-});
+			// 401 오류 이벤트 리스너 등록
+			window.addEventListener('auth:unauthorized', handleUnauthorized);
+			window.addEventListener('auth:session-expired', handleSessionExpired);
+		});
 
-// 컴포넌트 언마운트 시 이벤트 리스너 제거
-onBeforeUnmount(() => {
-	window.removeEventListener('auth:unauthorized', handleUnauthorized);
-	window.removeEventListener('auth:session-expired', handleSessionExpired);
+		// 컴포넌트 언마운트 시 이벤트 리스너 제거
+		onBeforeUnmount(() => {
+			window.removeEventListener('auth:unauthorized', handleUnauthorized);
+			window.removeEventListener('auth:session-expired', handleSessionExpired);
+		});
+
+		return {
+			isLoading
+		};
+	}
 });
 </script>
 

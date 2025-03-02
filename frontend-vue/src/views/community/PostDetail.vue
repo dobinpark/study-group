@@ -16,10 +16,9 @@
               <h2 class="post-title">{{ post.title }}</h2>
               <div class="post-meta">
                 <div class="post-info">
-                  <span>작성자: {{ post.author?.nickname }}</span>
+                  <span>작성자: {{ post.author?.nickname || '알 수 없음' }}</span>
                   <span>작성일: {{ formatDate(post.createdAt) }}</span>
-                  <span>조회수: {{ post.views }}</span>
-                  <span>좋아요: {{ post.likes }}</span>
+                  <span>조회수: {{ post.views || 0 }}</span>
                 </div>
                 <div v-if="isAuthor" class="author-actions">
                   <button @click="editPost" class="btn btn-secondary">수정</button>
@@ -29,10 +28,11 @@
             </div>
 
             <div class="post-content">{{ post.content }}</div>
+          </div>
 
-            <div class="post-actions">
-              <button @click="handleLike" class="btn btn-primary">좋아요</button>
-            </div>
+          <div v-else class="error-message">
+            <p>게시글을 불러올 수 없습니다.</p>
+            <button @click="goBack" class="btn btn-secondary">목록으로</button>
           </div>
 
           <div class="button-group">
@@ -48,6 +48,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useUserStore } from '../../store/user';
+import { useAuthStore } from '../../store/auth';
 import axios from '../../utils/axios';
 import { PostCategoryKorean } from '../../types/models';
 
@@ -62,14 +63,13 @@ interface Post {
   };
   createdAt: string;
   views: number;
-  likes: number;
   category: string;
 }
 
 const route = useRoute();
 const router = useRouter();
 const userStore = useUserStore();
-
+const authStore = useAuthStore();
 const post = ref<Post | null>(null);
 const loading = ref(true);
 
@@ -96,22 +96,17 @@ const fetchPost = async () => {
   }
 };
 
-const formatDate = (date: string) => new Date(date).toLocaleDateString();
-
-const handleLike = async () => {
-  if (!userStore.isLoggedIn) {
-    alert('로그인이 필요합니다');
-    router.push('/login');
-    return;
-  }
-
+const formatDate = (dateString: string) => {
   try {
-    const response = await axios.post(`/posts/${route.params.id}/like`);
-    if (response.data.success && post.value) {
-      post.value.likes = response.data.data.likes;
+    const date = new Date(dateString);
+    // 유효한 날짜인지 확인
+    if (isNaN(date.getTime())) {
+      return '날짜 정보 없음';
     }
-  } catch (error: any) {
-    alert(error.response?.data?.message || '좋아요 처리에 실패했습니다');
+    return date.toLocaleDateString();
+  } catch (e) {
+    console.error('날짜 형식 변환 오류:', e);
+    return '날짜 정보 없음';
   }
 };
 
@@ -174,16 +169,6 @@ onMounted(fetchPost);
   color: #2d3748;
   margin: 2rem 0;
   white-space: pre-wrap;
-}
-
-.post-actions {
-  display: flex;
-  justify-content: center;
-  margin: 2rem 0;
-}
-
-.btn-primary.liked {
-  background: var(--danger-color) !important;
 }
 
 .author-actions {

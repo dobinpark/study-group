@@ -54,11 +54,12 @@
 import { reactive } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from '../utils/axios';
-import { useTypedUserStore } from '../utils/store-helpers';
+import { useAuthStore } from '../store/auth';
+import { useUserStore } from '../store/user';
 
 const router = useRouter();
-
-const userStore = useTypedUserStore();
+const authStore = useAuthStore();
+const userStore = useUserStore();
 
 const form = reactive({
   username: '',
