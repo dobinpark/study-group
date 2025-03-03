@@ -15,7 +15,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { onMounted, computed } from 'vue';
 import { useAuthStore } from '../store/auth';
 import { useUserStore } from '../store/user';
 import { useRouter } from 'vue-router';
@@ -45,6 +45,8 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+@import '../assets/styles/common.css';
+
 .content-card {
   text-align: center;
   padding: 3rem;

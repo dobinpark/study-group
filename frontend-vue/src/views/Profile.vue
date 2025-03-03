@@ -86,6 +86,15 @@ onMounted(() => {
 </script>
 
 <style scoped>
+@import '../assets/styles/common.css';
+
+.profile-container {
+  width: 100%;
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
 .page-content {
   max-width: 600px;
   margin: 0 auto;

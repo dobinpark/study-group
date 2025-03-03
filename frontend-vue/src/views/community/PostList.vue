@@ -2,21 +2,17 @@
   <div class="page-container">
     <div class="page-inner">
       <div class="content-card">
+        <header class="page-header">
+          <h1>{{ categoryTitle }}</h1>
+        </header>
         <main class="page-content">
-          <!-- 액션 바 (검색 및 글쓰기 버튼) -->
           <div class="action-bar">
             <div class="search-box">
-              <input 
-                type="text" 
-                v-model="searchQuery" 
-                placeholder="검색어 입력" 
-                @keyup.enter="search"
-              />
+              <input type="text" v-model="searchQuery" placeholder="검색어 입력" @keyup.enter="search" />
               <button class="search-button" @click="search">검색</button>
             </div>
-            <button class="write-button" @click="createPost" v-if="userStore.isLoggedIn">글쓰기</button>
           </div>
-          
+
           <!-- 게시글 목록 - 데이터가 없어도 테이블 구조를 보여줌 -->
           <div class="post-list" v-if="!loading">
             <table>
@@ -43,27 +39,24 @@
               </tbody>
             </table>
           </div>
-          
+
           <!-- 로딩 중일 때 표시 -->
           <div v-if="loading" class="loading">
             게시글을 불러오는 중입니다...
           </div>
-          
-          <!-- 페이지네이션 -->
-          <div class="pagination" v-if="totalPages > 0">
-            <button 
-              :disabled="page === 1" 
-              @click="changePage(page - 1)"
-            >
-              이전
-            </button>
-            <span>{{ page }} / {{ totalPages }}</span>
-            <button 
-              :disabled="page === totalPages || totalPages === 0" 
-              @click="changePage(page + 1)"
-            >
-              다음
-            </button>
+
+          <!-- 페이지네이션 및 글쓰기 버튼 -->
+          <div class="bottom-actions">
+            <div class="pagination" v-if="totalPages > 0">
+              <button :disabled="page === 1" @click="changePage(page - 1)">
+                이전
+              </button>
+              <span>{{ page }} / {{ totalPages }}</span>
+              <button :disabled="page === totalPages || totalPages === 0" @click="changePage(page + 1)">
+                다음
+              </button>
+            </div>
+            <button class="write-button" @click="createPost" v-if="userStore.isLoggedIn">글쓰기</button>
           </div>
         </main>
       </div>
@@ -112,7 +105,7 @@ const categoryTitle = computed(() => {
     QUESTION: '질문게시판',
     SUGGESTION: '건의게시판'
   } as const;
-  
+
   return titles[category as keyof typeof titles] || '게시판';
 });
 
@@ -121,7 +114,7 @@ const fetchPosts = async () => {
   try {
     const category = route.query.category || 'FREE';
     console.log('게시글 불러오기 시작 - 카테고리:', category);
-    
+
     const response = await axios.get('/posts', {
       params: {
         category: category,
@@ -130,9 +123,9 @@ const fetchPosts = async () => {
         search: searchQuery.value || undefined
       }
     });
-    
+
     console.log('API 응답:', response.data);
-    
+
     // 데이터 구조 확인 및 안전하게 접근
     if (response.data.success) {
       // 응답 데이터 구조에 따라 조정 (배열 또는 페이지네이션 객체)
@@ -149,13 +142,13 @@ const fetchPosts = async () => {
         posts.value = [];
         totalPages.value = 0;
       }
-      
+
       // 게시글 번호 추가
       posts.value = posts.value.map((post, index) => ({
         ...post,
         displayNumber: post.displayNumber || (page.value - 1) * 10 + index + 1
       }));
-      
+
       console.log('처리된 게시글 데이터:', posts.value);
     } else {
       console.warn('API 응답 성공 상태가 false:', response.data);
@@ -205,6 +198,8 @@ onMounted(fetchPosts);
 </script>
 
 <style scoped>
+@import '../../assets/styles/common.css';
+
 .post-list table {
   width: 100%;
   border-collapse: collapse;
@@ -235,8 +230,9 @@ onMounted(fetchPosts);
 
 .action-bar {
   display: flex;
-  justify-content: space-between;
-  margin-bottom: 2rem;
+  justify-content: flex-end;
+  align-items: center;
+  margin-bottom: 1.5rem;
 }
 
 .search-box {
@@ -251,7 +247,8 @@ onMounted(fetchPosts);
   width: 300px;
 }
 
-.search-button, .write-button {
+.search-button,
+.write-button {
   padding: 0.5rem 1rem;
   border: none;
   border-radius: 4px;
@@ -277,12 +274,20 @@ onMounted(fetchPosts);
   background-color: #357ABD;
 }
 
-.pagination {
+/* 페이지네이션과 글쓰기 버튼 컨테이너 */
+.bottom-actions {
   display: flex;
   justify-content: center;
-  gap: 0.5rem;
   align-items: center;
   margin-top: 2rem;
+  position: relative;
+}
+
+.pagination {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin: 0 auto;
 }
 
 .pagination span {
@@ -299,6 +304,11 @@ onMounted(fetchPosts);
 .pagination button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.write-button {
+  position: absolute;
+  right: 0;
 }
 
 .loading {
@@ -344,5 +354,25 @@ onMounted(fetchPosts);
 
 .category-tab.active:hover {
   background: #357ABD;
+}
+
+@media (max-width: 768px) {
+  .bottom-actions {
+    flex-direction: column;
+    gap: 1rem;
+    position: static;
+  }
+
+  .pagination {
+    width: 100%;
+    justify-content: center;
+    margin: 0;
+  }
+
+  .write-button {
+    width: 100%;
+    position: static;
+    margin-top: 1rem;
+  }
 }
 </style>

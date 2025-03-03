@@ -194,6 +194,8 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+@import '../../assets/styles/common.css';
+
 .study-detail-container {
   width: 100%;
   max-width: 1200px;

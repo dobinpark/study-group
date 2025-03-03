@@ -1,46 +1,53 @@
 <template>
-  <div class="create-study-container">
-    <div class="create-study-inner">
-      <div class="study-card">
-        <header class="study-header">
-          <h1>스터디 그룹 생성</h1>
+  <div class="page-container">
+    <div class="page-inner">
+      <div class="content-card">
+        <header class="page-header">
+          <h1>스터디 그룹 만들기</h1>
         </header>
-        <main class="study-content">
+        <div v-if="isSubmitting" class="loading-overlay">
+          <div class="loading-spinner"></div>
+          <p class="loading-text">스터디 그룹을 생성 중입니다...</p>
+        </div>
+        <main class="page-content">
           <form @submit.prevent="handleSubmit" class="study-form">
-            <div class="form-row">
-              <div class="form-group">
-                <label for="name">스터디 그룹 이름</label>
-                <input type="text" id="name" v-model="studyGroup.name" required />
+            <div class="form-group">
+              <label for="name">스터디 그룹 이름</label>
+              <input id="name" type="text" v-model="studyGroup.name" placeholder="이름을 입력하세요" required minlength="3"
+                maxlength="50" @input="validateForm" />
+              <div class="form-feedback" v-if="formErrors.name">
+                {{ formErrors.name }}
               </div>
             </div>
 
-            <div class="form-row category-row">
+            <div class="form-row">
               <div class="form-group">
-                <label>대분류</label>
-                <select v-model="studyGroup.mainCategory" required>
-                  <option value="">대분류 선택</option>
-                  <option value="지역별">지역별</option>
-                  <option value="학습자별">학습자별</option>
-                  <option value="전공별">전공별</option>
-                </select>
-              </div>
-
-              <div class="form-group">
-                <label>중분류</label>
-                <select v-model="studyGroup.subCategory" required>
-                  <option value="">중분류 선택</option>
-                  <option v-for="category in subCategories" :key="category" :value="category">
-                    {{ category }}
+                <label for="mainCategory">대분류</label>
+                <select id="mainCategory" v-model="selectedMainCategory" required @change="onMainCategoryChange">
+                  <option value="" disabled selected>대분류 선택</option>
+                  <option v-for="category in categories" :key="category.name" :value="category.name">
+                    {{ category.name }}
                   </option>
                 </select>
               </div>
-
               <div class="form-group">
-                <label>소분류</label>
-                <select v-model="studyGroup.detailCategory" required>
-                  <option value="">소분류 선택</option>
-                  <option v-for="category in detailCategories" :key="category" :value="category">
-                    {{ category }}
+                <label for="subCategory">중분류</label>
+                <select id="subCategory" v-model="selectedSubCategory" required @change="onSubCategoryChange"
+                  :disabled="!selectedMainCategory">
+                  <option value="" disabled selected>중분류 선택</option>
+                  <option v-for="subCategory in filteredSubCategories" :key="subCategory.name"
+                    :value="subCategory.name">
+                    {{ subCategory.name }}
+                  </option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="detailCategory">소분류</label>
+                <select id="detailCategory" v-model="studyGroup.detailCategory" required
+                  :disabled="!selectedSubCategory">
+                  <option value="" disabled selected>소분류 선택</option>
+                  <option v-for="item in filteredDetailItems" :key="item" :value="item">
+                    {{ item }}
                   </option>
                 </select>
               </div>
@@ -48,22 +55,34 @@
 
             <div class="form-row">
               <div class="form-group">
-                <label for="content">스터디 그룹 설명</label>
-                <textarea id="content" v-model="studyGroup.content" required rows="6"></textarea>
+                <label for="maxMembers">최대 인원</label>
+                <input id="maxMembers" type="number" v-model="studyGroup.maxMembers" min="2" required />
+              </div>
+              <div class="form-group">
+                <label for="studyWay">스터디 방식</label>
+                <select id="studyWay" v-model="studyGroup.studyWay">
+                  <option value="ONLINE">온라인</option>
+                  <option value="OFFLINE">오프라인</option>
+                </select>
               </div>
             </div>
 
-            <div class="form-row">
-              <div class="form-group">
-                <label for="maxMembers">모집 인원</label>
-                <input type="number" id="maxMembers" v-model="studyGroup.maxMembers" required min="2" max="100" />
-                <small class="form-help">2명에서 100명까지 설정 가능합니다.</small>
+            <div class="form-group">
+              <label for="description">스터디 설명</label>
+              <textarea id="description" v-model="studyGroup.description" placeholder="스터디 그룹에 대한 설명을 입력하세요" rows="6"
+                required minlength="20"></textarea>
+              <div class="form-help">
+                <span :class="{ 'text-danger': descriptionLength < 20 }">
+                  {{ descriptionLength }}/20자 이상 작성해주세요 (최소 20자)
+                </span>
               </div>
             </div>
 
             <div class="button-group">
-              <button type="button" @click="goBack" class="btn-cancel">취소</button>
-              <button type="submit" class="btn-save">생성하기</button>
+              <button type="button" @click="goBack" class="btn btn-secondary">취소</button>
+              <button type="submit" class="btn btn-primary" :disabled="isSubmitting || descriptionLength < 20">
+                {{ isSubmitting ? '생성 중...' : '생성하기' }}
+              </button>
             </div>
           </form>
         </main>
@@ -73,20 +92,25 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from '../../utils/axios';
+import { useAuthStore } from '../../store/auth';
+import { useUserStore } from '../../store/user';
 
 const router = useRouter();
+const authStore = useAuthStore();
+const userStore = useUserStore();
 
-// 스터디 그룹 정보를 위한 인터페이스
+// 스터디 그룹 정보를 위한 인터페이스 - 프론트엔드용
 interface StudyGroup {
   name: string;
   mainCategory: string;
   subCategory: string;
   detailCategory: string;
-  content: string;
+  description: string;
   maxMembers: number;
+  studyWay: 'ONLINE' | 'OFFLINE';
 }
 
 // 스터디 그룹 정보 초기화
@@ -95,9 +119,49 @@ const studyGroup = ref<StudyGroup>({
   mainCategory: '',
   subCategory: '',
   detailCategory: '',
-  content: '',
-  maxMembers: 2
+  description: '',
+  maxMembers: 2,
+  studyWay: 'ONLINE',
 });
+
+// 카테고리 관련 상태 변수들
+const selectedMainCategory = ref('');
+const selectedSubCategory = ref('');
+const categories = ref<any[]>([]);
+const isSubmitting = ref(false);
+
+// 필터링된 중분류와 소분류 계산 속성
+const filteredSubCategories = computed(() => {
+  if (!selectedMainCategory.value || !categoryData[selectedMainCategory.value]) {
+    return [];
+  }
+
+  return Object.keys(categoryData[selectedMainCategory.value]).map(name => ({
+    name
+  }));
+});
+
+const filteredDetailItems = computed(() => {
+  if (!selectedMainCategory.value || !selectedSubCategory.value ||
+    !categoryData[selectedMainCategory.value] ||
+    !categoryData[selectedMainCategory.value][selectedSubCategory.value]) {
+    return [];
+  }
+
+  return categoryData[selectedMainCategory.value][selectedSubCategory.value];
+});
+
+// 카테고리 변경 핸들러
+const onMainCategoryChange = () => {
+  selectedSubCategory.value = '';
+  studyGroup.value.detailCategory = '';
+  studyGroup.value.mainCategory = selectedMainCategory.value;
+};
+
+const onSubCategoryChange = () => {
+  studyGroup.value.detailCategory = '';
+  studyGroup.value.subCategory = selectedSubCategory.value;
+};
 
 // 카테고리 데이터를 위한 인터페이스
 interface CategoryData {
@@ -175,51 +239,163 @@ const categoryData: CategoryData = {
   }
 };
 
-// 선택된 대분류에 따른 중분류 목록 계산
-const subCategories = computed(() => {
-  if (!studyGroup.value.mainCategory) return [];
-  return Object.keys(categoryData[studyGroup.value.mainCategory as keyof typeof categoryData] || {});
-});
+// 컴포넌트 마운트 시 카테고리 초기화
+onMounted(async () => {
+  categories.value = Object.keys(categoryData).map(name => ({ name }));
 
-// 선택된 중분류에 따른 소분류 목록 계산
-const detailCategories = computed(() => {
-  if (!studyGroup.value.mainCategory || !studyGroup.value.subCategory) return [];
-  return categoryData[studyGroup.value.mainCategory as keyof typeof categoryData]?.[studyGroup.value.subCategory] || [];
-});
+  // 로그인 상태 확인
+  if (!userStore.isLoggedIn) {
+    alert('로그인이 필요한 페이지입니다.');
+    router.push('/login');
+    return;
+  }
 
-// 스터디 그룹 생성 처리
-const handleSubmit = async () => {
+  // 세션 유효성 검증
   try {
-    const response = await axios.post('/study-groups', {
-      name: studyGroup.value.name,
-      mainCategory: studyGroup.value.mainCategory,
-      subCategory: studyGroup.value.subCategory,
-      detailCategory: studyGroup.value.detailCategory,
-      content: studyGroup.value.content,
-      maxMembers: studyGroup.value.maxMembers
-    });
+    await authStore.checkSession();
+  } catch (error) {
+    alert('세션이 만료되었습니다. 다시 로그인해주세요.');
+    router.push('/login');
+  }
+});
 
-    if (response.data.success) {
-      alert('스터디 그룹이 생성되었습니다.');
-      router.push('/study-groups');
-    }
-  } catch (error: any) {
-    alert(error.response?.data?.message || '스터디 그룹 생성에 실패했습니다.');
+// 설명 글자 수 계산
+const descriptionLength = computed(() => {
+  return studyGroup.value.description?.length || 0;
+});
+
+// 폼 유효성 검증
+const formErrors = ref({
+  name: '',
+  description: ''
+});
+
+const validateForm = () => {
+  // 이름 검증
+  if (studyGroup.value.name.length > 0 && studyGroup.value.name.length < 3) {
+    formErrors.value.name = '스터디 이름은 최소 3자 이상이어야 합니다.';
+  } else if (studyGroup.value.name.length > 50) {
+    formErrors.value.name = '스터디 이름은 최대 50자까지 가능합니다.';
+  } else {
+    formErrors.value.name = '';
+  }
+
+  // 설명 검증
+  if (studyGroup.value.description.length > 0 && studyGroup.value.description.length < 20) {
+    formErrors.value.description = '설명은 최소 20자 이상이어야 합니다.';
+  } else if (studyGroup.value.description.length > 1000) {
+    formErrors.value.description = '설명은 최대 1000자까지 가능합니다.';
+  } else {
+    formErrors.value.description = '';
   }
 };
 
-// 이전 페이지로 돌아가기
-const goBack = () => {
-  router.back();
+// 스터디 그룹 생성 함수
+const handleSubmit = async () => {
+  isSubmitting.value = true;
+  try {
+    // 로그인 상태 확인
+    if (!userStore.isLoggedIn) {
+      alert('로그인이 필요합니다.');
+      router.push('/login');
+      return;
+    }
+
+    // 세션 유효성 확인
+    await authStore.checkSession();
+
+    // 세션 만료 확인
+    if (!userStore.isLoggedIn) {
+      alert('세션이 만료되었습니다. 다시 로그인해주세요.');
+      router.push('/login');
+      return;
+    }
+
+    // 최종 데이터 검증
+    if (!selectedMainCategory.value || !selectedSubCategory.value || !studyGroup.value.detailCategory) {
+      alert('모든 카테고리를 선택해주세요.');
+      isSubmitting.value = false;
+      return;
+    }
+
+    // 설명 글자 수 검증
+    if (studyGroup.value.description.length < 20) {
+      alert('스터디 설명은 최소 20자 이상 작성해주세요.');
+      isSubmitting.value = false;
+      return;
+    }
+
+    // API 요청 데이터 구성
+    const studyGroupData = {
+      name: studyGroup.value.name,
+      mainCategory: selectedMainCategory.value,
+      subCategory: selectedSubCategory.value,
+      detailCategory: studyGroup.value.detailCategory,
+      content: studyGroup.value.description,
+      maxMembers: Number(studyGroup.value.maxMembers),
+      isOnline: studyGroup.value.studyWay === 'ONLINE'
+    };
+
+    console.log('스터디 그룹 생성 요청 데이터:', studyGroupData);
+
+    // API 호출
+    try {
+      const response = await axios.post('/study-groups', studyGroupData, {
+        timeout: 10000,
+        'axios-retry': {
+          retries: 3,
+          retryDelay: (retryCount: number) => retryCount * 1000,
+          retryCondition: (error: { code: string; response: { status: number; }; }) => {
+            return error.code === 'ECONNABORTED' ||
+              (!error.response && error.code !== 'ECONNREFUSED') ||
+              error.response?.status >= 500;
+          }
+        }
+      } as any);
+      if (response.data.success) {
+        alert('스터디 그룹이 생성되었습니다.');
+        router.push(`/study-groups/${response.data.data.id}`);
+      } else {
+        alert(response.data.message || '스터디 그룹 생성에 실패했습니다.');
+      }
+    } catch (apiError: any) {
+      const errorMessage = apiError.response?.data?.message ||
+        apiError.response?.data?.error ||
+        '서버 연결에 실패했습니다.';
+      alert(`오류: ${errorMessage}`);
+    }
+  } catch (error: Error | unknown) {
+    // 타입 가드를 사용하여 에러 타입 확인
+    const apiError = error as {
+      response?: {
+        data?: {
+          error?: string;
+          message?: string;
+        }
+      }
+    };
+
+    if (apiError.response?.data?.error) {
+      alert(`오류: ${apiError.response.data.error}`);
+    } else if (apiError.response?.data?.message) {
+      alert(`오류: ${apiError.response.data.message}`);
+    } else {
+      alert('스터디 그룹 생성에 실패했습니다.');
+    }
+  } finally {
+    isSubmitting.value = false;
+  }
 };
 
-// 그룹 카운트 가져오는 로직
-const fetchStudyGroupCounts = () => {
-  // 그룹 카운트 가져오는 로직 (현재는 비어 있음)
+// 뒤로 가기 함수
+const goBack = () => {
+  router.push('/study-groups');
 };
 </script>
 
 <style scoped>
+@import '../../assets/styles/common.css';
+
 .create-study-container {
   min-height: calc(100vh - 200px);
   padding: 2rem 0;
@@ -314,10 +490,11 @@ const fetchStudyGroupCounts = () => {
 }
 
 .form-help {
-  display: block;
+  display: flex;
+  justify-content: space-between;
   margin-top: 0.5rem;
   font-size: 0.875rem;
-  color: #718096;
+  color: var(--text-color-lighter);
 }
 
 .button-group {
@@ -391,6 +568,49 @@ const fetchStudyGroupCounts = () => {
   .btn-save {
     width: 100%;
     margin-top: 0.5rem;
+  }
+}
+
+.text-danger {
+  color: var(--danger-color);
+}
+
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.8);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid #f3f3f3;
+  border-top: 5px solid var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.loading-text {
+  margin-top: 1rem;
+  font-size: 1.2rem;
+  color: var(--primary-color);
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
   }
 }
 </style>

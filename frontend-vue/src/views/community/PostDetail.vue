@@ -3,7 +3,7 @@
     <div class="page-inner">
       <div class="content-card">
         <header class="page-header">
-          <h1>{{ categoryTitle }}</h1>
+          <h1>{{ getCategoryTitle(post?.category) }}</h1>
         </header>
 
         <main class="page-content">
@@ -73,11 +73,11 @@ const authStore = useAuthStore();
 const post = ref<Post | null>(null);
 const loading = ref(true);
 
-// 카테고리 제목 계산
-const categoryTitle = computed(() => {
-  const category = route.params.category as keyof typeof PostCategoryKorean;
-  return PostCategoryKorean[category] || '게시판';
-});
+// 카테고리 제목 가져오기
+const getCategoryTitle = (category?: string) => {
+  if (!category) return '게시판';
+  return PostCategoryKorean[category as keyof typeof PostCategoryKorean] || '게시판';
+};
 
 const isAuthor = computed(() => {
   if (!post.value || !userStore.user) return false;
@@ -129,6 +129,8 @@ onMounted(fetchPost);
 </script>
 
 <style scoped>
+@import '../../assets/styles/common.css';
+
 .post-detail {
   border-radius: 8px;
 }

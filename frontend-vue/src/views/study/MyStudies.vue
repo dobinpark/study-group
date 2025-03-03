@@ -174,6 +174,8 @@ onMounted(() => {
 </script>
 
 <style scoped>
+@import '../../assets/styles/common.css';
+
 /* 페이지별 고유한 스타일만 추가 */
 .study-section {
   margin-bottom: 3rem;

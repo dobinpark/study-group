@@ -96,6 +96,8 @@ const handleSubmit = async () => {
 </script>
 
 <style scoped>
+@import '../assets/styles/common.css';
+
 .page-content {
   max-width: 1200px !important;
   margin: 0 auto;
@@ -146,5 +148,12 @@ const handleSubmit = async () => {
   .btn {
     width: 100% !important;
   }
+}
+
+.signup-container {
+  width: 100%;
+  max-width: 450px;
+  margin: 2rem auto;
+  padding: 0 1rem;
 }
 </style>

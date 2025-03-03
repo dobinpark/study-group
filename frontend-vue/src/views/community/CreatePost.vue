@@ -3,7 +3,7 @@
     <div class="page-inner">
       <div class="content-card">
         <header class="page-header">
-          <h1>{{ categoryTitle }} 글쓰기</h1>
+          <h1>{{ categoryTitle }} 게시글 작성</h1>
         </header>
 
         <main class="page-content">
@@ -20,7 +20,7 @@
 
             <div class="button-group">
               <button type="button" @click="goBack" class="btn btn-secondary">취소</button>
-              <button type="submit" class="btn btn-primary">등록</button>
+              <button type="submit" class="btn btn-primary">생성하기</button>
             </div>
           </form>
         </main>
@@ -96,6 +96,8 @@ const goBack = () => {
 </script>
 
 <style scoped>
+@import '../../assets/styles/common.css';
+
 .error-message {
   color: #e53e3e;
   font-size: 0.875rem;
@@ -117,5 +119,21 @@ textarea {
 
 .form-group textarea {
   min-height: 300px;
+}
+
+/* 버튼 그룹 오른쪽 정렬 */
+.button-group {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* 에디터 관련 추가 스타일 (common.css에 없는 경우) */
+.editor-container {
+  margin-bottom: 20px;
+  border: 1px solid var(--secondary-color);
+  border-radius: var(--border-radius-md);
+  overflow: hidden;
 }
 </style>

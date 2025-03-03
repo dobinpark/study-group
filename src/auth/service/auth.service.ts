@@ -3,12 +3,10 @@ import * as bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
 import { AuthSignupDto } from '../dto/auth.signUp.dto';
 import { AuthFindPasswordDto } from '../dto/auth.findPassword.dto';
-import { AuthLoginResponseDto } from '../dto/auth.loginResponse.dto';
 import { AuthRepository } from '../repository/auth.repository';
 import { User } from '../../user/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { AuthLoginDto } from '../dto/auth.login.dto';
 
 @Injectable()
 export class AuthService {
@@ -25,12 +23,12 @@ export class AuthService {
     async loginWithCredentials(username: string, password: string): Promise<any> {
         this.logger.debug(`사용자 로그인 시도: ${username}`);
         const user = await this.validateUser(username, password);
-        
+
         if (!user) {
             this.logger.warn(`${username} 로그인 실패: 잘못된 사용자 정보`);
             throw new UnauthorizedException('아이디 또는 비밀번호가 올바르지 않습니다.');
         }
-        
+
         this.logger.debug(`${username} 로그인 성공`);
         return user;
     }
@@ -112,22 +110,22 @@ export class AuthService {
         try {
             // 사용자 정보 조회
             const user = await this.authRepository.findByUsername(username);
-            
+
             if (!user) {
                 this.logger.warn(`${username} 사용자를 찾을 수 없음`);
                 return null;
             }
-            
+
             // 비밀번호 검증
             const isPasswordValid = await bcrypt.compare(password, user.password);
-            
+
             if (!isPasswordValid) {
                 this.logger.warn(`${username} 비밀번호 불일치`);
                 return null;
             }
-            
+
             this.logger.debug(`${username} 인증 성공`);
-            
+
             // 비밀번호를 제외한 사용자 정보 반환
             const { password: _, ...result } = user;
             return result;
@@ -143,10 +141,10 @@ export class AuthService {
         if (!session) {
             return;
         }
-        
+
         const userId = session.user?.id;
         this.logger.debug(`로그아웃 시도: 사용자 ID ${userId}`);
-        
+
         try {
             await new Promise<void>((resolve, reject) => {
                 session.destroy((err: any) => {
@@ -166,14 +164,14 @@ export class AuthService {
         this.logger.debug(`사용자 ID 검색: ${id}`);
         return this.usersRepository.findOne({ where: { id } });
     }
-    
+
     // 안전한 임시 비밀번호 생성
     private generateSecurePassword(): string {
-        const tempPassword = uuidv4().slice(0, 8) + 
-                           Math.floor(Math.random() * 10) + 
-                           String.fromCharCode(Math.floor(Math.random() * 26) + 97) +
-                           String.fromCharCode(Math.floor(Math.random() * 26) + 65) +
-                           '!';
+        const tempPassword = uuidv4().slice(0, 8) +
+            Math.floor(Math.random() * 10) +
+            String.fromCharCode(Math.floor(Math.random() * 26) + 97) +
+            String.fromCharCode(Math.floor(Math.random() * 26) + 65) +
+            '!';
         return tempPassword;
     }
 }

@@ -21,11 +21,10 @@ export class StudyGroupService {
     async create(createStudyGroupDto: CreateStudyGroupDto, userId: number): Promise<StudyGroup> {
         const studyGroup = this.studyGroupRepository.create({
             ...createStudyGroupDto,
-            creator: { id: userId } as User,
-            currentMembers: 1
+            creatorId: userId
         });
-
-        return await this.studyGroupRepository.save(studyGroup);
+        
+        return await this.studyGroupRepository.save(studyGroup) as StudyGroup;
     }
 
 

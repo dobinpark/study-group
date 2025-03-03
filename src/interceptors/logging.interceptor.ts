@@ -12,6 +12,22 @@ export class LoggingInterceptor implements NestInterceptor {
         const userAgent = req.get('user-agent') || '';
         const now = Date.now();
 
+        if (process.env.NODE_ENV === 'development') {
+            this.logger.debug(`[요청] ${method} ${url}`);
+            if (body && Object.keys(body).length > 0) {
+                this.logger.debug(`요청 본문: ${JSON.stringify(body, null, 2)}`);
+            }
+            
+            // 세션 정보 로깅 (개발 환경에서만)
+            if (req.session) {
+                this.logger.debug(`세션 정보: ${JSON.stringify({
+                    id: req.session.id,
+                    user: req.session.user ? { id: req.session.user.id } : null,
+                    expires: req.session.cookie.expires
+                }, null, 2)}`);
+            }
+        }
+
         return next.handle().pipe(
             tap((data) => {
                 const response = context.switchToHttp().getResponse();
@@ -20,8 +36,14 @@ export class LoggingInterceptor implements NestInterceptor {
                     `${method} ${url} ${response.statusCode} ${delay}ms - ${ip} ${userAgent}`
                 );
                 if (process.env.NODE_ENV === 'development') {
-                    this.logger.debug(`Request Body: ${JSON.stringify(body)}`);
-                    this.logger.debug(`Response: ${JSON.stringify(data)}`);
+                    if (response.statusCode >= 400) {
+                        this.logger.error(`오류 응답: ${JSON.stringify(data, null, 2)}`);
+                        if (body && Object.keys(body).length > 0) {
+                            this.logger.error(`실패한 요청 본문: ${JSON.stringify(body, null, 2)}`);
+                        }
+                    } else {
+                        this.logger.debug(`Response: ${JSON.stringify(data)}`);
+                    }
                 }
             }),
         );

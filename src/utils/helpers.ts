@@ -53,4 +53,16 @@ export class Helpers {
         
         return message;
     }
-} 
+
+    static createResponse<T>(
+        success: boolean,
+        message: string,
+        data: T | null = null
+    ): DataResponse<T> {
+        return new DataResponse<T>({
+            success,
+            message,
+            data,
+        });
+    }
+}

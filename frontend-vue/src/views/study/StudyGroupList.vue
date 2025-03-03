@@ -1,42 +1,61 @@
 <template>
   <div class="study-list-container">
-    <div v-if="route.query.mainCategory" class="category-path">
-      <span class="main-category">{{ route.query.mainCategory }}</span>
-      <span v-if="route.query.subCategory" class="path-separator"> > </span>
-      <span v-if="route.query.subCategory" class="sub-category">{{ route.query.subCategory }}</span>
-    </div>
-    <div v-if="loading" class="loading">로딩 중...</div>
-    <div v-else-if="studyGroups && studyGroups.length > 0" class="study-groups">
-      <div v-for="studyGroup in studyGroups" :key="studyGroup.id" class="study-group-card"
-        @click="goToDetail(studyGroup.id)">
-        <h2 class="study-group-title">{{ studyGroup.name }}</h2>
-        <div class="study-group-meta">
-          <span class="category">{{ studyGroup.mainCategory }} >
-            {{ studyGroup.subCategory }} >
-            {{ studyGroup.detailCategory }}</span>
-          <span class="creator">작성자: {{ studyGroup.creator?.nickname }}</span>
-          <span class="members">참여 인원: {{ studyGroup.members?.length || 0 }}/{{
-            studyGroup.maxMembers
-            }}</span>
-          <span class="date">{{
-            formatDate(studyGroup.createdAt)
-            }}</span>
-        </div>
-        <p class="study-group-content">
-          {{ truncateContent(studyGroup?.description) }}
-        </p>
-      </div>
-    </div>
-    <div v-else class="no-results">검색 결과가 없습니다.</div>
+    <div class="page-container">
+      <div class="page-inner">
+        <div class="content-card">
+          <header class="page-header">
+            <h1>스터디 그룹 찾기</h1>
+            <div class="category-path">
+              <span v-if="mainCategory">{{ mainCategory }}</span>
+              <span v-if="mainCategory && subCategory" class="path-separator">></span>
+              <span v-if="subCategory">{{ subCategory }}</span>
+              <span v-if="(mainCategory || subCategory) && detailCategory" class="path-separator">></span>
+              <span v-if="detailCategory" class="detail-category">{{ detailCategory }}</span>
+            </div>
+          </header>
 
-    <div class="action-bar">
-      <div class="search-box">
-        <input type="text" v-model="searchQuery" placeholder="스터디 그룹 검색" @keyup.enter="search" />
-        <button @click="search" class="search-button">검색</button>
+          <main class="page-content">
+            <div v-if="route.query.mainCategory" class="category-path">
+              <span class="main-category">{{ route.query.mainCategory }}</span>
+              <span v-if="route.query.subCategory" class="path-separator"> > </span>
+              <span v-if="route.query.subCategory" class="sub-category">{{ route.query.subCategory }}</span>
+            </div>
+            <div v-if="loading" class="loading">로딩 중...</div>
+            <div v-else-if="studyGroups && studyGroups.length > 0" class="study-groups">
+              <div v-for="studyGroup in studyGroups" :key="studyGroup.id" class="study-group-card"
+                @click="goToDetail(studyGroup.id)">
+                <h2 class="study-group-title">{{ studyGroup.name }}</h2>
+                <div class="study-group-meta">
+                  <span class="category">{{ studyGroup.mainCategory }} >
+                    {{ studyGroup.subCategory }} >
+                    {{ studyGroup.detailCategory }}</span>
+                  <span class="creator">작성자: {{ studyGroup.creator?.nickname }}</span>
+                  <span class="members">참여 인원: {{ studyGroup.members?.length || 0 }}/{{
+                    studyGroup.maxMembers
+                    }}</span>
+                  <span class="date">{{
+                    formatDate(studyGroup.createdAt)
+                    }}</span>
+                </div>
+                <p class="study-group-content">
+                  {{ truncateContent(studyGroup?.description) }}
+                </p>
+              </div>
+            </div>
+            <div v-else class="no-results">검색 결과가 없습니다.</div>
+
+            <div class="action-bar">
+              <div class="search-box">
+                <input type="text" v-model="searchQuery" placeholder="스터디 그룹 검색" @keyup.enter="search" />
+                <button @click="search" class="search-button">검색</button>
+              </div>
+              <button @click="goToCreateStudyGroup" class="create-button">
+                스터디 만들기
+              </button>
+            </div>
+          </main>
+        </div>
       </div>
-      <button @click="createStudyGroup" class="create-button">
-        스터디 만들기
-      </button>
     </div>
   </div>
 </template>
@@ -47,6 +66,7 @@ import { useRoute, useRouter } from 'vue-router';
 import axios from '../../utils/axios';
 import { useUserStore } from '../../store/user';
 import type { Category } from '../../types/models';
+import { useAuthStore } from '../store/auth';
 
 // 사용자 인터페이스 정의
 interface User {
@@ -71,29 +91,42 @@ interface StudyGroup {
 const route = useRoute();
 const router = useRouter();
 const userStore = useUserStore();
+const authStore = useAuthStore();
 const studyGroups = ref<StudyGroup[]>([]);
 const searchQuery = ref('');
 const loading = ref(true);
 const categories = ref<Category[]>([]);
 
-// 현재 선택된 메인 카테고리
-const currentMainCategory = computed(() => route.query.mainCategory as string);
-// 현재 선택된 서브 카테고리
-const currentSubCategory = computed(() => route.query.subCategory as string);
+// 카테고리 정보
+const mainCategory = ref('');
+const subCategory = ref('');
+const detailCategory = ref('');
 
 // 스터디 그룹 목록 가져오기
 const fetchStudyGroups = async () => {
   loading.value = true;
   try {
-    const response = await axios.get('/study-groups');
-    studyGroups.value = response.data;
-  } catch (error: any) {
-    if (error.response?.status === 401 || error.response?.status === 403) {
-      alert('로그인이 필요합니다. 다시 로그인해주세요.');
-      await router.push('/login');
-    } else {
-      alert('스터디 그룹 목록을 불러오는데 실패했습니다.');
+    const params: any = { page: 1, limit: 9 }; // 페이지네이션 기본값 및 limit 상수화
+    if (mainCategory.value) {
+      params.mainCategory = mainCategory.value;
     }
+    if (subCategory.value) {
+      params.subCategory = subCategory.value;
+    }
+    if (detailCategory.value) {
+      params.detailCategory = detailCategory.value;
+    }
+
+    const response = await axios.get('/study-groups', { params });
+
+    if (response.data.success) {
+      studyGroups.value = response.data.data || [];
+      // totalItems, totalPages는 템플릿에서 직접 계산하거나 computed 속성으로 처리
+    }
+  } catch (error) {
+    console.error('스터디 그룹 목록 로드 실패:', error);
+    const errorMsg = error.response?.data?.message || '스터디 그룹 목록을 불러오는데 실패했습니다.';
+    alert(errorMsg);
   } finally {
     loading.value = false;
   }
@@ -106,13 +139,8 @@ const fetchCategories = async () => {
     categories.value = response.data;
     console.log('카테고리 데이터:', response.data);
   } catch (error: any) {
-    if (error.response?.status === 401 || error.response?.status === 403) {
-      alert('로그인이 필요합니다. 다시 로그인해주세요.');
-      await router.push('/login');
-    } else {
-      console.error('카테고리 조회 실패:', error);
-      alert('카테고리 정보를 불러오는데 실패했습니다.');
-    }
+    console.error('카테고리 조회 실패:', error);
+    alert('카테고리 정보를 불러오는데 실패했습니다.');
   }
 };
 
@@ -126,10 +154,10 @@ const goToDetail = (id: number) => {
 };
 
 // 스터디 그룹 생성 페이지로 이동
-const createStudyGroup = () => {
-  if (!userStore.isLoggedIn) {
-    alert('로그인이 필요한 서비스입니다.');
-    router.push('/login');
+const goToCreateStudyGroup = () => {
+  if (!authStore.isAuthenticated) {
+    alert('스터디 그룹 생성은 로그인이 필요합니다.');
+    router.push('/login?redirect=/study-groups/create');
     return;
   }
   router.push('/study-groups/create');
@@ -152,65 +180,62 @@ const search = () => {
   fetchStudyGroups();
 };
 
-// 세부 카테고리 선택
-const selectDetailCategory = (detailCategory: string) => {
-  router.push({
-    query: {
-      ...route.query,
-      detailCategory,
-    },
-  });
+// 세부 카테고리 선택 (더 이상 router.push 사용하지 않음)
+const selectDetailCategory = (selectedDetail: string) => {
+  detailCategory.value = selectedDetail;
+  fetchStudyGroups(); // API 호출을 통해 목록 업데이트
+};
+
+// 카테고리 선택 처리
+const handleCategoryClick = (selectedMain: string, selectedSub: string, selectedDetail: string) => {
+  mainCategory.value = selectedMain;
+  subCategory.value = selectedSub;
+  detailCategory.value = selectedDetail;
+  fetchStudyGroups(); // API 호출을 통해 목록 업데이트
 };
 
 // 컴포넌트가 마운트될 때 스터디 그룹 및 카테고리 목록 가져오기
 onMounted(() => {
   fetchStudyGroups();
   fetchCategories();
+  updateCategoryInfoFromRoute();
 });
 
-// 라우트 쿼리가 변경될 때마다 스터디 그룹 목록 새로 가져오기
+// route.query 감시 및 스터디 그룹 다시 로드 (페이지네이션, 검색, 카테고리 변경에 대응)
 watch(
   () => route.query,
   () => {
-    fetchStudyGroups();
+    updateCategoryInfoFromRoute(); // route 변경 시 카테고리 정보 업데이트
+    fetchStudyGroups(); // 변경된 쿼리에 따라 스터디 그룹 다시 로드
   },
-  { deep: true },
+  { deep: true }
 );
 
-// 스터디 그룹 목록이 변경될 때마다 카테고리 목록 새로 가져오기
+// studyGroups가 변경될 때 카테고리 다시 가져오기 (필요 없을 수 있음)
 watch(studyGroups, () => {
   fetchCategories();
 });
 
-// 현재 선택된 메인/서브 카테고리에 해당하는 카테고리만 필터링
-const filteredCategories = computed(() => {
-  return categories.value.filter(
-    (category) =>
-      category.name === currentMainCategory.value &&
-      category.subCategories.some(sub => sub.name === currentSubCategory.value),
-  );
-});
-
-// 카테고리 데이터가 변경될 때마다 로그 출력
+// 카테고리 데이터 변경 감시 (디버깅 용도, 실제 기능에는 불필요할 수 있음)
 watch(
   categories,
   (newCategories) => {
     console.log('Categories updated:', newCategories);
   },
-  { deep: true },
+  { deep: true }
 );
 
-// 스터디 그룹이나 카테고리가 변경될 때마다 카테고리 정보 새로 로드
-watch(
-  [studyGroups, route.query],
-  () => {
-    fetchCategories();
-  },
-  { deep: true },
-);
+// 카테고리 정보 업데이트 함수 (route.query 기반)
+const updateCategoryInfoFromRoute = () => {
+  mainCategory.value = route.query.mainCategory as string || '';
+  subCategory.value = route.query.subCategory as string || '';
+  detailCategory.value = route.query.detailCategory as string || '';
+};
 </script>
 
 <style scoped>
+@import '../../assets/styles/common.css';
+
 .study-list-container {
   max-width: 1200px;
   margin: 2rem auto;
@@ -407,5 +432,24 @@ watch(
 
 .category-item:hover .category-count {
   color: white;
+}
+
+/* 카테고리 경로 스타일 */
+.category-path {
+  display: flex;
+  align-items: center;
+  margin-top: 0.5rem;
+  font-size: 0.95rem;
+  color: var(--text-color-light);
+}
+
+.path-separator {
+  margin: 0 0.5rem;
+  color: var(--text-color-lighter);
+}
+
+.detail-category {
+  color: var(--primary-color);
+  font-weight: 500;
 }
 </style>

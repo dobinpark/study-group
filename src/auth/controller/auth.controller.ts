@@ -13,6 +13,7 @@ import {
     HttpStatus,
     InternalServerErrorException,
     Logger,
+    Session,
 } from '@nestjs/common';
 import { AuthService } from '../service/auth.service';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiCookieAuth } from '@nestjs/swagger';
@@ -24,6 +25,8 @@ import { AuthSignupDto } from '../dto/auth.signUp.dto';
 import { AuthLoginDto } from '../dto/auth.login.dto';
 import { AuthFindPasswordDto } from '../dto/auth.findPassword.dto';
 import { LocalAuthGuard } from '../guards/local-auth.guard';
+import { AuthGuard } from '../guards/authenticated.guard';
+import { CustomSession } from '../../types/session.types';
 
 @ApiTags('인증')
 @ApiCookieAuth()
@@ -421,5 +424,19 @@ export class AuthController {
                 message: '세션 갱신 실패'
             };
         }
+    }
+
+    @Post('extend-session')
+    @UseGuards(AuthGuard)
+    async extendSession(@Session() session: CustomSession): Promise<BaseResponse> {
+        // 세션 만료 시간 연장 (예: 1시간)
+        if (session.cookie) {
+            session.cookie.maxAge = 60 * 60 * 1000; // 1시간
+        }
+        
+        return {
+            success: true,
+            message: '세션이 연장되었습니다.'
+        };
     }
 }

@@ -5,9 +5,9 @@
         <div class="top-content">
           <div class="logo-container">
             <img alt="로고" class="logo" src="../assets/images/book.png" />
-            <router-link class="title-link" to="/">
+            <a href="#" class="title-link" @click.prevent="goHome">
               <span class="title">함공</span>
-            </router-link>
+            </a>
           </div>
           <div class="right-section">
             <div class="auth-container" :class="{ 'mobile-auth': isMobile }">
@@ -52,10 +52,10 @@
                     :key="groupIndex" class="sub-menu-column">
                     <ul>
                       <li v-for="subCategory in subCategoryGroup" :key="subCategory.name" class="sub-menu-item"
-                        @click="handleSubCategoryClick(category.name, subCategory.name)">
+                        @click.stop="handleSubCategoryClick(category.name, subCategory.name)">
                         {{ subCategory.name }}
                         <ul v-if="subCategory.items && subCategory.items.length > 0" class="detail-menu"
-                          :style="{ display: activeSubCategoryName === subCategory.name ? 'block' : 'none' }">
+                          :class="{ 'active': activeSubCategoryName === subCategory.name }">
                           <li v-for="item in subCategory.items" :key="item" class="detail-menu-item"
                             @click.stop="navigateToStudyList(subCategory.name, item)">
                             {{ item }}
@@ -682,15 +682,17 @@ const navigateToStudyList = (subCategory: string, item: string) => {
 
 // 서브 카테고리 클릭 시 이동
 const handleSubCategoryClick = (mainCategory: string, subCategory: string) => {
-  if (!mainCategory || !subCategory) return;
-
-  router.push({
-    path: '/study-groups',
-    query: {
-      mainCategory,
-      subCategory
-    }
-  });
+  console.log(`중분류 클릭: ${mainCategory} > ${subCategory}`);
+  
+  // 현재 활성화된 중분류가 클릭한 중분류와 같으면 비활성화, 아니면 활성화
+  if (activeSubCategoryName.value === subCategory) {
+    activeSubCategoryName.value = '';
+  } else {
+    activeSubCategoryName.value = subCategory;
+  }
+  
+  // 이벤트 전파 방지
+  event?.stopPropagation();
 };
 
 // 커뮤니티 카테고리 클릭 핸들러
@@ -719,6 +721,17 @@ const handleSupportClick = (category: string) => {
     case "1:1문의":
       router.push('/supports/categories/INQUIRY');
       break;
+  }
+};
+
+// 함공 로고 클릭 시 메인 페이지로 이동하면서 새로고침
+const goHome = () => {
+  // 현재 홈 페이지에 있다면 페이지 새로고침
+  if (router.currentRoute.value.path === '/') {
+    window.location.reload();
+  } else {
+    // 아니면 홈 페이지로 이동
+    router.push('/');
   }
 };
 
@@ -918,11 +931,36 @@ defineExpose({
   z-index: 11;
 }
 
+.detail-menu {
+  position: absolute;
+  left: 100%;
+  top: 0;
+  min-width: 200px;
+  background-color: #4a90e2;
+  border-radius: 0 8px 8px 0;
+  box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.1);
+  padding: 10px;
+  z-index: 15;
+  display: none;
+}
+
+.detail-menu.active {
+  display: block;
+}
+
+.sub-menu-item {
+  position: relative;
+}
+
+.sub-menu-item:hover > .detail-menu.active {
+  display: block;
+}
+
 .detail-menu-item {
-  padding: 10px 20px;
-  color: white;
+  padding: 8px 10px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
   cursor: pointer;
-  transition: background-color 0.3s ease;
 }
 
 .detail-menu-item:hover {
@@ -1091,6 +1129,20 @@ defineExpose({
   .nav-container {
     width: 100%;
     padding: 0 10px;
+  }
+  
+  .detail-menu {
+    position: static;
+    left: auto;
+    width: 100%;
+    margin-top: 5px;
+    margin-left: 15px;
+    box-shadow: none;
+    border-left: 2px solid #fff;
+  }
+  
+  .sub-menu-item {
+    flex-direction: column;
   }
 }
 </style>

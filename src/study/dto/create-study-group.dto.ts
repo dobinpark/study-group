@@ -1,4 +1,5 @@
-import { IsString, IsNumber, Min, Max, Length, IsNotEmpty } from 'class-validator';
+import { IsString, IsInt, IsBoolean, IsNotEmpty, Min, Max, Length, ValidateNested, IsObject, IsNumber } from 'class-validator';
+import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateStudyGroupDto {
@@ -58,4 +59,11 @@ export class CreateStudyGroupDto {
     @Min(2, { message: '최소 2명 이상이어야 합니다.' })
     @Max(100, { message: '최대 100명까지 가능합니다.' })
     maxMembers!: number;
+
+    @ApiProperty({
+        description: '온라인 여부',
+        example: true
+    })
+    @IsBoolean()
+    isOnline!: boolean;
 }

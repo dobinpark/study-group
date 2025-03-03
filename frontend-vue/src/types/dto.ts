@@ -13,9 +13,12 @@ export interface SignupDto {
 
 export interface CreateStudyGroupDto {
   name: string;
+  mainCategory: string;
+  subCategory: string;
+  detailCategory: string;
   description: string;
   maxMembers: number;
-  category: string;
+  isOnline: boolean;
 }
 
 export interface UpdateStudyGroupDto {

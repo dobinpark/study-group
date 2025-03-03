@@ -220,6 +220,8 @@ onMounted(() => {
 </script>
 
 <style scoped>
+@import '../../assets/styles/common.css';
+
 .edit-study-container {
   width: 100%;
   max-width: 1200px;

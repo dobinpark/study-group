@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import axios from '../utils/axios';
+import { AxiosError } from 'axios';
 import router from '../router';
 import { useUserStore } from './user';
 
@@ -134,4 +135,4 @@ export const useAuthStore = defineStore('auth', {
       }
     }
   }
-}); 
+});

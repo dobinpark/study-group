@@ -17,17 +17,21 @@ import { defineComponent, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useAuthStore } from './store/auth';
 import { useUserStore } from './store/user';
 import Header from './components/Header.vue';
-import { useRouter } from 'vue-router';
+import Footer from './components/Footer.vue';
+import { useRouter, useRoute } from 'vue-router';
+import axios from 'axios';
 
 export default defineComponent({
 	name: 'App',
 	components: {
 		Header,
+		Footer
 	},
 	setup() {
 		const authStore = useAuthStore();
 		const userStore = useUserStore();
 		const router = useRouter();
+		const route = useRoute();
 		const isLoading = computed(() => authStore.isLoading);
 
 		// 401 오류 처리를 위한 이벤트 리스너
@@ -49,9 +53,20 @@ export default defineComponent({
 				await authStore.checkSession();
 			}
 
-			// 401 오류 이벤트 리스너 등록
+			// 이벤트 리스너 등록
 			window.addEventListener('auth:unauthorized', handleUnauthorized);
 			window.addEventListener('auth:session-expired', handleSessionExpired);
+
+			// 5분마다 세션 연장
+			const extendSessionInterval = setInterval(async () => {
+				if (userStore.isLoggedIn) {
+					try {
+						await axios.post('/auth/extend-session');
+					} catch (error) {
+						console.warn('세션 연장 실패:', error);
+					}
+				}
+			}, 5 * 60 * 1000);
 		});
 
 		// 컴포넌트 언마운트 시 이벤트 리스너 제거
@@ -61,13 +76,15 @@ export default defineComponent({
 		});
 
 		return {
-			isLoading
+			isLoading,
 		};
 	}
 });
 </script>
 
 <style>
+@import './assets/styles/common.css';
+
 #app {
 	font-family: Avenir, Helvetica, Arial, sans-serif;
 	-webkit-font-smoothing: antialiased;

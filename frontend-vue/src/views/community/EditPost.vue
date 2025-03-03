@@ -47,6 +47,8 @@ const form = reactive({
   category: ''
 });
 
+const loading = ref(true);
+
 const fetchPost = async () => {
   try {
     const response = await axios.get(`/posts/${route.params.id}`);
@@ -58,6 +60,8 @@ const fetchPost = async () => {
   } catch (error: any) {
     alert('게시글을 불러올 수 없습니다');
     router.push('/posts');
+  } finally {
+    loading.value = false;
   }
 };
 
@@ -96,6 +100,8 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+@import '../../assets/styles/common.css';
+
 .error-message {
   color: #e53e3e;
   font-size: 0.875rem;

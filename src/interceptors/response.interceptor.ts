@@ -1,7 +1,8 @@
-import { Injectable, NestInterceptor, ExecutionContext, CallHandler, Logger } from '@nestjs/common';
+import { Injectable, NestInterceptor, ExecutionContext, CallHandler, Logger, HttpException, ArgumentsHost, ExceptionFilter, Catch } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { DataResponse, BaseResponse } from '../types/response.types';
+import { Request, Response } from 'express';
 
 @Injectable()
 export class TransformInterceptor<T> implements NestInterceptor<T, DataResponse<T> | BaseResponse> {
@@ -50,4 +51,25 @@ export class TransformInterceptor<T> implements NestInterceptor<T, DataResponse<
                 }),
             );
     }
+}
+
+@Catch(HttpException)
+export class HttpExceptionFilter implements ExceptionFilter {
+  catch(exception: HttpException, host: ArgumentsHost) {
+    const ctx = host.switchToHttp();
+    const response = ctx.getResponse<Response>();
+    const request = ctx.getRequest<Request>();
+    const status = exception.getStatus();
+    const exceptionResponse = exception.getResponse() as any;
+    
+    const errorResponse = {
+      success: false,
+      error: exceptionResponse.message || '오류가 발생했습니다',
+      statusCode: status,
+      timestamp: new Date().toISOString(),
+      path: request.url,
+    };
+    
+    response.status(status).json(errorResponse);
+  }
 }
