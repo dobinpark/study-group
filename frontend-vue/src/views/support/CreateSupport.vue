@@ -30,7 +30,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, computed } from 'vue';
+import { reactive, computed, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from '../../utils/axios';
 import { SupportCategoryKorean } from '../../types/models';
@@ -51,7 +51,30 @@ const categoryTitle = computed(() => {
   return SupportCategoryKorean[category] || '게시판';
 });
 
-// 단순 API 호출
+const errorMessage = ref('');
+
+const createSupport = async () => {
+  errorMessage.value = '';
+  if (!form.title.trim() || !form.content.trim()) {
+    errorMessage.value = '제목과 내용을 모두 입력해주세요.';
+    return;
+  }
+
+  try {
+    const response = await axios.post('/support', {
+      title: form.title,
+      content: form.content,
+    });
+    if (response.status === 201) {
+      alert('문의사항이 성공적으로 등록되었습니다.');
+      await router.push('/support/list');
+    }
+  } catch (error: any) {
+    errorMessage.value = '문의사항 등록에 실패했습니다.';
+    console.error(error);
+  }
+};
+
 const handleSubmit = async () => {
   try {
     const response = await axios.post('/supports', form);

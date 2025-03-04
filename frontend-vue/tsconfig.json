@@ -19,7 +19,7 @@
             "webpack-env"
         ],
         "paths": {
-            "@/*": ["src/*"]
+            "@/*": ["./src/*"]
         },
         "lib": ["esnext", "dom", "dom.iterable", "scripthost"]
     },

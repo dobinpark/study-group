@@ -32,10 +32,10 @@
                   <span class="creator">작성자: {{ studyGroup.creator?.nickname }}</span>
                   <span class="members">참여 인원: {{ studyGroup.members?.length || 0 }}/{{
                     studyGroup.maxMembers
-                    }}</span>
+                  }}</span>
                   <span class="date">{{
                     formatDate(studyGroup.createdAt)
-                    }}</span>
+                  }}</span>
                 </div>
                 <p class="study-group-content">
                   {{ truncateContent(studyGroup?.description) }}
@@ -96,17 +96,36 @@ const studyGroups = ref<StudyGroup[]>([]);
 const searchQuery = ref('');
 const loading = ref(true);
 const categories = ref<Category[]>([]);
+const totalPages = ref(1);
+const totalItems = ref(0);
 
-// 카테고리 정보
-const mainCategory = ref('');
-const subCategory = ref('');
-const detailCategory = ref('');
+// URI 쿼리 파라미터 처리
+const mainCategory = ref(route.query.mainCategory?.toString() || '');
+const subCategory = ref(route.query.subCategory?.toString() || '');
+const detailCategory = ref(route.query.detailCategory?.toString() || '');
+
+// 현재 선택된 메인 카테고리
+const currentMainCategory = computed(() => route.query.mainCategory as string);
+// 현재 선택된 서브 카테고리
+const currentSubCategory = computed(() => route.query.subCategory as string);
+
+// 쿼리 파라미터가 변경될 때 데이터 다시 불러오기
+watch(
+  [() => route.query.mainCategory, () => route.query.subCategory, () => route.query.detailCategory],
+  () => {
+    mainCategory.value = route.query.mainCategory?.toString() || '';
+    subCategory.value = route.query.subCategory?.toString() || '';
+    detailCategory.value = route.query.detailCategory?.toString() || '';
+    fetchStudyGroups(1); // 페이지 1부터 다시 불러오기
+  }
+);
 
 // 스터디 그룹 목록 가져오기
-const fetchStudyGroups = async () => {
+const fetchStudyGroups = async (page = 1) => {
   loading.value = true;
   try {
-    const params: any = { page: 1, limit: 9 }; // 페이지네이션 기본값 및 limit 상수화
+    const params: any = { page, limit: 9 };
+
     if (mainCategory.value) {
       params.mainCategory = mainCategory.value;
     }
@@ -121,11 +140,13 @@ const fetchStudyGroups = async () => {
 
     if (response.data.success) {
       studyGroups.value = response.data.data || [];
-      // totalItems, totalPages는 템플릿에서 직접 계산하거나 computed 속성으로 처리
+      totalItems.value = response.data.pagination?.total || 0;
+      totalPages.value = response.data.pagination?.totalPages || 1;
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('스터디 그룹 목록 로드 실패:', error);
-    const errorMsg = error instanceof Error ? error.message : '스터디 그룹 목록을 불러오는데 실패했습니다.';
+    // 오류 메시지 개선
+const errorMsg = (error as any).response?.data?.message || '스터디 그룹 목록을 불러오는데 실패했습니다.';
     alert(errorMsg);
   } finally {
     loading.value = false;
@@ -139,8 +160,13 @@ const fetchCategories = async () => {
     categories.value = response.data;
     console.log('카테고리 데이터:', response.data);
   } catch (error: any) {
-    console.error('카테고리 조회 실패:', error);
-    alert('카테고리 정보를 불러오는데 실패했습니다.');
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      alert('로그인이 필요합니다. 다시 로그인해주세요.');
+      await router.push('/login');
+    } else {
+      console.error('카테고리 조회 실패:', error);
+      alert('카테고리 정보를 불러오는데 실패했습니다.');
+    }
   }
 };
 
@@ -180,56 +206,65 @@ const search = () => {
   fetchStudyGroups();
 };
 
-// 세부 카테고리 선택 (더 이상 router.push 사용하지 않음)
-const selectDetailCategory = (selectedDetail: string) => {
-  detailCategory.value = selectedDetail;
-  fetchStudyGroups(); // API 호출을 통해 목록 업데이트
+// 세부 카테고리 선택
+const selectDetailCategory = (detailCategory: string) => {
+  router.push({
+    query: {
+      ...route.query,
+      detailCategory,
+    },
+  });
 };
 
-// 카테고리 선택 처리
-const handleCategoryClick = (selectedMain: string, selectedSub: string, selectedDetail: string) => {
-  mainCategory.value = selectedMain;
-  subCategory.value = selectedSub;
-  detailCategory.value = selectedDetail;
-  fetchStudyGroups(); // API 호출을 통해 목록 업데이트
-};
-
-// 컴포넌트가 마운트될 때 스터디 그룹 및 카테고리 목록 가져오기
+// 페이지 로드 시 데이터 가져오기
 onMounted(() => {
   fetchStudyGroups();
   fetchCategories();
-  updateCategoryInfoFromRoute();
+  updateCategoryInfo();
 });
 
-// route.query 감시 및 스터디 그룹 다시 로드 (페이지네이션, 검색, 카테고리 변경에 대응)
+// 스터디 그룹이나 카테고리가 변경될 때마다 카테고리 정보 새로 로드
 watch(
-  () => route.query,
+  [studyGroups, route.query],
   () => {
-    updateCategoryInfoFromRoute(); // route 변경 시 카테고리 정보 업데이트
-    fetchStudyGroups(); // 변경된 쿼리에 따라 스터디 그룹 다시 로드
+    fetchCategories();
   },
-  { deep: true }
+  { deep: true },
 );
 
-// studyGroups가 변경될 때 카테고리 다시 가져오기 (필요 없을 수 있음)
-watch(studyGroups, () => {
-  fetchCategories();
-});
-
-// 카테고리 데이터 변경 감시 (디버깅 용도, 실제 기능에는 불필요할 수 있음)
+// 카테고리 데이터가 변경될 때마다 로그 출력
 watch(
   categories,
   (newCategories) => {
     console.log('Categories updated:', newCategories);
   },
-  { deep: true }
+  { deep: true },
 );
 
-// 카테고리 정보 업데이트 함수 (route.query 기반)
-const updateCategoryInfoFromRoute = () => {
+// 스터디 그룹이나 카테고리가 변경될 때마다 카테고리 정보 새로 로드
+watch(
+  [studyGroups, route.query],
+  () => {
+    fetchCategories();
+  },
+  { deep: true },
+);
+
+// 쿼리 파라미터에서 카테고리 정보 추출 함수
+const updateCategoryInfo = () => {
   mainCategory.value = route.query.mainCategory as string || '';
   subCategory.value = route.query.subCategory as string || '';
   detailCategory.value = route.query.detailCategory as string || '';
+};
+
+// 카테고리 선택 처리 부분
+const handleCategoryClick = (main: string, sub: string, detail: string) => {
+  mainCategory.value = main;
+  subCategory.value = sub;
+  detailCategory.value = detail;
+
+  // 필터링된 스터디 그룹 목록 가져오기
+  fetchStudyGroups();
 };
 </script>
 

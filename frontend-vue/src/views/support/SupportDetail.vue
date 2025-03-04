@@ -50,6 +50,9 @@
   import { useUserStore } from '../../store/user';
   import axios from '../../utils/axios';
   import { SupportCategoryKorean } from '../../types/models';
+  import dayjs from 'dayjs';
+  import 'dayjs/locale/ko';
+  dayjs.locale('ko');
   
   // 게시글 타입 정의
   interface Post {
@@ -72,6 +75,10 @@
   
   const post = ref<Post | null>(null);
   const loading = ref(true);
+  const supportId = ref(route.params.id as string);
+  const support = ref(null);
+  const isLoading = ref(true);
+  const errorMessage = ref('');
   
   // 카테고리 제목 계산
   const categoryTitle = computed(() => {
@@ -130,7 +137,28 @@
   
   const goBack = () => router.push('/supports');
   
-  onMounted(fetchPost);
+  const fetchSupport = async () => {
+    isLoading.value = true;
+    errorMessage.value = '';
+    try {
+      const response = await axios.get(`/support/${supportId.value}`); // 백엔드 API 엔드포인트 (frontend-vue proxy 설정 확인 필요)
+      if (response.status === 200) {
+        support.value = response.data;
+      } else {
+        errorMessage.value = '문의사항 정보를 불러올 수 없습니다.';
+      }
+    } catch (error: any) {
+      console.error('문의사항 정보 불러오기 오류', error);
+      errorMessage.value = '문의사항 정보를 불러오는 중 오류가 발생했습니다.';
+    } finally {
+      isLoading.value = false;
+    }
+  };
+  
+  onMounted(async () => {
+    await fetchPost();
+    await fetchSupport();
+  });
   </script>
   
   <style scoped>

@@ -85,11 +85,15 @@ import { useRouter } from 'vue-router';
 import axios from '../../utils/axios';
 import { isAxiosError } from 'axios';
 import type { StudyGroup } from '../../types/models';
+import dayjs from 'dayjs';
+import 'dayjs/locale/ko';
+dayjs.locale('ko');
 
 const router = useRouter();
 const createdStudies = ref<StudyGroup[]>([]);
 const joinedStudies = ref<StudyGroup[]>([]);
 const loading = ref(true);
+const errorMessage = ref('');
 
 // 인터페이스 직접 정의
 interface StudyGroupResponse {

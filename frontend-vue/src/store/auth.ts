@@ -33,13 +33,14 @@ export const useAuthStore = defineStore('auth', {
         
         if (response.data.success) {
           this.isAuthenticated = true;
-          
+
           // 사용자 정보가 있으면 userStore에 설정
           if (response.data.data?.user) {
             const userStore = useUserStore();
             userStore.setUser(response.data.data.user);
           }
         } else {
+          this.sessionChecked = true;
           this.isAuthenticated = false;
         }
       } catch (error) {
@@ -86,7 +87,7 @@ export const useAuthStore = defineStore('auth', {
         userStore.clearUser();
         
         // 로그아웃 후 홈으로 이동
-        router.push('/');
+        await router.push('/');
       } catch (error) {
         console.error('로그아웃 오류:', error);
       } finally {

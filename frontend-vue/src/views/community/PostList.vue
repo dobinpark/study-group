@@ -66,10 +66,12 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import axios from '../../utils/axios';
 import { useUserStore } from '../../store/user';
-import { useAuthStore } from '../../store/auth';
+import dayjs from 'dayjs';
+import 'dayjs/locale/ko';
+dayjs.locale('ko');
 
 // 게시글 타입 정의 수정 - 백엔드 응답 구조에 맞게 조정
 interface Post {
@@ -88,77 +90,56 @@ interface Post {
   category?: string;
 }
 
-const route = useRoute();
 const router = useRouter();
+const route = useRoute();
 const userStore = useUserStore();
-const authStore = useAuthStore();
 const posts = ref<Post[]>([]);
 const loading = ref(true);
 const page = ref(1);
 const totalPages = ref(1);
 const searchQuery = ref('');
+const category = ref(route.params.category as string || 'free');
+const errorMessage = ref('');
+const currentPage = ref(1);
+const pageSize = 10;
 
 const categoryTitle = computed(() => {
-  const category = String(route.query.category || 'FREE');
   const titles = {
     FREE: '자유게시판',
     QUESTION: '질문게시판',
     SUGGESTION: '건의게시판'
   } as const;
 
-  return titles[category as keyof typeof titles] || '게시판';
+  return titles[category.value as keyof typeof titles] || '게시판';
+});
+
+watch(() => route.params.category, (newCategory) => {
+  category.value = newCategory || 'free';
+  currentPage.value = 1;
+  fetchPosts();
 });
 
 const fetchPosts = async () => {
   loading.value = true;
+  errorMessage.value = '';
   try {
-    const category = route.query.category || 'FREE';
-    console.log('게시글 불러오기 시작 - 카테고리:', category);
-
-    const response = await axios.get('/posts', {
+    const response = await axios.get(`/posts`, { // 백엔드 API 엔드포인트 (frontend-vue proxy 설정 확인 필요)
       params: {
-        category: category,
-        page: Number(page.value),
-        limit: 10,
-        search: searchQuery.value || undefined
-      }
+        category: category.value,
+        page: currentPage.value,
+        size: pageSize,
+        searchKeyword: searchQuery.value,
+      },
     });
-
-    console.log('API 응답:', response.data);
-
-    // 데이터 구조 확인 및 안전하게 접근
-    if (response.data.success) {
-      // 응답 데이터 구조에 따라 조정 (배열 또는 페이지네이션 객체)
-      if (Array.isArray(response.data.data)) {
-        posts.value = response.data.data;
-        totalPages.value = 1;
-      } else if (response.data.data?.items) {
-        posts.value = response.data.data.items;
-        totalPages.value = Math.ceil((response.data.data.total || posts.value.length) / 10);
-      } else if (response.data.data) {
-        posts.value = [response.data.data];
-        totalPages.value = 1;
-      } else {
-        posts.value = [];
-        totalPages.value = 0;
-      }
-
-      // 게시글 번호 추가
-      posts.value = posts.value.map((post, index) => ({
-        ...post,
-        displayNumber: post.displayNumber || (page.value - 1) * 10 + index + 1
-      }));
-
-      console.log('처리된 게시글 데이터:', posts.value);
+    if (response.status === 200) {
+      posts.value = response.data.content;
+      totalPages.value = response.data.totalPages;
     } else {
-      console.warn('API 응답 성공 상태가 false:', response.data);
-      posts.value = [];
-      totalPages.value = 0;
+      errorMessage.value = '게시글 목록을 불러올 수 없습니다.';
     }
-  } catch (error) {
-    console.error('게시글 목록 불러오기 오류:', error);
-    posts.value = [];
-    totalPages.value = 0;
+  } catch (error: any) {
+    console.error('게시글 목록 불러오기 오류', error);
+    errorMessage.value = '게시글 목록을 불러오는 중 오류가 발생했습니다.';
   } finally {
     loading.value = false;
   }
@@ -167,12 +148,12 @@ const fetchPosts = async () => {
 const formatDate = (date: string) => new Date(date).toLocaleDateString();
 
 const search = () => {
-  page.value = 1;
+  currentPage.value = 1;
   fetchPosts();
 };
 
 const changePage = (newPage: number) => {
-  page.value = newPage;
+  currentPage.value = newPage;
   fetchPosts();
 };
 
@@ -185,16 +166,9 @@ const createPost = () => {
 
 const viewPost = (id: number) => router.push(`/posts/${id}`);
 
-// 라우트 변경 감지하여 게시글 다시 불러오기
-watch(
-  () => route.query.category,
-  () => {
-    page.value = 1;
-    fetchPosts();
-  }
-);
-
-onMounted(fetchPosts);
+onMounted(() => {
+  fetchPosts();
+});
 </script>
 
 <style scoped>

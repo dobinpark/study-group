@@ -13,7 +13,10 @@
             <div class="auth-container" :class="{ 'mobile-auth': isMobile }">
               <template v-if="isLoggedIn && currentUser">
                 <span class="welcome-text">
-                  {{ currentUser?.nickname || currentUser?.username }}님 환영합니다!
+                  {{
+                    currentUser?.nickname ||
+                    currentUser?.username
+                  }}님 환영합니다!
                 </span>
                 <div class="nav-buttons" :class="{ 'mobile-nav-buttons': isMobile }">
                   <router-link class="nav-button" to="/my-studies">
@@ -24,7 +27,11 @@
                   </router-link>
                 </div>
                 <button class="logout-button" @click="handleLogout" :disabled="isLoggingOut">
-                  {{ isLoggingOut ? '로그아웃 중...' : '로그아웃' }}
+                  {{
+                    isLoggingOut
+                      ? '로그아웃 중...'
+                      : '로그아웃'
+                  }}
                 </button>
               </template>
               <template v-else>
@@ -48,16 +55,36 @@
                 :class="{ 'mobile-menu-item': isMobile }">
                 {{ category.name }}
                 <ul class="sub-menu multi-column">
-                  <li v-for="(subCategoryGroup, groupIndex) in chunkSubCategories(category.subCategories, 10)"
-                    :key="groupIndex" class="sub-menu-column">
+                  <li v-for="(
+subCategoryGroup, groupIndex
+                                        ) in chunkSubCategories(
+                                              category.subCategories,
+                                              10,
+                                            )" :key="groupIndex" class="sub-menu-column">
                     <ul>
-                      <li v-for="subCategory in subCategoryGroup" :key="subCategory.name" class="sub-menu-item"
-                        @click.stop="handleSubCategoryClick(category.name, subCategory.name)">
+                      <li v-for="subCategory in subCategoryGroup" :key="subCategory.name" class="sub-menu-item" @click="
+                        handleSubCategoryClick(
+                          category.name,
+                          subCategory.name,
+                        )
+                        ">
                         {{ subCategory.name }}
-                        <ul v-if="subCategory.items && subCategory.items.length > 0" class="detail-menu"
-                          :class="{ 'active': activeSubCategoryName === subCategory.name }">
-                          <li v-for="item in subCategory.items" :key="item" class="detail-menu-item"
-                            @click.stop="navigateToStudyList(subCategory.name, item)">
+                        <ul v-if="
+                          subCategory.items &&
+                          subCategory.items
+                            .length > 0
+                        " class="detail-menu" :class="{
+                                                      active:
+                                                        activeSubCategoryName ===
+                                                        subCategory.name,
+                                                    }">
+                          <li v-for="item in subCategory.items" :key="item" class="detail-menu-item" @click.stop="
+                            navigateToStudyList(
+                              category.name,
+                              subCategory.name,
+                              item
+                            )
+                            ">
                             {{ item }}
                           </li>
                         </ul>
@@ -71,8 +98,11 @@
                 <ul class="sub-menu">
                   <li class="sub-menu-column">
                     <ul>
-                      <li v-for="category in communityCategories" :key="category.name" class="sub-menu-item"
-                        @click="handleCommunityClick(category.name)">
+                      <li v-for="category in communityCategories" :key="category.name" class="sub-menu-item" @click="
+                        handleCommunityClick(
+                          category.name,
+                        )
+                        ">
                         {{ category.name }}
                       </li>
                     </ul>
@@ -84,8 +114,11 @@
                 <ul class="sub-menu">
                   <li class="sub-menu-column">
                     <ul>
-                      <li v-for="category in supportCategories" :key="category.name" class="sub-menu-item"
-                        @click="handleSupportClick(category.name)">
+                      <li v-for="category in supportCategories" :key="category.name" class="sub-menu-item" @click="
+                        handleSupportClick(
+                          category.name,
+                        )
+                        ">
                         {{ category.name }}
                       </li>
                     </ul>
@@ -107,6 +140,7 @@ import { useAuthStore } from '../store/auth';
 import { useUserStore } from '../store/user';
 import { useRouter } from 'vue-router';
 import type { Category, SubCategory } from '../types/models';
+import axios from '../utils/axios';
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -129,512 +163,458 @@ const activeSubCategoryName = ref('');
 const categories = ref<Category[]>([
   {
     id: 1,
-    "name": "지역별",
-    "subCategories": [
+    name: '지역별',
+    subCategories: [
       {
-        "name": "서울",
-        "items": [
-          "전체",
-          "강남구",
-          "강동구",
-          "강북구",
-          "강서구",
-          "관악구",
-          "광진구",
-          "구로구",
-          "금천구",
-          "노원구",
-          "도봉구",
-          "동대문구",
-          "동작구",
-          "마포구",
-          "서대문구",
-          "서초구",
-          "성동구",
-          "성북구",
-          "송파구",
-          "양천구",
-          "영등포구",
-          "용산구",
-          "은평구",
-          "종로구",
-          "중구",
-          "중랑구"
-        ]
+        name: '서울',
+        items: [
+          '전체',
+          '강남구',
+          '강동구',
+          '강북구',
+          '강서구',
+          '관악구',
+          '광진구',
+          '구로구',
+          '금천구',
+          '노원구',
+          '도봉구',
+          '동대문구',
+          '동작구',
+          '마포구',
+          '서대문구',
+          '서초구',
+          '성동구',
+          '성북구',
+          '송파구',
+          '양천구',
+          '영등포구',
+          '용산구',
+          '은평구',
+          '종로구',
+          '중구',
+          '중랑구',
+        ],
       },
       {
-        "name": "인천",
-        "items": [
-          "전체",
-          "강화군",
-          "계양구",
-          "남동구",
-          "동구",
-          "미추홀구",
-          "부평구",
-          "서구",
-          "연수구",
-          "옹진군",
-          "중구"
-        ]
+        name: '인천',
+        items: [
+          '전체',
+          '강화군',
+          '계양구',
+          '남동구',
+          '동구',
+          '미추홀구',
+          '부평구',
+          '서구',
+          '연수구',
+          '옹진군',
+          '중구',
+        ],
       },
       {
-        "name": "부산",
-        "items": [
-          "전체",
-          "강서구",
-          "금정구",
-          "기장군",
-          "남구",
-          "동구",
-          "동래구",
-          "부산진구",
-          "북구",
-          "사상구",
-          "사하구",
-          "서구",
-          "수영구",
-          "연제구",
-          "영도구",
-          "중구",
-          "해운대구"
-        ]
+        name: '부산',
+        items: [
+          '전체',
+          '강서구',
+          '금정구',
+          '기장군',
+          '남구',
+          '동구',
+          '동래구',
+          '부산진구',
+          '북구',
+          '사상구',
+          '사하구',
+          '서구',
+          '수영구',
+          '연제구',
+          '영도구',
+          '중구',
+          '해운대구',
+        ],
       },
       {
-        "name": "대구",
-        "items": [
-          "전체",
-          "군위군",
-          "남구",
-          "달서구",
-          "달성군",
-          "동구",
-          "북구",
-          "서구",
-          "수성구",
-          "중구"
-        ]
+        name: '대구',
+        items: [
+          '전체',
+          '군위군',
+          '남구',
+          '달서구',
+          '달성군',
+          '동구',
+          '북구',
+          '서구',
+          '수성구',
+          '중구',
+        ],
       },
       {
-        "name": "광주",
-        "items": [
-          "전체",
-          "광산구",
-          "남구",
-          "동구",
-          "북구",
-          "서구"
-        ]
+        name: '광주',
+        items: ['전체', '광산구', '남구', '동구', '북구', '서구'],
       },
       {
-        "name": "대전",
-        "items": [
-          "전체",
-          "대덕구",
-          "동구",
-          "서구",
-          "유성구",
-          "중구"
-        ]
+        name: '대전',
+        items: ['전체', '대덕구', '동구', '서구', '유성구', '중구'],
       },
       {
-        "name": "울산",
-        "items": [
-          "전체",
-          "남구",
-          "동구",
-          "북구",
-          "울주군",
-          "중구"
-        ]
+        name: '울산',
+        items: ['전체', '남구', '동구', '북구', '울주군', '중구'],
       },
       {
-        "name": "경기",
-        "items": [
-          "전체",
-          "고양시 덕양구",
-          "고양시 일산동구",
-          "고양시 일산서구",
-          "과천시",
-          "광명시",
-          "광주시",
-          "구리시",
-          "군포시",
-          "김포시",
-          "남양주시",
-          "동두천시",
-          "부천시",
-          "성남시 분당구",
-          "성남시 수정구",
-          "성남시 중원구",
-          "수원시 권선구",
-          "수원시 장안구",
-          "수원시 팔달구",
-          "수원시 영통구",
-          "시흥시",
-          "안산시 단원구",
-          "안산시 상록구",
-          "안성시",
-          "안양시 동안구",
-          "안양시 만안구",
-          "양주시",
-          "양평군",
-          "여주시",
-          "연천군",
-          "오산시",
-          "용인시 기흥구",
-          "용인시 수지구",
-          "용인시 처인구",
-          "의왕시",
-          "의정부시",
-          "이천시",
-          "파주시",
-          "평택시",
-          "포천시",
-          "하남시",
-          "화성시"
-        ]
+        name: '경기',
+        items: [
+          '전체',
+          '고양시 덕양구',
+          '고양시 일산동구',
+          '고양시 일산서구',
+          '과천시',
+          '광명시',
+          '광주시',
+          '구리시',
+          '군포시',
+          '김포시',
+          '남양주시',
+          '동두천시',
+          '부천시',
+          '성남시 분당구',
+          '성남시 수정구',
+          '성남시 중원구',
+          '수원시 권선구',
+          '수원시 장안구',
+          '수원시 팔달구',
+          '수원시 영통구',
+          '시흥시',
+          '안산시 단원구',
+          '안산시 상록구',
+          '안성시',
+          '안양시 동안구',
+          '안양시 만안구',
+          '양주시',
+          '양평군',
+          '여주시',
+          '연천군',
+          '오산시',
+          '용인시 기흥구',
+          '용인시 수지구',
+          '용인시 처인구',
+          '의왕시',
+          '의정부시',
+          '이천시',
+          '파주시',
+          '평택시',
+          '포천시',
+          '하남시',
+          '화성시',
+        ],
       },
       {
-        "name": "세종",
-        "items": [
-          "전체"
-        ]
+        name: '세종',
+        items: ['전체'],
       },
       {
-        "name": "충남",
-        "items": [
-          "전체",
-          "공주시",
-          "금산군",
-          "논산시",
-          "당진시",
-          "보령시",
-          "부여군",
-          "서산시",
-          "서천군",
-          "아산시",
-          "예산군",
-          "천안시 동남구",
-          "천안시 서북구",
-          "청양군",
-          "태안군",
-          "홍성군",
-          "계룡시"
-        ]
+        name: '충남',
+        items: [
+          '전체',
+          '공주시',
+          '금산군',
+          '논산시',
+          '당진시',
+          '보령시',
+          '부여군',
+          '서산시',
+          '서천군',
+          '아산시',
+          '예산군',
+          '천안시 동남구',
+          '천안시 서북구',
+          '청양군',
+          '태안군',
+          '홍성군',
+          '계룡시',
+        ],
       },
       {
-        "name": "충북",
-        "items": [
-          "전체",
-          "괴산군",
-          "단양군",
-          "보은군",
-          "영동군",
-          "옥천군",
-          "음성군",
-          "제천시",
-          "진천군",
-          "청주시 청원구",
-          "청주시 상당구",
-          "청주시 서원구",
-          "청주시 흥덕구",
-          "충주시",
-          "증평군"
-        ]
+        name: '충북',
+        items: [
+          '전체',
+          '괴산군',
+          '단양군',
+          '보은군',
+          '영동군',
+          '옥천군',
+          '음성군',
+          '제천시',
+          '진천군',
+          '청주시 청원구',
+          '청주시 상당구',
+          '청주시 서원구',
+          '청주시 흥덕구',
+          '충주시',
+          '증평군',
+        ],
       },
       {
-        "name": "경남",
-        "items": [
-          "전체",
-          "거제시",
-          "거창군",
-          "고성군",
-          "김해시",
-          "남해군",
-          "밀양시",
-          "사천시",
-          "산청군",
-          "양산시",
-          "의령군",
-          "진주시",
-          "창녕군",
-          "창원시 마산함포구",
-          "창원시 마산회원구",
-          "창원시 성산구",
-          "창원시 의창구",
-          "창원시 진해구",
-          "통영시",
-          "하동군",
-          "함안군",
-          "함양군",
-          "합천군"
-        ]
+        name: '경남',
+        items: [
+          '전체',
+          '거제시',
+          '거창군',
+          '고성군',
+          '김해시',
+          '남해군',
+          '밀양시',
+          '사천시',
+          '산청군',
+          '양산시',
+          '의령군',
+          '진주시',
+          '창녕군',
+          '창원시 마산함포구',
+          '창원시 마산회원구',
+          '창원시 성산구',
+          '창원시 의창구',
+          '창원시 진해구',
+          '통영시',
+          '하동군',
+          '함안군',
+          '함양군',
+          '합천군',
+        ],
       },
       {
-        "name": "경북",
-        "items": [
-          "전체",
-          "경산시",
-          "경주시",
-          "고령군",
-          "구미시",
-          "김천시",
-          "문경시",
-          "봉화군",
-          "상주시",
-          "성주군",
-          "안동시",
-          "영덕군",
-          "영양군",
-          "영주시",
-          "영천시",
-          "예천군",
-          "울릉군",
-          "울진군",
-          "의성군",
-          "청도군",
-          "청송군",
-          "칠곡군",
-          "포항시 남구",
-          "포항시 북구"
-        ]
+        name: '경북',
+        items: [
+          '전체',
+          '경산시',
+          '경주시',
+          '고령군',
+          '구미시',
+          '김천시',
+          '문경시',
+          '봉화군',
+          '상주시',
+          '성주군',
+          '안동시',
+          '영덕군',
+          '영양군',
+          '영주시',
+          '영천시',
+          '예천군',
+          '울릉군',
+          '울진군',
+          '의성군',
+          '청도군',
+          '청송군',
+          '칠곡군',
+          '포항시 남구',
+          '포항시 북구',
+        ],
       },
       {
-        "name": "전남",
-        "items": [
-          "전체",
-          "강진군",
-          "고흥군",
-          "곡성군",
-          "광양시",
-          "구례군",
-          "나주시",
-          "담양군",
-          "목포시",
-          "무안군",
-          "보성군",
-          "순천시",
-          "신안군",
-          "여수시",
-          "영광군",
-          "영암군",
-          "완도군",
-          "장성군",
-          "장흥군",
-          "진도군",
-          "함평군",
-          "해남군",
-          "화순군"
-        ]
+        name: '전남',
+        items: [
+          '전체',
+          '강진군',
+          '고흥군',
+          '곡성군',
+          '광양시',
+          '구례군',
+          '나주시',
+          '담양군',
+          '목포시',
+          '무안군',
+          '보성군',
+          '순천시',
+          '신안군',
+          '여수시',
+          '영광군',
+          '영암군',
+          '완도군',
+          '장성군',
+          '장흥군',
+          '진도군',
+          '함평군',
+          '해남군',
+          '화순군',
+        ],
       },
       {
-        "name": "전북",
-        "items": [
-          "전체",
-          "고창군",
-          "군산시",
-          "김제시",
-          "남원시",
-          "무주군",
-          "부안군",
-          "순창군",
-          "완주군",
-          "익산시",
-          "임실군",
-          "장수군",
-          "전주시",
-          "정읍시",
-          "진안군"
-        ]
+        name: '전북',
+        items: [
+          '전체',
+          '고창군',
+          '군산시',
+          '김제시',
+          '남원시',
+          '무주군',
+          '부안군',
+          '순창군',
+          '완주군',
+          '익산시',
+          '임실군',
+          '장수군',
+          '전주시',
+          '정읍시',
+          '진안군',
+        ],
       },
       {
-        "name": "강원",
-        "items": [
-          "전체",
-          "강릉시",
-          "고성군",
-          "동해시",
-          "삼척시",
-          "속초시",
-          "양구군",
-          "양양군",
-          "영월군",
-          "원주시",
-          "인제군",
-          "정선군",
-          "철원군",
-          "춘천시",
-          "태백시",
-          "평창군",
-          "홍천군",
-          "화천군",
-          "횡성군"
-        ]
+        name: '강원',
+        items: [
+          '전체',
+          '강릉시',
+          '고성군',
+          '동해시',
+          '삼척시',
+          '속초시',
+          '양구군',
+          '양양군',
+          '영월군',
+          '원주시',
+          '인제군',
+          '정선군',
+          '철원군',
+          '춘천시',
+          '태백시',
+          '평창군',
+          '홍천군',
+          '화천군',
+          '횡성군',
+        ],
       },
       {
-        "name": "제주",
-        "items": [
-          "전체",
-          "서귀포시",
-          "제주시"
-        ]
-      }
-    ]
+        name: '제주',
+        items: ['전체', '서귀포시', '제주시'],
+      },
+    ],
   },
   {
     id: 2,
-    "name": "학습자별",
-    "subCategories": [
+    name: '학습자별',
+    subCategories: [
       {
-        "name": "중등",
-        "items": [
-          "전체",
-          "1학년",
-          "2학년",
-          "3학년"
-        ]
+        name: '중등',
+        items: ['전체', '1학년', '2학년', '3학년'],
       },
       {
-        "name": "고등",
-        "items": [
-          "전체",
-          "1학년",
-          "2학년",
-          "3학년"
-        ]
+        name: '고등',
+        items: ['전체', '1학년', '2학년', '3학년'],
       },
       {
-        "name": "대학/청년",
-        "items": [
-          "대학생",
-          "청년"
-        ]
+        name: '대학/청년',
+        items: ['대학생', '청년'],
       },
       {
-        "name": "취업준비/수험",
-        "items": [
-          "취업준비생",
-          "수험생"
-        ]
+        name: '취업준비/수험',
+        items: ['취업준비생', '수험생'],
       },
       {
-        "name": "경력/이직",
-        "items": [
-          "경력",
-          "이직"
-        ]
+        name: '경력/이직',
+        items: ['경력', '이직'],
       },
       {
-        "name": "취미/자기계발",
-        "items": [
-          "취미",
-          "자기계발"
-        ]
-      }
-    ]
+        name: '취미/자기계발',
+        items: ['취미', '자기계발'],
+      },
+    ],
   },
   {
     id: 3,
-    "name": "전공별",
-    "subCategories": [
+    name: '전공별',
+    subCategories: [
       {
-        "name": "인문계열",
-        "items": [
-          "전체",
-          "철학",
-          "역사학",
-          "문학",
-          "언어학",
-          "종교학",
-          "고고학",
-          "예술학",
-          "문화학"
-        ]
+        name: '인문계열',
+        items: [
+          '전체',
+          '철학',
+          '역사학',
+          '문학',
+          '언어학',
+          '종교학',
+          '고고학',
+          '예술학',
+          '문화학',
+        ],
       },
       {
-        "name": "사회과학계열",
-        "items": [
-          "전체",
-          "경제학",
-          "사회학",
-          "심리학",
-          "교육학",
-          "인류학",
-          "행정학",
-          "법학",
-          "언론/미디어학"
-        ]
+        name: '사회과학계열',
+        items: [
+          '전체',
+          '경제학',
+          '사회학',
+          '심리학',
+          '교육학',
+          '인류학',
+          '행정학',
+          '법학',
+          '언론/미디어학',
+        ],
       },
       {
-        "name": "자연과학계열",
-        "items": [
-          "전체",
-          "수학",
-          "물리학",
-          "화학",
-          "생물학",
-          "지구과학",
-          "통계학"
-        ]
+        name: '자연과학계열',
+        items: [
+          '전체',
+          '수학',
+          '물리학',
+          '화학',
+          '생물학',
+          '지구과학',
+          '통계학',
+        ],
       },
       {
-        "name": "공학계열",
-        "items": [
-          "전체",
-          "기계공학",
-          "전기전자공학",
-          "컴퓨터공학",
-          "화학공학",
-          "토목공학",
-          "건축학",
-          "로봇공학"
-        ]
+        name: '공학계열',
+        items: [
+          '전체',
+          '기계공학',
+          '전기전자공학',
+          '컴퓨터공학',
+          '화학공학',
+          '토목공학',
+          '건축학',
+          '로봇공학',
+        ],
       },
       {
-        "name": "의학/보건학계열",
-        "items": [
-          "전체",
-          "의학",
-          "치의학",
-          "약학",
-          "간호학",
-          "수의학",
-          "보건학"
-        ]
+        name: '의학/보건학계열',
+        items: [
+          '전체',
+          '의학',
+          '치의학',
+          '약학',
+          '간호학',
+          '수의학',
+          '보건학',
+        ],
       },
       {
-        "name": "예체능계열",
-        "items": [
-          "전체",
-          "음악",
-          "미술",
-          "영화",
-          "연극",
-          "무용",
-          "체육"
-        ]
-      }
-    ]
-  }
+        name: '예체능계열',
+        items: ['전체', '음악', '미술', '영화', '연극', '무용', '체육'],
+      },
+    ],
+  },
 ]);
 
 // 커뮤니티 카테고리 분리
 const communityCategories = ref<SubCategory[]>([
-  { name: "자유게시판" },
-  { name: "질문게시판" },
-  { name: "건의게시판" }
+  { name: '자유게시판' },
+  { name: '질문게시판' },
+  { name: '건의게시판' },
 ]);
 
 // 고객센터 카테고리 분리
 const supportCategories = ref<SubCategory[]>([
-  { name: "공지사항" },
-  { name: "자주묻는질문" },
-  { name: "1:1문의" }
+  { name: '공지사항' },
+  { name: '자주묻는질문' },
+  { name: '1:1문의' },
 ]);
 
 // 카테고리 청크 분할
-const chunkSubCategories = (subCategories: SubCategory[], size: number): SubCategory[][] => {
+const chunkSubCategories = (
+  subCategories: SubCategory[],
+  size: number,
+): SubCategory[][] => {
   if (!subCategories) return [];
 
   const chunks: SubCategory[][] = [];
@@ -668,57 +648,67 @@ const checkMobile = () => {
 };
 
 // 스터디 그룹 목록 페이지로 이동
-const navigateToStudyList = (subCategory: string, item: string) => {
-  if (!subCategory || !item) return;
+const navigateToStudyList = (mainCategory: string, subCategory: string, item: string) => {
+  if (!mainCategory || !subCategory || !item) return;
 
   router.push({
     path: '/study-groups',
     query: {
-      subCategory,
-      detailCategory: item
-    }
+      mainCategory,
+      subCategory: subCategory,
+      detailCategory: item === '전체' ? '' : item,
+    },
   });
+};
+
+// 해당 서브 카테고리가 속한 메인 카테고리 찾기
+const findMainCategoryBySubCategory = (subCategoryName: string): string => {
+  for (const category of categories.value) {
+    if (category.subCategories.some(sub => sub.name === subCategoryName)) {
+      return category.name;
+    }
+  }
+  return '';
 };
 
 // 서브 카테고리 클릭 시 이동
 const handleSubCategoryClick = (mainCategory: string, subCategory: string) => {
   console.log(`중분류 클릭: ${mainCategory} > ${subCategory}`);
-  
+
   // 현재 활성화된 중분류가 클릭한 중분류와 같으면 비활성화, 아니면 활성화
   if (activeSubCategoryName.value === subCategory) {
     activeSubCategoryName.value = '';
   } else {
     activeSubCategoryName.value = subCategory;
   }
-  
-  // 이벤트 전파 방지
-  event?.stopPropagation();
 };
 
 // 커뮤니티 카테고리 클릭 핸들러
 const handleCommunityClick = (categoryName: string) => {
   const categoryMap = {
-    '자유게시판': 'FREE',
-    '질문게시판': 'QUESTION',
-    '건의게시판': 'SUGGESTION'
+    자유게시판: 'FREE',
+    질문게시판: 'QUESTION',
+    건의게시판: 'SUGGESTION',
   };
 
   router.push({
     path: '/posts',
-    query: { category: categoryMap[categoryName as keyof typeof categoryMap] }
+    query: {
+      category: categoryMap[categoryName as keyof typeof categoryMap],
+    },
   });
 };
 
 // 고객센터 카테고리 클릭 핸들러
 const handleSupportClick = (category: string) => {
   switch (category) {
-    case "공지사항":
+    case '공지사항':
       router.push('/supports');
       break;
-    case "자주묻는질문":
+    case '자주묻는질문':
       router.push('/supports/categories/FAQ');
       break;
-    case "1:1문의":
+    case '1:1문의':
       router.push('/supports/categories/INQUIRY');
       break;
   }
@@ -742,6 +732,8 @@ onMounted(() => {
   window.addEventListener('resize', checkMobile);
   if (!authStore.sessionChecked) {
     authStore.checkSession();
+  } else {
+    console.log('세션 이미 확인됨');
   }
 });
 
@@ -768,8 +760,36 @@ defineExpose({
   handleSubCategoryClick,
   handleCommunityClick,
   handleSupportClick,
-  isMobile
+  isMobile,
 });
+
+const fetchCategories = async () => {
+  try {
+    const response = await axios.get('/category/list'); // 백엔드 API 엔드포인트 (frontend-vue proxy 설정 확인 필요)
+    if (response.status === 200) {
+      categories.value = response.data;
+      response.data.forEach((mainCategory: any) => {
+        fetchSubCategories(mainCategory.value);
+      });
+    }
+  } catch (error: any) {
+    console.error('카테고리 목록을 불러오는데 실패했습니다.', error);
+  }
+};
+
+const fetchSubCategories = async (mainCategoryValue: string) => {
+  try {
+    const response = await axios.get(`/category/${mainCategoryValue}/sub-categories`); // 백엔드 API 엔드포인트 (frontend-vue proxy 설정 확인 필요)
+    if (response.status === 200) {
+      subCategories.value = {
+        ...subCategories.value,
+        [mainCategoryValue]: response.data,
+      };
+    }
+  } catch (error: any) {
+    console.error(`${mainCategoryValue} 카테고리의 서브 카테고리 목록을 불러오는데 실패했습니다.`, error);
+  }
+};
 </script>
 
 <style scoped>
@@ -952,7 +972,7 @@ defineExpose({
   position: relative;
 }
 
-.sub-menu-item:hover > .detail-menu.active {
+.sub-menu-item:hover>.detail-menu.active {
   display: block;
 }
 
@@ -1130,7 +1150,7 @@ defineExpose({
     width: 100%;
     padding: 0 10px;
   }
-  
+
   .detail-menu {
     position: static;
     left: auto;
@@ -1140,7 +1160,7 @@ defineExpose({
     box-shadow: none;
     border-left: 2px solid #fff;
   }
-  
+
   .sub-menu-item {
     flex-direction: column;
   }

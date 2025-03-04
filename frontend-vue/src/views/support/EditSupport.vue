@@ -30,44 +30,58 @@
   </template>
   
   <script setup lang="ts">
-  import { reactive, onMounted } from 'vue';
-  import { useRoute, useRouter } from 'vue-router';
+  import { ref, onMounted } from 'vue';
+  import { useRouter, useRoute } from 'vue-router';
   import axios from '../../utils/axios';
   
-  const route = useRoute();
   const router = useRouter();
-  
-  const form = reactive({
-    title: '',
-    content: ''
-  });
+  const route = useRoute();
+  const supportId = ref(route.params.id as string);
+  const title = ref('');
+  const content = ref('');
+  const errorMessage = ref('');
   
   const fetchPost = async () => {
     try {
-      const response = await axios.get(`/supports/${route.params.id}`);
-      if (response.data.success) {
-        form.title = response.data.data.title;
-        form.content = response.data.data.content;
+      const response = await axios.get(`/support/${supportId.value}`);
+      if (response.status === 200) {
+        title.value = response.data.title;
+        content.value = response.data.content;
+      } else {
+        alert('문의사항을 불러오는데 실패했습니다.');
+        router.push('/support/list');
       }
     } catch (error: any) {
-      alert('게시글을 불러올 수 없습니다');
-      router.push('/supports');
+      console.error('문의사항 불러오기 오류', error);
+      alert('문의사항을 불러오는 중 오류가 발생했습니다.');
+      router.push('/support/list');
     }
   };
   
   const handleSubmit = async () => {
+    errorMessage.value = '';
+    if (!title.value.trim() || !content.value.trim()) {
+      errorMessage.value = '제목과 내용을 모두 입력해주세요.';
+      return;
+    }
+  
     try {
-      const response = await axios.put(`/supports/${route.params.id}`, form);
-      if (response.data.success) {
-        router.push(`/supports/${route.params.id}`);
+      const response = await axios.put(`/support/${supportId.value}`, {
+        title: title.value,
+        content: content.value,
+      });
+      if (response.status === 200) {
+        alert('문의사항이 성공적으로 수정되었습니다.');
+        await router.push(`/support/detail/${supportId.value}`);
       }
     } catch (error: any) {
-      alert(error.response?.data?.message || '게시글 수정에 실패했습니다');
+      errorMessage.value = '문의사항 수정에 실패했습니다.';
+      console.error(error);
     }
   };
   
   const goBack = () => {
-    router.push(`/supports/${route.params.id}`);
+    router.push('/support/list');
   };
   
   onMounted(fetchPost);

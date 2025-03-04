@@ -30,7 +30,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, computed } from 'vue';
+import { reactive, computed, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from '../../utils/axios';
 import { PostCategoryKorean } from '../../types/models';
@@ -55,8 +55,15 @@ const categoryTitle = computed(() => {
   return PostCategoryKorean[category] || '게시판';
 });
 
-// 단순 API 호출
+const errorMessage = ref('');
+
 const handleSubmit = async () => {
+  errorMessage.value = '';
+  if (!form.title.trim() || !form.content.trim()) {
+    errorMessage.value = '제목과 내용을 모두 입력해주세요.';
+    return;
+  }
+
   try {
     // 로그인 상태 확인
     if (!userStore.isLoggedIn) {
@@ -76,14 +83,16 @@ const handleSubmit = async () => {
     }
 
     const response = await axios.post('/posts', {
-      ...form,
+      title: form.title,
+      content: form.content,
       category: form.category.toUpperCase()
     });
     if (response.data.success) {
       router.push(`/posts/${response.data.data.id}`);
     }
   } catch (error: any) {
-    alert(error.response?.data?.message || '게시글 작성에 실패했습니다');
+    errorMessage.value = '게시글 작성에 실패했습니다.';
+    console.error(error);
   }
 };
 

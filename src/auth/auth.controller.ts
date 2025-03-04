@@ -196,13 +196,22 @@ export class AuthController {
     async getSession(@Req() req: Request) {
         try {
             if (req.isAuthenticated && req.isAuthenticated()) {
+                const user = await this.authService.findUserById((req.user as User).id);
+                if (!user) {
+                    return {
+                        suceess: false,
+                        message: '사용자를 찾을 수 없습니다.'
+                    };
+                }
                 return {
                     success: true,
                     data: {
-                        user: req.user
+                        user: user // 최신정보를 넣어줍니다.
                     }
                 };
             }
+
+            this.logger.debug('세션 조회 오류 : 인증된 세션이 없습니다.')
             return {
                 success: false,
                 message: '인증된 세션이 없습니다.'
@@ -341,7 +350,9 @@ export class AuthController {
         };
     }
 
-    // 세션 갱신 엔드포인트 추가
+    /**
+     * 사용자가 이미 로그인 상태에서 세션을 갱신
+     */
     @HttpCode(HttpStatus.OK)
     @ApiOperation({
         summary: '세션 갱신',

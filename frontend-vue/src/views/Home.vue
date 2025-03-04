@@ -19,6 +19,7 @@ import { onMounted, computed } from 'vue';
 import { useAuthStore } from '../store/auth';
 import { useUserStore } from '../store/user';
 import { useRouter } from 'vue-router';
+import axios from '../utils/axios';
 
 const router = useRouter();
 
@@ -33,13 +34,26 @@ const isLoading = computed(() => authStore.isLoading);
 const user = computed(() => userStore.user);
 
 const goToStudyGroups = () => {
-  router.push('/study-groups/create');
+  if (isAuthenticated.value) {
+    router.push('/study-groups/create');
+  } else {
+    router.push('/login');
+  }
 };
 
 onMounted(async () => {
   // 세션 체크는 authStore 사용
   if (!authStore.sessionChecked) {
     await authStore.checkSession();
+  }
+
+  try {
+    const response = await axios.get('/posts/recent'); // 백엔드 API 엔드포인트 (frontend-vue proxy 설정 확인 필요)
+    if (response.status === 200) {
+      // 최신 게시글 처리 로직 추가
+    }
+  } catch (error: any) {
+    console.error('최신 게시글 불러오기 오류', error);
   }
 });
 </script>

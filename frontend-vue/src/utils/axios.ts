@@ -9,6 +9,11 @@ const API_URL = process.env.NODE_ENV === 'production'
   ? process.env.VUE_APP_API_URL || '/api'
   : '/api';
 
+const authStore = useAuthStore();
+
+axios.defaults.baseURL = process.env.VUE_APP_API_BASE_URL; // 환경 변수에서 API base URL 설정 (frontend-vue .env 파일 확인)
+axios.defaults.withCredentials = true;
+
 // 기본 axios 인스턴스 생성
 const apiClient = axios.create({
   baseURL: '/api',  // 프록시 사용
@@ -60,8 +65,6 @@ apiClient.interceptors.response.use(
 
     // 401 오류 처리 개선
     if (error.response?.status === 401) {
-      const authStore = useAuthStore();
-      
       // 이미 재시도했거나 auth 관련 요청인 경우 재시도하지 않음
       if (error.config._retry || error.config.url.includes('/auth/')) {
         return Promise.reject(error);
