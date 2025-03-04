@@ -1,11 +1,11 @@
 import { Injectable, NotFoundException, UnauthorizedException, ForbiddenException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Post } from '../entities/post.entity';
-import { CreatePostDto } from '../dto/create-post.dto';
-import { UpdatePostDto } from '../dto/update-post.dto';
-import { PostCategory } from '../enum/post-category.enum';
-import { PostsRepository } from '../repository/posts.repository';
+import { Post } from './entities/post.entity';
+import { CreatePostDto } from './dto/create-post.dto';
+import { UpdatePostDto } from './dto/update-post.dto';
+import { PostCategory } from './enum/post-category.enum';
+import { PostsRepository } from './repository/posts.repository';
 import { Inject } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';

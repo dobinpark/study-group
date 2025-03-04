@@ -1,12 +1,13 @@
 import { Injectable, UnauthorizedException, BadRequestException, InternalServerErrorException, NotFoundException, Logger } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
-import { AuthSignupDto } from '../dto/auth.signUp.dto';
-import { AuthFindPasswordDto } from '../dto/auth.findPassword.dto';
-import { AuthRepository } from '../repository/auth.repository';
-import { User } from '../../user/entities/user.entity';
+import { AuthSignupDto } from './dto/auth.signUp.dto';
+import { AuthFindPasswordDto } from './dto/auth.findPassword.dto';
+import { AuthRepository } from './repository/auth.repository';
+import { User } from '../user/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { AuthMeResponseDto } from './dto/meResponse.dto';
 
 @Injectable()
 export class AuthService {
@@ -35,7 +36,7 @@ export class AuthService {
 
     // 회원가입
     async signUp(signupDto: AuthSignupDto): Promise<{ success: boolean; message: string }> {
-        const { username, email, password, confirmPassword } = signupDto;
+        const { username, email, password, confirmPassword, nickname, phoneNumber } = signupDto;
 
         // 비밀번호 확인
         if (password !== confirmPassword) {
@@ -43,10 +44,12 @@ export class AuthService {
         }
 
         try {
-            // 사용자 중복 검사
-            const [existingUsername, existingEmail] = await Promise.all([
+            // 사용자 중복 검사 (아이디, 이메일, 닉네임, 전화번호)
+            const [existingUsername, existingEmail, existingNickname, existingPhoneNumber] = await Promise.all([
                 this.authRepository.findByUsername(username),
-                this.authRepository.findByEmail(email)
+                this.authRepository.findByEmail(email),
+                this.authRepository.findByNickname(nickname),
+                this.authRepository.findByPhoneNumber(phoneNumber)
             ]);
 
             if (existingUsername) {
@@ -55,6 +58,14 @@ export class AuthService {
 
             if (existingEmail) {
                 throw new BadRequestException('이미 사용 중인 이메일입니다.');
+            }
+
+            if (existingNickname) {
+                throw new BadRequestException('이미 사용 중인 닉네임입니다.');
+            }
+
+            if (existingPhoneNumber) {
+                throw new BadRequestException('이미 등록된 전화번호입니다.');
             }
 
             // 비밀번호 해싱
@@ -160,9 +171,22 @@ export class AuthService {
     }
 
     // 사용자 ID로 검색
-    async findUserById(id: number): Promise<User | null> {
+    async findUserById(id: number): Promise<AuthMeResponseDto | null> {
         this.logger.debug(`사용자 ID 검색: ${id}`);
-        return this.usersRepository.findOne({ where: { id } });
+        const user = await this.usersRepository.findOne({
+            where: { id },
+            select: ['id', 'username', 'nickname', 'role']
+        });
+        if (!user) {
+            return null;
+        }
+        const authMeResponseDto: AuthMeResponseDto = {
+            id: user.id,
+            username: user.username,
+            nickname: user.nickname,
+            role: user.role,
+        };
+        return authMeResponseDto;
     }
 
     // 안전한 임시 비밀번호 생성

@@ -15,9 +15,10 @@ export class AuthSignupDto {
 
     @ApiProperty({
         example: 'Password123!',
-        description: '사용자 비밀번호 (최소 8자, 영문/숫자/특수문자 조합)',
+        description: '비밀번호 (영문, 숫자, 특수문자 포함 8자 이상)',
         required: true,
-        minLength: 8
+        minLength: 8,
+        pattern: PASSWORD_REGEX.source
     })
     @IsString()
     @IsNotEmpty({ message: '비밀번호는 필수입니다.' })
@@ -27,11 +28,12 @@ export class AuthSignupDto {
 
     @ApiProperty({
         example: 'password123!',
-        description: '비밀번호 재확인',
-        required: true
+        description: '비밀번호 확인',
+        required: true,
+        minLength: 8,
     })
     @IsString()
-    @MinLength(8)
+    @IsNotEmpty({ message: '비밀번호 확인은 필수입니다.' })
     confirmPassword!: string;
 
     @ApiProperty({

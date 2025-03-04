@@ -34,15 +34,15 @@ import {
     getSchemaPath,
     ApiHeader
 } from '@nestjs/swagger';
-import { StudyGroupService } from '../service/study-group.service';
-import { CreateStudyGroupDto } from '../dto/create-study-group.dto';
-import { UpdateStudyGroupDto } from '../dto/update-study-group.dto';
-import { StudyGroup } from '../entities/study-group.entity';
-import { CategoryDto } from '../dto/category.dto';
-import { CustomSession } from '../../types/session.types';
-import { TransformInterceptor } from '../../interceptors/response.interceptor';
-import { DataResponse, BaseResponse } from '../../types/response.types';
-import { AuthGuard } from '../../auth/guards/authenticated.guard';
+import { StudyGroupService } from './study-group.service';
+import { CreateStudyGroupDto } from './dto/create-study-group.dto';
+import { UpdateStudyGroupDto } from './dto/update-study-group.dto';
+import { StudyGroup } from './entities/study-group.entity';
+import { CategoryDto } from './dto/category.dto';
+import { CustomSession } from '../types/session.types';
+import { TransformInterceptor } from '../interceptors/response.interceptor';
+import { DataResponse, BaseResponse } from '../types/response.types';
+import { AuthGuard } from '../auth/guards/authenticated.guard';
 
 @ApiTags('스터디')
 @ApiExtraModels(StudyGroup, CategoryDto, DataResponse<any>, BaseResponse)

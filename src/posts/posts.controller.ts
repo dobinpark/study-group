@@ -14,15 +14,15 @@ import {
     UseGuards,
     Logger,
 } from '@nestjs/common';
-import { PostsService } from '../service/posts.service';
-import { CreatePostDto } from '../dto/create-post.dto';
-import { UpdatePostDto } from '../dto/update-post.dto';
-import { Post as PostEntity } from '../entities/post.entity';
-import { PostCategory } from '../enum/post-category.enum';
+import { PostsService } from './posts.service';
+import { CreatePostDto } from './dto/create-post.dto';
+import { UpdatePostDto } from './dto/update-post.dto';
+import { Post as PostEntity } from './entities/post.entity';
+import { PostCategory } from './enum/post-category.enum';
 import { ApiTags, ApiOperation, ApiResponse, ApiQuery, ApiParam, ApiBearerAuth, ApiBody } from '@nestjs/swagger';
-import { TransformInterceptor } from '../../interceptors/response.interceptor';
+import { TransformInterceptor } from '../interceptors/response.interceptor';
 import { Request } from 'express';
-import { AuthGuard } from '../../auth/guards/authenticated.guard';
+import { AuthGuard } from '../auth/guards/authenticated.guard';
 
 @ApiTags('게시판')
 @Controller('posts')

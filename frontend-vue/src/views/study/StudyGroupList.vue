@@ -66,7 +66,7 @@ import { useRoute, useRouter } from 'vue-router';
 import axios from '../../utils/axios';
 import { useUserStore } from '../../store/user';
 import type { Category } from '../../types/models';
-import { useAuthStore } from '../store/auth';
+import { useAuthStore } from '../../store/auth';
 
 // 사용자 인터페이스 정의
 interface User {
@@ -125,7 +125,7 @@ const fetchStudyGroups = async () => {
     }
   } catch (error) {
     console.error('스터디 그룹 목록 로드 실패:', error);
-    const errorMsg = error.response?.data?.message || '스터디 그룹 목록을 불러오는데 실패했습니다.';
+    const errorMsg = error instanceof Error ? error.message : '스터디 그룹 목록을 불러오는데 실패했습니다.';
     alert(errorMsg);
   } finally {
     loading.value = false;

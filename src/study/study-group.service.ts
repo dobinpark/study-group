@@ -1,11 +1,11 @@
 import { Injectable, NotFoundException, ForbiddenException, BadRequestException, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like, FindOptionsWhere } from 'typeorm';
-import { StudyGroup } from '../entities/study-group.entity';
-import { CreateStudyGroupDto } from '../dto/create-study-group.dto';
-import { UpdateStudyGroupDto } from '../dto/update-study-group.dto';
-import { User } from '../../user/entities/user.entity';
-import { CategoryDto } from '../dto/category.dto';
+import { StudyGroup } from './entities/study-group.entity';
+import { CreateStudyGroupDto } from './dto/create-study-group.dto';
+import { UpdateStudyGroupDto } from './dto/update-study-group.dto';
+import { User } from '../user/entities/user.entity';
+import { CategoryDto } from './dto/category.dto';
 import { Connection } from 'typeorm';
 
 @Injectable()

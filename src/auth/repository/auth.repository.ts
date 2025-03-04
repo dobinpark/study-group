@@ -9,11 +9,10 @@ export class AuthRepository {
     constructor(
         @InjectRepository(User)
         private readonly userRepository: Repository<User>,
-    ) {}
+    ) { }
 
-    async createUser(signupData: Omit<AuthSignupDto, 'confirmPassword'> & { password: string }): Promise<User> {
-        const user = this.userRepository.create(signupData);
-        return await this.userRepository.save(user);
+    async createUser(signupDto: AuthSignupDto): Promise<User> {
+        return await this.userRepository.save(signupDto);
     }
 
     async findByUsername(username: string): Promise<User | null> {
@@ -22,6 +21,14 @@ export class AuthRepository {
 
     async findByEmail(email: string): Promise<User | null> {
         return await this.userRepository.findOne({ where: { email } });
+    }
+
+    async findByNickname(nickname: string): Promise<User | null> {
+        return await this.userRepository.findOne({ where: { nickname } });
+    }
+
+    async findByPhoneNumber(phoneNumber: string): Promise<User | null> {
+        return await this.userRepository.findOne({ where: { phoneNumber } });
     }
 
     async updatePassword(userId: number, hashedPassword: string): Promise<void> {

@@ -1,20 +1,20 @@
 import { Controller, Get, Put, Body, Session, UnauthorizedException, UseInterceptors, ClassSerializerInterceptor, Param } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiOkResponse, ApiNotFoundResponse, ApiParam, ApiBody, ApiBadRequestResponse } from '@nestjs/swagger';
-import { UsersService } from '../service/users.service';
-import { UserProfileResponseDto } from '../dto/user.profileResponse.dto';
-import { UpdateUserDto } from '../dto/user.userUpdate.dto';
-import { CustomSession } from '../../types/session.types';
-import { DataResponse } from '../../types/response.types';
-import { TransformInterceptor } from '../../interceptors/response.interceptor';
-import { User } from '../entities/user.entity';
+import { UserService } from './user.service';
+import { UserProfileResponseDto } from './dto/user.profileResponse.dto';
+import { UpdateUserDto } from './dto/user.userUpdate.dto';
+import { CustomSession } from '../types/session.types';
+import { DataResponse } from '../types/response.types';
+import { TransformInterceptor } from '../interceptors/response.interceptor';
+import { User } from './entities/user.entity';
 
 @ApiTags('사용자')
 @Controller('users')
 @UseInterceptors(ClassSerializerInterceptor)
 @UseInterceptors(TransformInterceptor)
-export class UsersController {
+export class UserController {
 
-    constructor(private readonly usersService: UsersService) { }
+    constructor(private readonly userService: UserService) { }
 
     // 사용자 프로필 조회
     @ApiOperation({ summary: '사용자 프로필 조회' })
@@ -30,7 +30,7 @@ export class UsersController {
     @ApiNotFoundResponse({ description: '사용자를 찾을 수 없음' })
     @Get('profile/:id')
     async getUserProfileById(@Param('id') id: string): Promise<DataResponse<UserProfileResponseDto>> {
-        const userProfile = await this.usersService.findUserProfileById(+id);
+        const userProfile = await this.userService.findUserProfileById(+id);
         return {
             success: true,
             data: userProfile,
@@ -54,7 +54,7 @@ export class UsersController {
         if (!session.user) {
             throw new UnauthorizedException('로그인이 필요합니다.');
         }
-        const updatedProfile = await this.usersService.updateUserProfile(session.user.username, updateUserDto);
+        const updatedProfile = await this.userService.updateUserProfile(session.user.username, updateUserDto);
         return {
             success: true,
             data: updatedProfile,

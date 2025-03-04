@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PassportSerializer } from '@nestjs/passport';
-import { AuthService } from '../auth/service/auth.service';
+import { AuthService } from '../auth/auth.service';
 
 @Injectable()
 export class SessionSerializer extends PassportSerializer {
@@ -25,9 +25,8 @@ export class SessionSerializer extends PassportSerializer {
                 return done(null, false);
             }
             
-            const { password, ...userWithoutPassword } = user;
             this.logger.debug(`사용자 역직렬화 성공: ${userId}`);
-            done(null, userWithoutPassword);
+            done(null, user);
         } catch (error: unknown) {
             const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
             this.logger.error(`사용자 역직렬화 오류: ${errorMessage}`);

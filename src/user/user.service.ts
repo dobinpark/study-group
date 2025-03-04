@@ -2,19 +2,19 @@ import { Injectable, NotFoundException, BadRequestException, Logger, Inject } fr
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from '../entities/user.entity';
-import { UpdateUserDto } from '../dto/user.userUpdate.dto';
+import { User } from './entities/user.entity';
+import { UpdateUserDto } from './dto/user.userUpdate.dto';
 import * as bcrypt from 'bcrypt';
 import { Cache } from 'cache-manager';
-import { UserProfileResponseDto } from '../dto/user.profileResponse.dto';
+import { UserProfileResponseDto } from './dto/user.profileResponse.dto';
 
 @Injectable()
-export class UsersService {
+export class UserService {
 
     private static readonly USER_PROFILE_CACHE_PREFIX = 'user:profile:';
     private static readonly USER_PROFILE_CACHE_TTL = 600;
     private static readonly SALT_ROUNDS = 10;
-    private readonly logger = new Logger(UsersService.name);
+    private readonly logger = new Logger(UserService.name);
 
     constructor(
         @InjectRepository(User)
@@ -84,10 +84,10 @@ export class UsersService {
                     if (updateUserDto.currentPassword === updateUserDto.newPassword) {
                         throw new BadRequestException('새 비밀번호는 현재 비밀번호와 달라야 합니다.');
                     }
-                    updateData.password = await bcrypt.hash(updateUserDto.newPassword, UsersService.SALT_ROUNDS);
+                    updateData.password = await bcrypt.hash(updateUserDto.newPassword, UserService.SALT_ROUNDS);
                 }
             }
-
+            
             if (updateUserDto.nickname !== undefined && updateUserDto.nickname !== user.nickname) {
                 const existingNickname = await this.userRepository.findOne({
                     where: { nickname: updateUserDto.nickname }
@@ -131,7 +131,7 @@ export class UsersService {
 
     // 캐시 키 생성
     private getCacheKey(username: string): string {
-        return `${UsersService.USER_PROFILE_CACHE_PREFIX}${username}`;
+        return `${UserService.USER_PROFILE_CACHE_PREFIX}${username}`;
     }
 
     // 민감한 필드 제외하여 프로필 DTO로 변환

@@ -17,7 +17,7 @@
       "@/*": ["./*"]
     },
     "lib": ["es2021", "ES2015", "DOM", "DOM.Iterable"],
-    "types": ["node", "multer"],
+    "types": [],
     "jsx": "preserve",
     "typeRoots": [
       "./node_modules/@types",

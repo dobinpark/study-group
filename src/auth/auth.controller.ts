@@ -15,18 +15,19 @@ import {
     Logger,
     Session,
 } from '@nestjs/common';
-import { AuthService } from '../service/auth.service';
+import { AuthService } from './auth.service';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiCookieAuth } from '@nestjs/swagger';
-import { User } from '../../user/entities/user.entity';
-import { TransformInterceptor } from '../../interceptors/response.interceptor';
-import { BaseResponse, DataResponse } from '../../types/response.types';
+import { User } from '../user/entities/user.entity';
+import { TransformInterceptor } from '../interceptors/response.interceptor';
+import { BaseResponse, DataResponse } from '../types/response.types';
 import { Request } from 'express';
-import { AuthSignupDto } from '../dto/auth.signUp.dto';
-import { AuthLoginDto } from '../dto/auth.login.dto';
-import { AuthFindPasswordDto } from '../dto/auth.findPassword.dto';
-import { LocalAuthGuard } from '../guards/local-auth.guard';
-import { AuthGuard } from '../guards/authenticated.guard';
-import { CustomSession } from '../../types/session.types';
+import { AuthSignupDto } from './dto/auth.signUp.dto';
+import { AuthLoginDto } from './dto/auth.login.dto';
+import { AuthFindPasswordDto } from './dto/auth.findPassword.dto';
+import { LocalAuthGuard } from './guards/local-auth.guard';
+import { AuthGuard } from './guards/authenticated.guard';
+import { CustomSession } from '../types/session.types';
+import { AuthMeResponseDto } from './dto/meResponse.dto';
 
 @ApiTags('인증')
 @ApiCookieAuth()
@@ -146,11 +147,11 @@ export class AuthController {
             if (!req.user) {
                 throw new UnauthorizedException('로그인에 실패했습니다.');
             }
-            
+
             // 로그인 성공 시 디버깅 정보 추가
             this.logger.debug(`세션 ID: ${req.sessionID}`);
             this.logger.debug(`세션 데이터: ${JSON.stringify(req.session)}`);
-            
+
             return {
                 success: true,
                 data: {
@@ -160,7 +161,7 @@ export class AuthController {
         } catch (error: unknown) {
             const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
             this.logger.error(`로그인 실패: ${errorMessage}`);
-            
+
             if (error instanceof UnauthorizedException) {
                 throw error;
             }
@@ -261,36 +262,26 @@ export class AuthController {
     }
 
     // 현재 로그인한 사용자 정보 조회
-    @ApiOperation({ summary: '현재 로그인한 사용자 정보 조회' })
-    @ApiResponse({ status: 200, description: '사용자 정보 조회 성공', type: User })
+    @UseGuards(AuthGuard)
+    @ApiOperation({ summary: '내 정보 조회', description: '현재 로그인된 사용자의 정보를 조회합니다.' })
+    @ApiResponse({
+        status: 200, description: '사용자 정보 조회 성공', type: AuthMeResponseDto,
+        schema: {
+            example: {
+                success: true,
+                message: '사용자 정보 조회 성공',
+                data: { user: { id: 1, username: 'user123', nickname: '홍길동', email: 'user@example.com', role: 'USER' } }
+            }
+        }
+    })
+    @ApiResponse({ status: 401, description: '인증되지 않은 사용자' })
     @Get('me')
-    async getMe(@Req() req: Request): Promise<DataResponse<Omit<User, 'password'>>> {
-        const user = req.session?.user;
-        if (!user) {
-            return {
-                success: false,
-                message: '인증되지 않은 사용자입니다.',
-                data: null as unknown as Omit<User, "password">
-            };
-        }
+    async getMe(@Req() req: Request): Promise<DataResponse<AuthMeResponseDto>> {
+        const user = req.user as User;
+        const userId = user.id;
+        this.logger.debug(`내 정보 조회 요청: 사용자 ID ${userId}`);
 
-        // 세션에 있는 사용자 ID로 최신 사용자 정보 조회
-        const userInfo = await this.authService.findUserById(user.id);
-        if (!userInfo) {
-            return {
-                success: false,
-                message: '사용자 정보를 찾을 수 없습니다.',
-                data: null
-            };
-        }
-
-        // 사용자 정보 로깅 (디버깅용)
-        console.log('GET /auth/me 호출, 사용자 정보:', {
-            id: userInfo.id,
-            username: userInfo.username,
-            role: userInfo.role
-        });
-
+        const userInfo = await this.authService.findUserById(userId);
         return {
             success: true,
             message: '사용자 정보 조회 성공',
@@ -299,7 +290,6 @@ export class AuthController {
     }
 
     // 비밀번호 찾기
-    @Post('find-password')
     @HttpCode(HttpStatus.OK)
     @ApiOperation({
         summary: '비밀번호 찾기',
@@ -341,6 +331,7 @@ export class AuthController {
             }
         }
     })
+    @Post('find-password')
     async findPassword(@Body() findPasswordDto: AuthFindPasswordDto) {
         const { tempPassword } = await this.authService.findPassword(findPasswordDto);
         return {
@@ -351,7 +342,6 @@ export class AuthController {
     }
 
     // 세션 갱신 엔드포인트 추가
-    @Post('refresh')
     @HttpCode(HttpStatus.OK)
     @ApiOperation({
         summary: '세션 갱신',
@@ -395,21 +385,16 @@ export class AuthController {
                     message: '인증 정보가 없습니다.'
                 };
             }
-
             // 사용자 정보 확인
             const user = req.user;
-            
             // 세션 갱신 (세션 유효기간 연장)
             if (req.session) {
                 // 세션 쿠키 만료 시간 연장
                 req.session.cookie.maxAge = 24 * 60 * 60 * 1000; // 24시간
-                
                 // 세션 터치 (마지막 사용 시간 갱신)
                 req.session.touch();
             }
-            
             this.logger.debug(`세션 갱신 완료: ${req.sessionID}`);
-            
             return {
                 success: true,
                 message: '세션이 갱신되었습니다.',
@@ -425,7 +410,6 @@ export class AuthController {
             };
         }
     }
-
     @Post('extend-session')
     @UseGuards(AuthGuard)
     async extendSession(@Session() session: CustomSession): Promise<BaseResponse> {
@@ -433,7 +417,7 @@ export class AuthController {
         if (session.cookie) {
             session.cookie.maxAge = 60 * 60 * 1000; // 1시간
         }
-        
+
         return {
             success: true,
             message: '세션이 연장되었습니다.'
