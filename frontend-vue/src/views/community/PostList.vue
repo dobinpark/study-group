@@ -44,6 +44,9 @@
           <div v-if="loading" class="loading">
             게시글을 불러오는 중입니다...
           </div>
+          <div v-else-if="errorMessage" class="loading error">
+            {{ errorMessage }}
+          </div>
           <div v-else-if="!posts" class="loading">
             게시글 목록을 불러오는데 실패했습니다.
           </div>
@@ -101,7 +104,7 @@ const loading = ref(true);
 const page = ref(1);
 const totalPages = ref(1);
 const searchQuery = ref('');
-const category = ref(route.params.category as string || 'free');
+const category = ref(route.query.category as string || 'free');
 const errorMessage = ref('');
 const currentPage = ref(1);
 const pageSize = 10;
@@ -114,10 +117,12 @@ const categoryTitle = computed(() => {
     SUGGESTION: '건의게시판'
   } as const;
 
+  console.log('category.value in categoryTitle:', category.value);
+  console.log('카테고리 타이틀 계산:', titles[category.value as keyof typeof titles] || '게시판');
   return titles[category.value as keyof typeof titles] || '게시판';
 });
 
-watch(() => route.params.category, (newCategory) => {
+watch(() => route.query.category, (newCategory) => {
   category.value = newCategory as string || 'free';
   currentPage.value = 1;
   fetchPosts();
@@ -129,28 +134,48 @@ const fetchPosts = async () => {
   errorMessage.value = '';
   posts.value = null;
   try {
-    const response = await axios.get(`/posts`, {
-      params: {
-        category: category.value,
-        page: currentPage.value,
-        size: pageSize,
-        searchKeyword: searchQuery.value,
-      },
-    });
-    if (response.status === 200) {
-      posts.value = response.data.content;
-      totalPages.value = response.data.totalPages;
-    } else {
-      errorMessage.value = '게시글 목록을 불러올 수 없습니다.';
-      posts.value = null;
-    }
-  } catch (error: any) {
-    console.error('게시글 목록 불러오기 오류', error);
-    errorMessage.value = '게시글 목록을 불러오는 중 오류가 발생했습니다.';
-    posts.value = null;
+    console.log(`fetchPosts 호출 - category: ${category.value?.toUpperCase()} page: ${currentPage.value} searchQuery: ${searchQuery.value}`);
+    const response = await callPostListAPI();
+    handlePostListResponse(response);
+  } catch (e: any) {
+    handlePostListError(e);
   } finally {
     loading.value = false;
   }
+};
+
+// API 호출 함수 분리
+const callPostListAPI = async () => {
+  return await axios.get('/posts', {
+    params: {
+      category: category.value?.toUpperCase(),
+      page: currentPage.value,
+      size: pageSize,
+      searchKeyword: searchQuery.value,
+    },
+  });
+};
+
+// API 응답 처리 함수 분리
+const handlePostListResponse = (response: any) => {
+  console.log('API 응답 성공:', response.data);
+
+  if (response.data.success) {
+    posts.value = response.data.data.items;
+    totalPages.value = response.data.data.totalPages;
+    console.log('게시글 목록 업데이트:', posts.value);
+  } else {
+    errorMessage.value = response.data.message || '게시글 목록을 불러오는데 실패했습니다.';
+    posts.value = [];
+    console.error('API 응답 실패:', response.data);
+  }
+};
+
+// API 에러 처리 함수 분리
+const handlePostListError = (e: any) => {
+  errorMessage.value = e.message || '알 수 없는 오류가 발생했습니다.';
+  posts.value = [];
+  console.error('API 요청 에러:', e);
 };
 
 // 날짜 형식 변환
@@ -305,6 +330,10 @@ onMounted(() => {
   height: 200px;
   font-size: 1.2rem;
   color: #666;
+}
+
+.loading.error {
+  color: red;
 }
 
 .no-posts {

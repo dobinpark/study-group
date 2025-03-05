@@ -222,11 +222,11 @@ export class AuthController {
     // 비밀번호 찾기
     @ApiOperation({
         summary: '비밀번호 찾기',
-        description: '사용자 아이디와 이메일을 확인하여 임시 비밀번호를 발급합니다.'
+        description: '아이디와 이메일을 통해 임시 비밀번호를 발급합니다.'
     })
     @ApiBody({
         type: AuthFindPasswordDto,
-        description: '비밀번호 찾기 정보',
+        description: '비밀번호 찾기 요청 정보',
         examples: {
             '기본 예제': {
                 value: {
@@ -242,21 +242,32 @@ export class AuthController {
         schema: {
             example: {
                 success: true,
+                message: '임시 비밀번호가 발급되었습니다. 이메일을 확인해주세요.',
                 data: {
-                    tempPassword: 'a1b2c3D4!'
-                },
-                message: '임시 비밀번호가 발급되었습니다.'
+                    tempPassword: '임시 비밀번호' // 실제로는 임시 비밀번호를 반환하지 않을 수 있습니다. 보안상 이메일로만 발송하는 것이 좋습니다.
+                }
             }
         }
     })
     @ApiResponse({
         status: 404,
-        description: '사용자를 찾을 수 없음',
+        description: '사용자 정보 불일치',
         schema: {
             example: {
                 success: false,
-                error: '사용자를 찾을 수 없습니다.',
+                message: '사용자를 찾을 수 없습니다.',
                 statusCode: 404
+            }
+        }
+    })
+    @ApiResponse({
+        status: 500,
+        description: '서버 오류',
+        schema: {
+            example: {
+                success: false,
+                message: '비밀번호 찾기 처리 중 오류가 발생했습니다.',
+                statusCode: 500
             }
         }
     })
@@ -267,7 +278,7 @@ export class AuthController {
         return {
             success: true,
             data: { tempPassword },
-            message: '임시 비밀번호가 발급되었습니다.'
+            message: '임시 비밀번호가 발급되었습니다. 이메일을 확인해주세요.' // 사용자에게 이메일 확인 안내 메시지 전달
         };
     }
 
@@ -297,15 +308,18 @@ export class AuthController {
     })
     @Get('session')
     async getSession(@Req() req: Request) {
+        this.logger.debug('세션 확인 요청 시작'); // getSession 시작 로그
         try {
             await this.authService.validateSession(req);
             const user = await this.authService.findUserById((req.user as User).id);
             if (!user) {
+                this.logger.warn('세션 확인 실패: 사용자 정보 없음'); // 사용자 정보 없음 경고 로그
                 return {
                     suceess: false,
                     message: '사용자를 찾을 수 없습니다.'
                 };
             }
+            this.logger.debug('세션 확인 성공, 사용자 정보 반환'); // getSession 성공 로그
             return {
                 success: true,
                 data: {
@@ -313,8 +327,16 @@ export class AuthController {
                 }
             };
         } catch (error) {
-            this.logger.error(`세션 조회 오류: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
-            throw new InternalServerErrorException('세션 조회 중 오류가 발생했습니다.');
+            this.logger.error(`세션 조회 오류: ${error instanceof Error ? error.message : '알 수 없는 오류'}`); // 기존 오류 로깅 유지
+            if (error instanceof InternalServerErrorException) {
+                // InternalServerErrorException 인 경우 그대로 던지기
+                throw error;
+            } else {
+                // 그 외 오류는 InternalServerErrorException으로 변환하여 던지기
+                throw new InternalServerErrorException('세션 조회 중 오류가 발생했습니다.');
+            }
+        } finally {
+            this.logger.debug('세션 확인 요청 완료'); // getSession 완료 로그
         }
     }
 

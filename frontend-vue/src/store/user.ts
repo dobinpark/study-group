@@ -56,8 +56,9 @@ export const useUserStore = defineStore('user', {
     async fetchUserProfile() {
       try {
         this.isLoading = true;
-        const userId = this.userId;
-        const response = await apiClient.get('/users/profile');
+        const profileUrl = '/users/profile'; // API 요청 URL 수정 (ID 제거)
+        console.log('fetchUserProfile API 요청 URL:', profileUrl); // 요청 URL 로깅
+        const response = await apiClient.get(profileUrl); // URL 수정
         if (response.status === 200) {
           this.userProfile = response.data;
           this.hasProfile = true;
@@ -79,7 +80,7 @@ export const useUserStore = defineStore('user', {
 
       this.isLoading = true;
       try {
-        const response = await axios.put(`/users/${this.user.id}/profile`, profileData);
+        const response = await apiClient.put(`/users/profile`, profileData);
 
         if (response.data?.success) {
           // 업데이트된 프로필 정보로 user 객체 갱신
@@ -103,7 +104,7 @@ export const useUserStore = defineStore('user', {
       if (!this.user?.id) return false;
 
       try {
-        const response = await axios.put(`/users/${this.user.id}/password`, {
+        const response = await apiClient.put(`/users/${this.user.id}/password`, {
           currentPassword,
           newPassword
         });

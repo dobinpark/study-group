@@ -1,5 +1,5 @@
-import { Controller, Get, Put, Body, Session, UnauthorizedException, UseInterceptors, ClassSerializerInterceptor, Param, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiOkResponse, ApiNotFoundResponse, ApiParam, ApiBody, ApiBadRequestResponse } from '@nestjs/swagger';
+import { Controller, Get, Put, Body, Session, UnauthorizedException, UseInterceptors, ClassSerializerInterceptor, Param, NotFoundException, BadRequestException, Logger, UseGuards } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiOkResponse, ApiNotFoundResponse, ApiParam, ApiBody, ApiBadRequestResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { UserService } from './user.service';
 import { UserProfileResponseDto } from './dto/user.profileResponse.dto';
 import { UpdateUserDto } from './dto/user.userUpdate.dto';
@@ -7,6 +7,7 @@ import { CustomSession } from '../types/session.types';
 import { DataResponse } from '../types/response.types';
 import { TransformInterceptor } from '../interceptors/response.interceptor';
 import { User } from './entities/user.entity';
+import { AuthGuard } from '../auth/guards/authenticated.guard';
 
 @ApiTags('사용자')
 @Controller('users')
@@ -18,8 +19,41 @@ export class UserController {
 
     constructor(private readonly userService: UserService) { }
 
-    // 사용자 프로필 조회
-    @ApiOperation({ summary: '사용자 프로필 조회' })
+
+    // 사용자 프로필 조회 (본인 프로필)
+    @Get('profile')
+    @UseGuards(AuthGuard)
+    @ApiOperation({ summary: '본인 프로필 조회', description: '현재 로그인된 사용자의 프로필을 조회합니다.' })
+    @ApiOkResponse({ description: '프로필 조회 성공', type: UserProfileResponseDto })
+    @ApiNotFoundResponse({ description: '사용자를 찾을 수 없음' })
+    @ApiBearerAuth()
+    async getMyProfile(@Session() session: CustomSession): Promise<DataResponse<UserProfileResponseDto>> {
+        this.logger.debug(`getMyProfile 호출: username = ${session.user?.username}`);
+        if (!session.user) {
+            this.logger.warn(`getMyProfile: 미인증 사용자 접근`);
+            throw new UnauthorizedException('로그인이 필요합니다.');
+        }
+
+        try {
+            const userProfile = await this.userService.findUserProfileById(session.user.id);
+            this.logger.debug(`getMyProfile 완료: username = ${session.user.username}`);
+            return {
+                success: true,
+                data: userProfile,
+                message: '프로필 정보 조회 성공'
+            };
+        } catch (error) {
+            this.logger.error(`getMyProfile: 프로필 조회 실패 - username = ${session.user?.username}`, error);
+            if (error instanceof NotFoundException) {
+                throw new NotFoundException(`사용자 ID '${session.user.id}'에 해당하는 사용자를 찾을 수 없습니다.`);
+            }
+            throw error;
+        }
+    }
+
+
+    // 사용자 프로필 조회 (ID로 조회 - 관리자용 또는 특정 사용자 프로필 조회용)
+    @ApiOperation({ summary: '사용자 프로필 조회 (ID)', description: '사용자 ID로 특정 사용자 프로필을 조회합니다. (관리자 기능)' })
     @ApiParam({
         name: 'id',
         required: true,
@@ -56,7 +90,8 @@ export class UserController {
         }
     }
 
-    // 사용자 프로필 수정
+
+    // 사용자 프로필 수정 (본인 프로필만 가능)
     @ApiOperation({ summary: '프로필 수정 (본인 프로필만 가능)' })
     @ApiBody({ type: UpdateUserDto })
     @ApiOkResponse({

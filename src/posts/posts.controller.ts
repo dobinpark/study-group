@@ -97,7 +97,9 @@ export class PostsController {
         const pageNum = page ? parseInt(page, 10) : 1;
         const limitNum = limit ? parseInt(limit, 10) : 10;
 
+        this.logger.debug(`findByCategory 호출 - 카테고리: ${category}, 페이지: ${pageNum}, 제한: ${limitNum}, 검색어: ${search}`);
         console.log(`카테고리 조회: ${category}, 페이지: ${pageNum}, 검색어: ${search || '없음'}`);
+
         const result = await this.postsService.findByCategory(category, pageNum, limitNum, search);
 
         return {

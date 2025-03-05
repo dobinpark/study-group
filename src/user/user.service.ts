@@ -12,7 +12,7 @@ import { UserProfileResponseDto } from './dto/user.profileResponse.dto';
 export class UserService {
 
     private static readonly USER_PROFILE_CACHE_PREFIX = 'user:profile:';
-    private static readonly USER_PROFILE_CACHE_TTL = 600; // 10 minutes
+    private static readonly USER_PROFILE_CACHE_TTL = 600;
     private static readonly SALT_ROUNDS = 10;
     private readonly logger = new Logger(UserService.name);
 

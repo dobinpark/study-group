@@ -9,6 +9,17 @@
       <div class="modal-body">
         <form @submit.prevent="handleSubmit">
           <div class="form-group">
+            <label for="username">아이디</label>
+            <input 
+              type="text" 
+              id="username" 
+              v-model="form.username" 
+              required 
+              placeholder="아이디를 입력하세요"
+            >
+          </div>
+          
+          <div class="form-group">
             <label for="email">이메일 주소</label>
             <input 
               type="email" 
@@ -49,6 +60,7 @@ const props = defineProps<{
 const emit = defineEmits(['close']);
 
 const form = reactive({
+  username: '',
   email: ''
 });
 

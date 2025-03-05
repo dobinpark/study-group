@@ -55,7 +55,8 @@
                 :class="{ 'mobile-menu-item': isMobile }">
                 {{ category.name }}
                 <ul class="sub-menu multi-column">
-                  <li v-for="(subCategoryGroup, groupIndex) in chunkSubCategories(category.subCategories, 10)" :key="groupIndex" class="sub-menu-column">
+                  <li v-for="(subCategoryGroup, groupIndex) in chunkSubCategories(category.subCategories, 10)"
+                    :key="groupIndex" class="sub-menu-column">
                     <ul>
                       <li v-for="subCategory in subCategoryGroup" :key="subCategory.name" class="sub-menu-item" @click="
                         handleSubCategoryClick(
@@ -159,6 +160,7 @@ const isLoggingOut = ref(false);
 // 모바일 화면 여부
 const isMobile = ref(false);
 const activeSubCategoryName = ref('');
+const isFindPasswordModalOpen = ref(false);
 
 // 카테고리 데이터 정의
 const categories = ref<Category[]>([
@@ -762,6 +764,7 @@ defineExpose({
   handleCommunityClick,
   handleSupportClick,
   isMobile,
+  isFindPasswordModalOpen,
 });
 
 // 카테고리 목록 가져오기
@@ -1146,6 +1149,29 @@ const fetchSubCategories = async (mainCategoryValue: string) => {
   background-color: #c0392b;
   transform: translateY(-2px);
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.find-password-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  background-color: transparent;
+  color: #4a90e2;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  text-decoration: none;
+  min-width: auto;
+  margin-left: 10px;
+}
+
+.find-password-button:hover {
+  color: #357abd;
+  transform: translateY(-2px);
 }
 
 @media (max-width: 768px) {

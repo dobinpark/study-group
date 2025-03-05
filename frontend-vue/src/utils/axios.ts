@@ -13,6 +13,7 @@ axios.defaults.withCredentials = true;
 // 기본 axios 인스턴스 생성
 const apiClient = axios.create({
   baseURL: process.env.VUE_APP_API_URL, // 백엔드 API 주소
+  timeout: 10000,
   withCredentials: true, // 쿠키 전달을 위해 true 설정
   headers: {
     'Content-Type': 'application/json',
