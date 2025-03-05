@@ -49,6 +49,7 @@ const form = reactive({
 
 const loading = ref(true);
 
+// 게시글 불러오기
 const fetchPost = async () => {
   try {
     const response = await axios.get(`/posts/${route.params.id}`);
@@ -65,6 +66,7 @@ const fetchPost = async () => {
   }
 };
 
+// 게시글 수정
 const handleSubmit = async () => {
   if (!authStore.isAuthenticated) {
     alert('로그인이 필요합니다.');
@@ -86,10 +88,12 @@ const handleSubmit = async () => {
   }
 };
 
+// 뒤로 가기
 const goBack = () => {
   router.push(`/posts/${route.params.id}`);
 };
 
+// 마운트 시 게시글 불러오기
 onMounted(async () => {
   if (!authStore.sessionChecked) {
     await authStore.checkSession();

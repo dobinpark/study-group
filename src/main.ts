@@ -11,9 +11,8 @@ import { DataSource } from 'typeorm';
 declare const module: any; // HMR 타입 선언 추가
 
 async function bootstrap() {
-    // NestFactory.create 대신 createDevServer 사용
-    // const app = await NestFactory.create(AppModule);
-    const app = await NestFactory.create(AppModule, { cors: true });
+    // const app = await NestFactory.create(AppModule, { cors: true }); // 기존의 초기 cors 설정 제거
+    const app = await NestFactory.create(AppModule);
     const configService = app.get(ConfigService);
     const dataSource = app.get(DataSource);
     const logger = new Logger('Main');
@@ -64,7 +63,7 @@ async function bootstrap() {
 function setupSession(app: INestApplication, configService: ConfigService) {
     app.use(
         session({
-            secret: configService.get<string>('SESSION_SECRET', 'your-secret-key'),
+            secret: configService.get<string>('SESSION_SECRET') || 'secret',
             resave: false,
             saveUninitialized: false,
             cookie: {
@@ -82,10 +81,8 @@ function setupSession(app: INestApplication, configService: ConfigService) {
 
 function setupCors(app: INestApplication) {
     app.enableCors({
-        origin: ['http://localhost:8080'],
-        credentials: true,
-        methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-        allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Cookie'],
+        origin: 'http://localhost:8080', // 프론트엔드 주소 명시적으로 설정
+        credentials: true,                // credentials 활성화
     });
 }
 

@@ -61,7 +61,7 @@ const handleSubmit = async () => {
   loginError.value = '';
   
   try {
-    console.log('로그인 시도:', { username: form.username, rememberMe: form.rememberMe });
+    console.log('로그인 시도:', { username: form.username, password: form.password, rememberMe: form.rememberMe });
     
     const success = await authStore.login(form.username, form.password);
     
@@ -70,7 +70,7 @@ const handleSubmit = async () => {
       const redirectPath = route.query.redirect as string || '/';
       router.push(redirectPath);
     } else {
-      loginError.value = '로그인에 실패했습니다.';
+      loginError.value = '아이디 또는 비밀번호를 확인해주세요.';
     }
   } catch (error: any) {
     console.error('로그인 에러:', error);

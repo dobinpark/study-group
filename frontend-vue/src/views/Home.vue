@@ -46,15 +46,6 @@ onMounted(async () => {
   if (!authStore.sessionChecked) {
     await authStore.checkSession();
   }
-
-  try {
-    const response = await axios.get('/posts/recent'); // 백엔드 API 엔드포인트 (frontend-vue proxy 설정 확인 필요)
-    if (response.status === 200) {
-      // 최신 게시글 처리 로직 추가
-    }
-  } catch (error: any) {
-    console.error('최신 게시글 불러오기 오류', error);
-  }
 });
 </script>
 
@@ -119,6 +110,7 @@ onMounted(async () => {
     opacity: 0;
     transform: translateY(-30px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -130,6 +122,7 @@ onMounted(async () => {
     opacity: 0;
     transform: translateY(30px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);

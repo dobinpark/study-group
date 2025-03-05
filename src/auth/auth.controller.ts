@@ -90,10 +90,8 @@ export class AuthController {
         return { success: true, message: '회원가입이 완료되었습니다.' };
     }
 
+
     // 로그인
-    @Post('login')
-    @HttpCode(HttpStatus.OK)
-    @UseGuards(LocalAuthGuard)
     @ApiOperation({
         summary: '로그인',
         description: '사용자 로그인을 처리합니다. 로그인 성공 시 세션 기반 인증이 설정됩니다.'
@@ -142,16 +140,19 @@ export class AuthController {
             }
         }
     })
+    @HttpCode(HttpStatus.OK)
+    @UseGuards(LocalAuthGuard)
+    @Post('login')
     async login(@Req() req: Request): Promise<any> {
         try {
             if (!req.user) {
                 throw new UnauthorizedException('로그인에 실패했습니다.');
             }
-
+            
             // 로그인 성공 시 디버깅 정보 추가
             this.logger.debug(`세션 ID: ${req.sessionID}`);
             this.logger.debug(`세션 데이터: ${JSON.stringify(req.session)}`);
-
+            
             return {
                 success: true,
                 data: {
@@ -169,62 +170,8 @@ export class AuthController {
         }
     }
 
-    // 세션 상태 확인
-    @Get('session')
-    @ApiOperation({
-        summary: '세션 확인',
-        description: '현재 로그인된 사용자의 세션 정보를 확인합니다.'
-    })
-    @ApiResponse({
-        status: 200,
-        description: '세션 정보 조회',
-        schema: {
-            example: {
-                success: true,
-                data: {
-                    user: {
-                        id: 1,
-                        username: 'user123',
-                        nickname: '홍길동',
-                        email: 'user@example.com',
-                        role: 'USER'
-                    }
-                }
-            }
-        }
-    })
-    async getSession(@Req() req: Request) {
-        try {
-            if (req.isAuthenticated && req.isAuthenticated()) {
-                const user = await this.authService.findUserById((req.user as User).id);
-                if (!user) {
-                    return {
-                        suceess: false,
-                        message: '사용자를 찾을 수 없습니다.'
-                    };
-                }
-                return {
-                    success: true,
-                    data: {
-                        user: user // 최신정보를 넣어줍니다.
-                    }
-                };
-            }
-
-            this.logger.debug('세션 조회 오류 : 인증된 세션이 없습니다.')
-            return {
-                success: false,
-                message: '인증된 세션이 없습니다.'
-            };
-        } catch (error) {
-            this.logger.error(`세션 조회 오류: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
-            throw new InternalServerErrorException('세션 조회 중 오류가 발생했습니다.');
-        }
-    }
-
+    
     // 로그아웃
-    @Post('logout')
-    @HttpCode(HttpStatus.OK)
     @ApiOperation({
         summary: '로그아웃',
         description: '현재 로그인된 사용자의 세션을 종료합니다.'
@@ -239,6 +186,8 @@ export class AuthController {
             }
         }
     })
+    @HttpCode(HttpStatus.OK)
+    @Post('logout')
     async logout(@Req() req: Request): Promise<any> {
         try {
             const wasLoggedIn = req.isAuthenticated();
@@ -270,36 +219,7 @@ export class AuthController {
         }
     }
 
-    // 현재 로그인한 사용자 정보 조회
-    @UseGuards(AuthGuard)
-    @ApiOperation({ summary: '내 정보 조회', description: '현재 로그인된 사용자의 정보를 조회합니다.' })
-    @ApiResponse({
-        status: 200, description: '사용자 정보 조회 성공', type: AuthMeResponseDto,
-        schema: {
-            example: {
-                success: true,
-                message: '사용자 정보 조회 성공',
-                data: { user: { id: 1, username: 'user123', nickname: '홍길동', email: 'user@example.com', role: 'USER' } }
-            }
-        }
-    })
-    @ApiResponse({ status: 401, description: '인증되지 않은 사용자' })
-    @Get('me')
-    async getMe(@Req() req: Request): Promise<DataResponse<AuthMeResponseDto>> {
-        const user = req.user as User;
-        const userId = user.id;
-        this.logger.debug(`내 정보 조회 요청: 사용자 ID ${userId}`);
-
-        const userInfo = await this.authService.findUserById(userId);
-        return {
-            success: true,
-            message: '사용자 정보 조회 성공',
-            data: userInfo
-        };
-    }
-
     // 비밀번호 찾기
-    @HttpCode(HttpStatus.OK)
     @ApiOperation({
         summary: '비밀번호 찾기',
         description: '사용자 아이디와 이메일을 확인하여 임시 비밀번호를 발급합니다.'
@@ -340,6 +260,7 @@ export class AuthController {
             }
         }
     })
+    @HttpCode(HttpStatus.OK)
     @Post('find-password')
     async findPassword(@Body() findPasswordDto: AuthFindPasswordDto) {
         const { tempPassword } = await this.authService.findPassword(findPasswordDto);
@@ -350,10 +271,85 @@ export class AuthController {
         };
     }
 
-    /**
-     * 사용자가 이미 로그인 상태에서 세션을 갱신
-     */
-    @HttpCode(HttpStatus.OK)
+
+    // 세션 상태 확인
+    @ApiOperation({
+        summary: '세션 확인',
+        description: '현재 로그인된 사용자의 세션 정보를 확인합니다.'
+    })
+    @ApiResponse({
+        status: 200,
+        description: '세션 정보 조회',
+        schema: {
+            example: {
+                success: true,
+                data: {
+                    user: {
+                        id: 1,
+                        username: 'user123',
+                        nickname: '홍길동',
+                        email: 'user@example.com',
+                        role: 'USER'
+                    }
+                }
+            }
+        }
+    })
+    @Get('session')
+    async getSession(@Req() req: Request) {
+        try {
+            await this.authService.validateSession(req);
+            const user = await this.authService.findUserById((req.user as User).id);
+            if (!user) {
+                return {
+                    suceess: false,
+                    message: '사용자를 찾을 수 없습니다.'
+                };
+            }
+            return {
+                success: true,
+                data: {
+                    user: user // 최신정보를 넣어줍니다.
+                }
+            };
+        } catch (error) {
+            this.logger.error(`세션 조회 오류: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
+            throw new InternalServerErrorException('세션 조회 중 오류가 발생했습니다.');
+        }
+    }
+
+
+
+    // 현재 로그인한 사용자 정보 조회
+    @ApiOperation({ summary: '내 정보 조회', description: '현재 로그인된 사용자의 정보를 조회합니다.' })
+    @ApiResponse({
+        status: 200, description: '사용자 정보 조회 성공', type: AuthMeResponseDto,
+        schema: {
+            example: {
+                success: true,
+                message: '사용자 정보 조회 성공',
+                data: { user: { id: 1, username: 'user123', nickname: '홍길동', email: 'user@example.com', role: 'USER' } }
+            }
+        }
+    })
+    @ApiResponse({ status: 401, description: '인증되지 않은 사용자' })
+    @UseGuards(AuthGuard)
+    @Get('me')
+    async getMe(@Req() req: Request): Promise<DataResponse<AuthMeResponseDto>> {
+        const user = req.user as User;
+        const userId = user.id;
+        this.logger.debug(`내 정보 조회 요청: 사용자 ID ${userId}`);
+
+        const userInfo = await this.authService.findUserById(userId);
+        return {
+            success: true,
+            message: '사용자 정보 조회 성공',
+            data: userInfo
+        };
+    }
+
+
+    // 사용자가 이미 로그인 상태에서 세션을 갱신
     @ApiOperation({
         summary: '세션 갱신',
         description: '현재 로그인된 사용자의 세션을 갱신합니다.'
@@ -387,6 +383,8 @@ export class AuthController {
             }
         }
     })
+    @HttpCode(HttpStatus.OK)
+    @Post('refresh-session')
     async refreshSession(@Req() req: Request): Promise<any> {
         try {
             // 사용자 인증 여부 확인
@@ -406,6 +404,7 @@ export class AuthController {
                 req.session.touch();
             }
             this.logger.debug(`세션 갱신 완료: ${req.sessionID}`);
+            this.authService.extendSessionDuration(req, 24 * 60 * 60); // 24시간 연장
             return {
                 success: true,
                 message: '세션이 갱신되었습니다.',
@@ -421,14 +420,13 @@ export class AuthController {
             };
         }
     }
+
+
+    // 세션 만료 시간 연장
     @Post('extend-session')
     @UseGuards(AuthGuard)
-    async extendSession(@Session() session: CustomSession): Promise<BaseResponse> {
-        // 세션 만료 시간 연장 (예: 1시간)
-        if (session.cookie) {
-            session.cookie.maxAge = 60 * 60 * 1000; // 1시간
-        }
-
+    async extendSession(@Req() req: Request): Promise<BaseResponse> {
+        this.authService.extendSessionDuration(req, 60 * 60); // 1시간 연장
         return {
             success: true,
             message: '세션이 연장되었습니다.'

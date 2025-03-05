@@ -11,7 +11,7 @@
           </div>
           <div class="right-section">
             <div class="auth-container" :class="{ 'mobile-auth': isMobile }">
-              <template v-if="isLoggedIn && currentUser">
+              <template v-if="isLoggedInComputed && currentUser">
                 <span class="welcome-text">
                   {{
                     currentUser?.nickname ||
@@ -55,12 +55,7 @@
                 :class="{ 'mobile-menu-item': isMobile }">
                 {{ category.name }}
                 <ul class="sub-menu multi-column">
-                  <li v-for="(
-subCategoryGroup, groupIndex
-                                        ) in chunkSubCategories(
-                                              category.subCategories,
-                                              10,
-                                            )" :key="groupIndex" class="sub-menu-column">
+                  <li v-for="(subCategoryGroup, groupIndex) in chunkSubCategories(category.subCategories, 10)" :key="groupIndex" class="sub-menu-column">
                     <ul>
                       <li v-for="subCategory in subCategoryGroup" :key="subCategory.name" class="sub-menu-item" @click="
                         handleSubCategoryClick(
@@ -74,10 +69,10 @@ subCategoryGroup, groupIndex
                           subCategory.items
                             .length > 0
                         " class="detail-menu" :class="{
-                                                      active:
-                                                        activeSubCategoryName ===
-                                                        subCategory.name,
-                                                    }">
+                          active:
+                            activeSubCategoryName ===
+                            subCategory.name,
+                        }">
                           <li v-for="item in subCategory.items" :key="item" class="detail-menu-item" @click.stop="
                             navigateToStudyList(
                               category.name,
@@ -151,8 +146,14 @@ const emitter = mitt();
 provide('emitter', emitter);
 
 // 로그인 상태 관리
-const isLoggedIn = computed(() => authStore.isAuthenticated);
-const currentUser = computed(() => userStore.user);
+const isLoggedInComputed = computed(() => {
+  console.log('Header.vue: isLoggedInComputed computed 호출 - isAuthenticated:', authStore.isAuthenticated);
+  return authStore.isAuthenticated;
+});
+const currentUser = computed(() => {
+  console.log('Header.vue: currentUser computed 호출 - user:', userStore.user);
+  return userStore.user;
+});
 const isLoggingOut = ref(false);
 
 // 모바일 화면 여부
@@ -752,7 +753,7 @@ watch(activeSubCategoryName, (newValue, oldValue) => {
 // export default 대신 defineExpose 사용
 defineExpose({
   userStore,
-  isLoggedIn,
+  isLoggedInComputed,
   currentUser,
   handleLogout,
   checkMobile,
@@ -763,9 +764,10 @@ defineExpose({
   isMobile,
 });
 
+// 카테고리 목록 가져오기
 const fetchCategories = async () => {
   try {
-    const response = await axios.get('/category/list'); // 백엔드 API 엔드포인트 (frontend-vue proxy 설정 확인 필요)
+    const response = await axios.get('/category/list');
     if (response.status === 200) {
       categories.value = response.data;
       response.data.forEach((mainCategory: any) => {
@@ -777,12 +779,13 @@ const fetchCategories = async () => {
   }
 };
 
+// 서브 카테고리 목록 가져오기
 const fetchSubCategories = async (mainCategoryValue: string) => {
   try {
-    const response = await axios.get(`/category/${mainCategoryValue}/sub-categories`); // 백엔드 API 엔드포인트 (frontend-vue proxy 설정 확인 필요)
+    const response = await axios.get(`/category/${mainCategoryValue}/sub-categories`);
     if (response.status === 200) {
-      subCategories.value = {
-        ...subCategories.value,
+      categories.value = {
+        ...categories.value,
         [mainCategoryValue]: response.data,
       };
     }

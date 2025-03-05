@@ -5,7 +5,7 @@ import router from './router'
 import { createPinia } from 'pinia'
 import piniaPluginPersistedstate from 'pinia-plugin-persist'
 
-// 환경 변수 디버깅 정보 출력
+// 환경 변수 디버깅 정보 출력 (개발 완료 후 제거 또는 조건부 로깅으로 변경 고려)
 console.log('=== 환경 설정 ===');
 console.log('NODE_ENV:', process.env.NODE_ENV);
 console.log('VUE_APP_API_URL:', process.env.VUE_APP_API_URL);

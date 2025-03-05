@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsNotEmpty, IsString, Matches, MinLength } from "class-validator";
-import { PASSWORD_REGEX, PASSWORD_REGEX_MESSAGE } from '../../utils/validation';
+import { PASSWORD_REGEX, PASSWORD_REGEX_MESSAGE } from '../utils/validation';
 
 export class AuthLoginDto {
 
@@ -15,7 +15,7 @@ export class AuthLoginDto {
 
     @ApiProperty({
         example: 'password123!',
-    description: '비밀번호 (최소 8자, 영문/숫자/특수문자 조합)',
+        description: '비밀번호 (최소 8자, 영문/숫자/특수문자 조합)',
         required: true,
         minLength: 8
     })

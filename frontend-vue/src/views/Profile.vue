@@ -50,6 +50,7 @@ const form = reactive({
 const isAuthenticated = computed(() => authStore.isAuthenticated);
 const currentUser = computed(() => userStore.user);
 
+// 프로필 정보 불러오기
 const fetchProfile = async () => {
   try {
     const response = await axios.get('/auth/me');
@@ -62,6 +63,7 @@ const fetchProfile = async () => {
   }
 };
 
+// 프로필 수정
 const handleSubmit = async () => {
   try {
     const response = await axios.put('/users/profile', form);
@@ -74,11 +76,12 @@ const handleSubmit = async () => {
   }
 };
 
+// 프로필 정보 불러오기
 onMounted(() => {
   if (!authStore.sessionChecked) {
     authStore.checkSession();
   }
-  
+
   if (userStore.user) {
     userStore.fetchUserProfile();
   }

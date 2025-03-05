@@ -95,6 +95,12 @@ export interface SupportCategoryInfo {
   description: string;
 }
 
+export interface UserProfile {
+  id: number;
+  bio: string;
+  profileImage: string;
+}
+
 // Support 카테고리 추가
 export enum SupportCategory {
   INQUIRY = 'INQUIRY',

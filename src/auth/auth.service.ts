@@ -8,6 +8,7 @@ import { User } from '../user/entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AuthMeResponseDto } from './dto/meResponse.dto';
+import { Request } from 'express';
 
 @Injectable()
 export class AuthService {
@@ -19,6 +20,7 @@ export class AuthService {
         @InjectRepository(User)
         private usersRepository: Repository<User>,
     ) { }
+
 
     // 로그인 유효성 검사
     async loginWithCredentials(username: string, password: string): Promise<any> {
@@ -33,6 +35,7 @@ export class AuthService {
         this.logger.debug(`${username} 로그인 성공`);
         return user;
     }
+
 
     // 회원가입
     async signUp(signupDto: AuthSignupDto): Promise<{ success: boolean; message: string }> {
@@ -88,6 +91,7 @@ export class AuthService {
         }
     }
 
+
     // 비밀번호 찾기
     async findPassword(findPasswordDto: AuthFindPasswordDto): Promise<{ tempPassword: string }> {
         const { username, email } = findPasswordDto;
@@ -114,6 +118,7 @@ export class AuthService {
             throw new InternalServerErrorException('비밀번호 찾기 처리 중 오류가 발생했습니다.');
         }
     }
+
 
     // 사용자 검증
     async validateUser(username: string, password: string): Promise<any> {
@@ -147,6 +152,7 @@ export class AuthService {
         }
     }
 
+
     // 로그아웃 처리
     async logout(session: any): Promise<void> {
         if (!session) {
@@ -170,6 +176,7 @@ export class AuthService {
         }
     }
 
+
     // 사용자 ID로 검색
     async findUserById(id: number): Promise<AuthMeResponseDto | null> {
         this.logger.debug(`사용자 ID 검색: ${id}`);
@@ -189,6 +196,7 @@ export class AuthService {
         return authMeResponseDto;
     }
 
+
     // 안전한 임시 비밀번호 생성
     private generateSecurePassword(): string {
         const tempPassword = uuidv4().slice(0, 8) +
@@ -197,5 +205,34 @@ export class AuthService {
             String.fromCharCode(Math.floor(Math.random() * 26) + 65) +
             '!';
         return tempPassword;
+    }
+
+
+    // 세션 유효성 검사
+    async validateSession(req: Request): Promise<any> {
+        if (!req.session || !req.session.user) {
+            this.logger.warn('유효하지 않은 세션: 세션 또는 사용자 정보 없음');
+            throw new UnauthorizedException('로그인이 필요합니다.');
+        }
+
+        // 세션 만료 시간 확인 (선택적) - 필요에 따라 AuthGuard에서만 체크하거나, AuthService에서 체크하도록 선택
+        const now = Date.now();
+        if (req.session.cookie.expires && new Date(req.session.cookie.expires).getTime() < now) {
+            this.logger.warn('유효하지 않은 세션: 세션 만료');
+            throw new UnauthorizedException('세션이 만료되었습니다. 다시 로그인해주세요.');
+        }
+        return true; // 세션 유효
+    }
+
+
+    // 세션 만료 시간 연장
+    extendSessionDuration(req: Request, durationInSeconds: number): void {
+        if (req.session && req.session.cookie) {
+            req.session.cookie.maxAge = durationInSeconds * 1000; // 밀리초 단위
+            req.session.touch();
+            this.logger.debug(`세션 만료 시간 연장 (세션 ID: ${req.sessionID}, 연장 시간: ${durationInSeconds}초)`);
+        } else {
+            this.logger.warn('세션 연장 실패: 세션 정보가 없습니다.');
+        }
     }
 }

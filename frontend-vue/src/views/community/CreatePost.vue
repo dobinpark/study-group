@@ -57,6 +57,7 @@ const categoryTitle = computed(() => {
 
 const errorMessage = ref('');
 
+// 게시글 작성
 const handleSubmit = async () => {
   errorMessage.value = '';
   if (!form.title.trim() || !form.content.trim()) {
@@ -82,6 +83,7 @@ const handleSubmit = async () => {
       return;
     }
 
+    // 게시글 작성
     const response = await axios.post('/posts', {
       title: form.title,
       content: form.content,
@@ -96,6 +98,7 @@ const handleSubmit = async () => {
   }
 };
 
+// 뒤로 가기
 const goBack = () => {
   router.push({
     path: '/posts',

@@ -2,7 +2,7 @@
 	<div id="app">
 		<Header />
 		<main>
-			<router-view v-if="!isLoading"></router-view>
+			<router-view :key="$route.fullPath" v-if="!isLoading"></router-view>
 			<div v-else class="loading">
 				<div class="loading-spinner"></div>
 				<p>로딩 중...</p>
@@ -46,12 +46,11 @@ export default defineComponent({
 			authStore.logout();
 		};
 
-		// 앱 마운트 시 이벤트 리스너 등록
+		// 앱 마운트 시 이벤트 리스너 등록 및 세션 체크
 		onMounted(async () => {
-			// 앱 마운트 시 한 번만 세션 체크
-			if (!authStore.sessionChecked) {
-				await authStore.checkSession();
-			}
+			console.log('App.vue: onMounted - 세션 체크 시작');
+			await authStore.checkSession(); // sessionChecked 상태와 관계없이 항상 세션 체크
+			console.log('App.vue: onMounted - 세션 체크 완료');
 
 			// 이벤트 리스너 등록
 			window.addEventListener('auth:unauthorized', handleUnauthorized);

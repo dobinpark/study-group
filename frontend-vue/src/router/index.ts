@@ -1,165 +1,164 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
 import { useAuthStore } from '../store/auth';
+import FindPasswordModal from '../components/FindPasswordModal.vue';
+import Home from '../views/Home.vue';
+import Login from '../views/Login.vue';
+import Profile from '../views/Profile.vue';
+import Signup from '../views/Signup.vue';
+import MyStudies from '../views/study/MyStudies.vue';
+import StudyGroupList from '../views/study/StudyGroupList.vue';
+import CreateStudyGroup from '../views/study/CreateStudyGroup.vue';
+import StudyGroupDetail from '../views/study/StudyGroupDetail.vue';
+import EditStudyGroup from '../views/study/EditStudyGroup.vue';
+import PostCreate from '../views/community/CreatePost.vue';
+import PostDetail from '../views/community/PostDetail.vue';
+import PostEdit from '../views/community/EditPost.vue';
+import PostList from '../views/community/PostList.vue';
+import SupportCreate from '../views/support/CreateSupport.vue';
+import SupportDetail from '../views/support/SupportDetail.vue';
+import EditSupport from '../views/support/EditSupport.vue';
+import SupportList from '../views/support/SupportList.vue';
 
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
     name: 'home',
-    component: () => import('../views/Home.vue')
+    component: Home,
   },
   {
     path: '/login',
     name: 'login',
-    component: () => import('../views/Login.vue'),
-    meta: { requiresGuest: true }
+    component: Login,
+    meta: { public: true },
   },
   {
     path: '/signup',
     name: 'signup',
-    component: () => import('../views/Signup.vue')
+    component: Signup,
   },
   {
     path: '/find-password',
     name: 'findPassword',
-    component: () => import('../components/FindPasswordModal.vue')
+    component: FindPasswordModal,
   },
   {
-path: '/my-studies',
+    path: '/my-studies',
     name: 'myStudyGroups',
-    component: () => import('../views/study/MyStudies.vue'),
+    component: MyStudies,
     meta: { requiresAuth: true }
   },
   {
     path: '/profile',
     name: 'profile',
-    component: () => import('../views/Profile.vue'),
+    component: Profile,
     meta: { requiresAuth: true }
   },
   {
     path: '/study-groups',
-    children: [
-      {
-        path: '',
-        name: 'studyGroups',
-        component: () => import('../views/study/StudyGroupList.vue')
-      },
-      {
-        path: 'create',
-        name: 'studyGroupCreate',
-        component: () => import('../views/study/CreateStudyGroup.vue'),
-        meta: { requiresAuth: true }
-      },
-      {
-        path: ':id',
-        name: 'studyGroupDetail',
-        component: () => import('../views/study/StudyGroupDetail.vue')
-      },
-      {
-        path: ':id/edit',
-        name: 'studyGroupEdit',
-        component: () => import('../views/study/EditStudyGroup.vue'),
-        meta: { requiresAuth: true }
-      }
-    ]
+    name: 'study-groups',
+    component: StudyGroupList,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/study-groups/create',
+    name: 'study-groups-create',
+    component: CreateStudyGroup,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/study-groups/:id',
+    name: 'study-group-detail',
+    component: StudyGroupDetail,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/study-groups/:id/edit',
+    name: 'studyGroupEdit',
+    component: EditStudyGroup,
+    meta: { requiresAuth: true }
   },
   {
     path: '/posts',
-    name: 'posts',
-    children: [
-      {
-        path: '',
-        name: 'postList',
-        component: () => import('../views/community/PostList.vue'),
-      },
-      {
-        path: 'create',
-        name: 'postCreate',
-        component: () => import('../views/community/CreatePost.vue'),
-        meta: { requiresAuth: true }
-      },
-      {
-        path: ':id',
-        name: 'postDetail',
-        component: () => import('../views/community/PostDetail.vue')
-      },
-      {
-        path: ':id/edit',
-        name: 'postEdit',
-        component: () => import('../views/community/EditPost.vue'),
-        meta: { requiresAuth: true }
-      },
-      {
-        path: 'categories/:category',
-        name: 'postsByCategory',
-        component: () => import('../views/community/PostList.vue')
-      },
-      {
-        path: 'search',
-        name: 'searchPosts',
-        component: () => import('../views/community/PostList.vue')
-      },
-      {
-        path: 'my',
-        name: 'myPosts',
-        component: () => import('../views/community/PostList.vue'),
-        meta: { requiresAuth: true }
-      },
-      {
-        path: ':id/comments',
-        name: 'postComments',
-        component: () => import('../views/community/PostDetail.vue')
-      }
-    ]
+    name: 'post-list',
+    component: PostList,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/posts/create',
+    component: PostCreate,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/posts/:id',
+    component: PostDetail,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/posts/:id/edit',
+    component: PostEdit,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/posts/categories/:category',
+    component: PostList,
+  },
+  {
+    path: '/posts/search',
+    component: PostList,
+  },
+  {
+    path: '/posts/my',
+    component: PostList,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/posts/:id/comments',
+    component: PostDetail,
   },
   {
     path: '/supports',
     name: 'supports',
-    children: [
-      {
-        path: '',
-        name: 'supportList',
-        component: () => import('../views/support/SupportList.vue'),
-      },
-      {
-        path: 'create',
-        name: 'supportCreate',
-        component: () => import('../views/support/CreateSupport.vue'),
-        meta: { requiresAuth: true }
-      },
-      {
-        path: ':id',
-        name: 'supportDetail',
-        component: () => import('../views/support/SupportDetail.vue')
-      },
-      {
-        path: ':id/edit',
-        name: 'supportEdit',
-        component: () => import('../views/support/EditSupport.vue'),
-        meta: { requiresAuth: true }
-      },
-      {
-        path: 'categories/:category',
-        name: 'supportsByCategory',
-        component: () => import('../views/support/SupportList.vue')
-      },
-      {
-        path: 'search',
-        name: 'searchSupports',
-        component: () => import('../views/support/SupportList.vue')
-      },
-      {
-        path: 'my',
-        name: 'mySupports',
-        component: () => import('../views/support/SupportList.vue'),
-        meta: { requiresAuth: true }
-      },
-      {
-        path: ':id/comments',
-        name: 'supportComments',
-        component: () => import('../views/support/SupportDetail.vue')
-      }
-    ]
-  }
+    component: SupportList,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/supports/create',
+    name: 'supports-create',
+    component: SupportCreate,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/supports/:id',
+    name: 'supportDetail',
+    component: SupportDetail,
+  },
+  {
+    path: '/supports/:id/edit',
+    name: 'supportEdit',
+    component: EditSupport,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/supports/categories/:category',
+    name: 'supportsByCategory',
+    component: SupportList,
+  },
+  {
+    path: '/supports/search',
+    name: 'searchSupports',
+    component: SupportList,
+  },
+  {
+    path: '/supports/my',
+    name: 'mySupports',
+    component: SupportList,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/supports/:id/comments',
+    name: 'supportComments',
+    component: SupportDetail,
+  },
 ];
 
 const router = createRouter({
@@ -173,23 +172,36 @@ const router = createRouter({
 // 전역 네비게이션 가드
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore();
-  
-  // 이미 세션을 체크했는지 확인
+
+  // 세션 체크가 완료되지 않았으면 대기 (초기 로딩 시 불필요한 리다이렉트 방지)
   if (!authStore.sessionChecked) {
+    console.log('Router Guard: 세션 체크 대기 중...'); // 로깅 추가
     await authStore.checkSession();
+    console.log('Router Guard: 세션 체크 완료'); // 로깅 추가
   }
-  
-  // 인증이 필요한 라우트에 대한 접근 제어
-  if (to.matched.some(record => record.meta.requiresAuth)) {
-    if (!authStore.isAuthenticated) {
+
+  const requiresAuth = to.meta.requiresAuth;
+  const isAuth = authStore.isAuthenticated;
+
+  console.log(`Router Guard: to.path: ${to.path}, requiresAuth: ${requiresAuth}, isAuthenticated: ${isAuth}`); // 로깅 추가
+
+  if (requiresAuth) {
+    if (!isAuth) {
+      console.log('Router Guard: 인증 필요, 로그인 페이지로 리다이렉트 - to.path:', to.path); // 로깅 메시지 개선
       next({
         path: '/login',
-        query: { redirect: to.fullPath }
+        query: { redirect: to.fullPath },
       });
     } else {
+      console.log('Router Guard: 인증 완료, 라우트 진행 - to.path:', to.path); // 로깅 메시지 개선
       next();
     }
-  } else {
+  } else if (to.name === 'login' && isAuth) {
+    console.log('Router Guard: 로그인 페이지 접근, 이미 로그인 상태, 홈으로 리다이렉트 - to.path:', to.path); // 로깅 메시지 개선
+    next({ path: '/' });
+  }
+  else {
+    console.log('Router Guard: public 라우트, 라우트 진행 - to.path:', to.path); // 로깅 메시지 개선
     next();
   }
 });

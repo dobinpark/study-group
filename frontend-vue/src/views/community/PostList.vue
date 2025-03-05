@@ -14,7 +14,7 @@
           </div>
 
           <!-- 게시글 목록 - 데이터가 없어도 테이블 구조를 보여줌 -->
-          <div class="post-list" v-if="!loading">
+          <div class="post-list" v-if="!loading && posts">
             <table>
               <thead>
                 <tr>
@@ -43,6 +43,9 @@
           <!-- 로딩 중일 때 표시 -->
           <div v-if="loading" class="loading">
             게시글을 불러오는 중입니다...
+          </div>
+          <div v-else-if="!posts" class="loading">
+            게시글 목록을 불러오는데 실패했습니다.
           </div>
 
           <!-- 페이지네이션 및 글쓰기 버튼 -->
@@ -93,7 +96,7 @@ interface Post {
 const router = useRouter();
 const route = useRoute();
 const userStore = useUserStore();
-const posts = ref<Post[]>([]);
+const posts = ref<Post[] | null>(null);
 const loading = ref(true);
 const page = ref(1);
 const totalPages = ref(1);
@@ -103,6 +106,7 @@ const errorMessage = ref('');
 const currentPage = ref(1);
 const pageSize = 10;
 
+// 카테고리 타이틀 계산
 const categoryTitle = computed(() => {
   const titles = {
     FREE: '자유게시판',
@@ -114,16 +118,18 @@ const categoryTitle = computed(() => {
 });
 
 watch(() => route.params.category, (newCategory) => {
-  category.value = newCategory || 'free';
+  category.value = newCategory as string || 'free';
   currentPage.value = 1;
   fetchPosts();
 });
 
+// 게시글 목록 불러오기
 const fetchPosts = async () => {
   loading.value = true;
   errorMessage.value = '';
+  posts.value = null;
   try {
-    const response = await axios.get(`/posts`, { // 백엔드 API 엔드포인트 (frontend-vue proxy 설정 확인 필요)
+    const response = await axios.get(`/posts`, {
       params: {
         category: category.value,
         page: currentPage.value,
@@ -136,27 +142,33 @@ const fetchPosts = async () => {
       totalPages.value = response.data.totalPages;
     } else {
       errorMessage.value = '게시글 목록을 불러올 수 없습니다.';
+      posts.value = null;
     }
   } catch (error: any) {
     console.error('게시글 목록 불러오기 오류', error);
     errorMessage.value = '게시글 목록을 불러오는 중 오류가 발생했습니다.';
+    posts.value = null;
   } finally {
     loading.value = false;
   }
 };
 
+// 날짜 형식 변환
 const formatDate = (date: string) => new Date(date).toLocaleDateString();
 
+// 검색
 const search = () => {
   currentPage.value = 1;
   fetchPosts();
 };
 
+// 페이지 변경
 const changePage = (newPage: number) => {
   currentPage.value = newPage;
   fetchPosts();
 };
 
+// 게시글 작성 페이지로 이동
 const createPost = () => {
   router.push({
     path: '/posts/create',
@@ -164,6 +176,7 @@ const createPost = () => {
   });
 };
 
+// 게시글 상세 페이지로 이동
 const viewPost = (id: number) => router.push(`/posts/${id}`);
 
 onMounted(() => {

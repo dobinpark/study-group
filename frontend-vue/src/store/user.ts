@@ -1,26 +1,24 @@
 import { defineStore } from 'pinia';
 import axios from '../utils/axios';
-
-export interface User {
-  id: number;
-  username: string;
-  email: string;
-  role?: string;
-  nickname?: string;
-  profileImage?: string;
-  bio?: string;
-  createdAt?: string;
-}
+import apiClient from '../utils/axios';
+import type { User, UserProfile } from '../types/models';
+import { useAuthStore } from './auth';
 
 interface UserState {
   user: User | null;
-  isLoadingProfile: boolean;
+  userProfile: UserProfile | null;
+  isLoading: boolean;
+  error: any;
+  hasProfile: boolean;
 }
 
 export const useUserStore = defineStore('user', {
   state: (): UserState => ({
     user: null,
-    isLoadingProfile: false
+    userProfile: null,
+    isLoading: false,
+    error: null,
+    hasProfile: false
   }),
 
   getters: {
@@ -36,9 +34,9 @@ export const useUserStore = defineStore('user', {
     profile: (state) => ({
       name: state.user?.nickname || state.user?.username,
       email: state.user?.email,
-      bio: state.user?.bio,
-      profileImage: state.user?.profileImage,
-      createdAt: state.user?.createdAt
+      bio: (state.user as any)?.bio || '',
+      profileImage: (state.user as any)?.profileImage || '',
+      createdAt: (state.user as any)?.createdAt
     })
   },
 
@@ -51,27 +49,27 @@ export const useUserStore = defineStore('user', {
     // 사용자 정보 초기화
     clearUser() {
       this.user = null;
+      this.userProfile = null;
     },
 
     // 사용자 프로필 가져오기
     async fetchUserProfile() {
-      if (!this.user?.id) return;
-
-      this.isLoadingProfile = true;
       try {
-        const response = await axios.get(`/users/${this.user.id}/profile`);
-
-        if (response.data?.success) {
-          // 프로필 정보로 user 객체 업데이트
-          this.user = {
-            ...this.user,
-            ...response.data.data.profile
-          };
+        this.isLoading = true;
+        const userId = this.userId;
+        const response = await apiClient.get('/users/profile');
+        if (response.status === 200) {
+          this.userProfile = response.data;
+          this.hasProfile = true;
+        } else {
+          this.hasProfile = false;
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('프로필 정보 불러오기 실패:', error);
+        this.hasProfile = false;
+        throw error;
       } finally {
-        this.isLoadingProfile = false;
+        this.isLoading = false;
       }
     },
 
@@ -79,7 +77,7 @@ export const useUserStore = defineStore('user', {
     async updateProfile(profileData: Partial<User>) {
       if (!this.user?.id) return false;
 
-      this.isLoadingProfile = true;
+      this.isLoading = true;
       try {
         const response = await axios.put(`/users/${this.user.id}/profile`, profileData);
 
@@ -96,7 +94,7 @@ export const useUserStore = defineStore('user', {
         console.error('프로필 업데이트 실패:', error);
         return false;
       } finally {
-        this.isLoadingProfile = false;
+        this.isLoading = false;
       }
     },
 
