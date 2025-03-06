@@ -16,6 +16,8 @@ import {
     ParseIntPipe,
     InternalServerErrorException,
     UseGuards,
+    Req,
+    Logger,
 } from '@nestjs/common';
 import {
     ApiTags,
@@ -42,17 +44,20 @@ import { CategoryDto } from './dto/category.dto';
 import { CustomSession } from '../types/session.types';
 import { TransformInterceptor } from '../interceptors/response.interceptor';
 import { DataResponse, BaseResponse } from '../types/response.types';
-import { AuthGuard } from '../auth/guards/authenticated.guard';
+import { Request } from 'express';
+import { User } from '../user/entities/user.entity';
+import { AuthGuard } from '../auth/guards/auth.guard';
 
 @ApiTags('스터디')
 @ApiExtraModels(StudyGroup, CategoryDto, DataResponse<any>, BaseResponse)
 @Controller('study-groups')
 @UseInterceptors(ClassSerializerInterceptor)
 @UseInterceptors(TransformInterceptor)
-@UseGuards(AuthGuard)
 export class StudyGroupController {
+    private readonly logger = new Logger(StudyGroupController.name);
 
-    constructor(private readonly studyGroupService: StudyGroupService) {}
+    constructor(private readonly studyGroupService: StudyGroupService) { }
+
 
     // 스터디 그룹 생성
     @ApiOperation({ summary: '스터디 그룹 생성' })
@@ -99,14 +104,22 @@ export class StudyGroupController {
     @HttpCode(HttpStatus.CREATED)
     async create(
         @Body() createStudyGroupDto: CreateStudyGroupDto,
-        @Session() session: CustomSession
+        @Session() session: CustomSession,
+        @Req() req: Request
     ): Promise<DataResponse<StudyGroup>> {
         if (!session.user) {
             throw new UnauthorizedException('로그인이 필요합니다.');
         }
-        const studyGroup = await this.studyGroupService.create(createStudyGroupDto, session.user.id);
-        return { success: true, data: studyGroup };
+        try {
+            const studyGroup = await this.studyGroupService.create(createStudyGroupDto, session.user.id);
+            return { success: true, data: studyGroup };
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+            this.logger.error(`스터디 그룹 생성 실패: ${errorMessage}`);
+            throw new InternalServerErrorException('스터디 그룹 생성 중 오류가 발생했습니다.');
+        }
     }
+
 
     // 스터디 그룹 목록 조회
     @ApiOperation({ summary: '스터디 그룹 목록 조회' })
@@ -159,6 +172,7 @@ export class StudyGroupController {
         return { success: true, data: result };
     }
 
+
     // 스터디 그룹 상세 조회
     @ApiOperation({ summary: '스터디 그룹 상세 조회' })
     @ApiParam({ name: 'id', required: true, description: '스터디 그룹 ID' })
@@ -187,7 +201,7 @@ export class StudyGroupController {
     // 스터디 그룹 수정
     @ApiOperation({ summary: '스터디 그룹 수정' })
     @ApiParam({ name: 'id', required: true, description: '스터디 그룹 ID' })
-    @ApiBody({ 
+    @ApiBody({
         type: UpdateStudyGroupDto,
         description: '수정할 스터디 그룹 정보',
         examples: {
@@ -234,6 +248,7 @@ export class StudyGroupController {
         return { success: true, data: updatedGroup };
     }
 
+
     // 스터디 그룹 삭제
     @ApiOperation({ summary: '스터디 그룹 삭제' })
     @ApiParam({ name: 'id', required: true, description: '스터디 그룹 ID' })
@@ -263,6 +278,7 @@ export class StudyGroupController {
         await this.studyGroupService.remove(id, session.user.id);
         return { success: true, message: '스터디 그룹이 삭제되었습니다.' };
     }
+
 
     // 스터디 그룹 참여
     @ApiOperation({ summary: '스터디 그룹 참여' })
@@ -295,6 +311,7 @@ export class StudyGroupController {
         return { success: true, message: '스터디 그룹에 참여했습니다.' };
     }
 
+
     // 스터디 그룹 탈퇴
     @ApiOperation({ summary: '스터디 그룹 탈퇴' })
     @ApiParam({ name: 'id', required: true, description: '스터디 그룹 ID' })
@@ -326,6 +343,7 @@ export class StudyGroupController {
         return { success: true, message: '스터디 그룹을 탈퇴했습니다.' };
     }
 
+
     // 카테고리별 스터디 그룹 통계
     @ApiOperation({ summary: '카테고리별 스터디 그룹 통계' })
     @ApiOkResponse({
@@ -349,6 +367,7 @@ export class StudyGroupController {
         const stats = await this.studyGroupService.getCategoryStats();
         return { success: true, data: stats };
     }
+
 
     // 내 스터디 목록 조회
     @ApiOperation({ summary: '내 스터디 목록 조회' })
@@ -386,17 +405,21 @@ export class StudyGroupController {
         description: '로그인 세션 쿠키',
         required: true
     })
+    @UseGuards(AuthGuard)
     @Get('my-studies')
     async getMyStudies(
-        @Session() session: CustomSession
+        @Req() req: Request
     ): Promise<DataResponse<{ created: StudyGroup[], joined: StudyGroup[] }>> {
-        if (!session.user) {
+        if (!req.isAuthenticated()) {
             throw new UnauthorizedException('로그인이 필요합니다.');
         }
 
+        this.logger.debug(`getMyStudies - req.user type: ${typeof req.user}, value: ${JSON.stringify(req.user)}`);
+        this.logger.debug(`getMyStudies - session 정보: ${JSON.stringify(req.session)}`);
+
         try {
-            const studies = await this.studyGroupService.getMyStudies(session.user.id);
-            return { 
+            const studies = await this.studyGroupService.getMyStudies((req.user as User).id);
+            return {
                 success: true,
                 message: '스터디 목록을 성공적으로 조회했습니다.',
                 data: studies

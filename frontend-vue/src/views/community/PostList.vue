@@ -74,6 +74,7 @@ import axios from '../../utils/axios';
 import { useUserStore } from '../../store/user';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ko';
+import { PostCategoryKorean } from '@/types/models';
 dayjs.locale('ko');
 
 // 게시글 타입 정의 수정 - 백엔드 응답 구조에 맞게 조정
@@ -101,23 +102,18 @@ const loading = ref(true);
 const page = ref(1);
 const totalPages = ref(1);
 const searchQuery = ref('');
-const category = ref(route.params.category as string || 'free');
+const category = ref((route.query.category as string) || 'free');
 const errorMessage = ref('');
 const currentPage = ref(1);
 const pageSize = 10;
 
-// 카테고리 타이틀 계산
+// 카테고리 제목 표시
 const categoryTitle = computed(() => {
-  const titles = {
-    FREE: '자유게시판',
-    QUESTION: '질문게시판',
-    SUGGESTION: '건의게시판'
-  } as const;
-
-  return titles[category.value as keyof typeof titles] || '게시판';
+  const category = route.query.category as keyof typeof PostCategoryKorean;
+  return PostCategoryKorean[category] || '게시판';
 });
 
-watch(() => route.params.category, (newCategory) => {
+watch(() => route.query.category, (newCategory) => {
   category.value = newCategory as string || 'free';
   currentPage.value = 1;
   fetchPosts();
@@ -129,6 +125,7 @@ const fetchPosts = async () => {
   errorMessage.value = '';
   posts.value = null;
   try {
+    console.log('fetchPosts - category.value:', category.value);
     const response = await axios.get(`/posts`, {
       params: {
         category: category.value,
@@ -138,8 +135,8 @@ const fetchPosts = async () => {
       },
     });
     if (response.status === 200) {
-      posts.value = response.data.content;
-      totalPages.value = response.data.totalPages;
+      posts.value = response.data.data.items;
+      totalPages.value = response.data.data.totalPages;
     } else {
       errorMessage.value = '게시글 목록을 불러올 수 없습니다.';
       posts.value = null;

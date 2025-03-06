@@ -11,18 +11,21 @@ import {
     UseInterceptors,
     ClassSerializerInterceptor,
     Req,
-    UseGuards,
+    ParseIntPipe,
     Logger,
+    InternalServerErrorException,
+    NotFoundException,
+    BadRequestException,
 } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { Post as PostEntity } from './entities/post.entity';
 import { PostCategory } from './enum/post-category.enum';
-import { ApiTags, ApiOperation, ApiResponse, ApiQuery, ApiParam, ApiBearerAuth, ApiBody } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiQuery, ApiParam, ApiBearerAuth, ApiBody, ApiCreatedResponse, ApiBadRequestResponse, ApiNotFoundResponse, ApiOkResponse } from '@nestjs/swagger';
 import { TransformInterceptor } from '../interceptors/response.interceptor';
 import { Request } from 'express';
-import { AuthGuard } from '../auth/guards/authenticated.guard';
+import { DataResponse } from '../types/response.types';
 
 @ApiTags('게시판')
 @Controller('posts')
@@ -32,6 +35,7 @@ export class PostsController {
     private readonly logger = new Logger(PostsController.name);
 
     constructor(private readonly postsService: PostsService) { }
+
 
     // 카테고리별 게시물 조회
     @Get()
@@ -107,9 +111,9 @@ export class PostsController {
         };
     }
 
+
     // 게시물 생성
     @Post()
-    @UseGuards(AuthGuard)
     @ApiOperation({ summary: '게시글 작성' })
     @ApiBearerAuth()
     @ApiBody({
@@ -132,41 +136,12 @@ export class PostsController {
             }
         }
     })
-    @ApiResponse({
-        status: 201,
-        description: '게시글 작성 성공',
-        schema: {
-            example: {
-                success: true,
-                data: {
-                    id: 3,
-                    title: '새 게시글 제목',
-                    content: '게시글 내용입니다. 마크다운 형식도 지원됩니다.',
-                    category: 'FREE',
-                    views: 0,
-                    authorId: 1,
-                    createdAt: '2023-05-21T08:15:32.123Z',
-                    updatedAt: '2023-05-21T08:15:32.123Z'
-                },
-                message: '게시글이 성공적으로 작성되었습니다'
-            }
-        }
-    })
-    @ApiResponse({
-        status: 401,
-        description: '인증되지 않은 사용자',
-        schema: {
-            example: {
-                success: false,
-                message: '로그인이 필요합니다',
-                statusCode: 401
-            }
-        }
-    })
+    @ApiCreatedResponse({ description: '게시글 생성 성공', type: DataResponse })
+    @ApiBadRequestResponse({ description: '잘못된 요청' })
     async createPost(
         @Body() createPostDto: CreatePostDto,
         @Req() req: Request
-    ): Promise<PostEntity> {
+    ): Promise<DataResponse<PostEntity>> {
         const user = req.user as any;
 
         if (!user || !user.id) {
@@ -176,13 +151,24 @@ export class PostsController {
         const userId = user.id;
         this.logger.debug(`게시글 작성 요청: 사용자 ID ${userId}`);
 
-        const post = await this.postsService.createPost({
-            ...createPostDto,
-            authorId: userId
-        });
+        try {
+            const post = await this.postsService.createPost({
+                ...createPostDto,
+                authorId: userId
+            });
 
-        return post;
+            return {
+                success: true,
+                data: post,
+                message: '게시글이 성공적으로 작성되었습니다'
+            };
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+            this.logger.error(`게시글 생성 실패: ${errorMessage}`);
+            throw new InternalServerErrorException('게시글 생성 중 오류가 발생했습니다.');
+        }
     }
+
 
     // 게시물 상세 조회
     @Get(':id')
@@ -234,9 +220,9 @@ export class PostsController {
         };
     }
 
+
     // 게시물 수정
     @Put(':id')
-    @UseGuards(AuthGuard)
     @ApiOperation({ summary: '게시글 수정' })
     @ApiBearerAuth()
     @ApiParam({ name: 'id', description: '게시글 ID', example: 1 })
@@ -312,9 +298,9 @@ export class PostsController {
         return updatedPost;
     }
 
+
     // 게시물 삭제
     @Delete(':id')
-    @UseGuards(AuthGuard)
     @ApiOperation({ summary: '게시글 삭제' })
     @ApiBearerAuth()
     @ApiParam({ name: 'id', description: '게시글 ID', example: 1 })

@@ -53,7 +53,7 @@ const currentUser = computed(() => userStore.user);
 // 프로필 정보 불러오기
 const fetchProfile = async () => {
   try {
-    const response = await axios.get('/auth/me');
+    const response = await axios.get(`/users/profile/${currentUser.value?.id}`);
     if (response.data.success) {
       Object.assign(form, response.data.data);
     }
@@ -76,7 +76,6 @@ const handleSubmit = async () => {
   }
 };
 
-// 프로필 정보 불러오기
 onMounted(() => {
   if (!authStore.sessionChecked) {
     authStore.checkSession();
@@ -84,6 +83,7 @@ onMounted(() => {
 
   if (userStore.user) {
     userStore.fetchUserProfile();
+    fetchProfile();
   }
 });
 </script>

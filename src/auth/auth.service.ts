@@ -9,6 +9,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AuthMeResponseDto } from './dto/meResponse.dto';
 import { Request } from 'express';
+import { UserService } from '../user/user.service';
+import { JwtService } from '@nestjs/jwt';
+import { LoginRequestDto } from './dto/login-request.dto';
 
 @Injectable()
 export class AuthService {
@@ -19,6 +22,8 @@ export class AuthService {
         private readonly authRepository: AuthRepository,
         @InjectRepository(User)
         private usersRepository: Repository<User>,
+        private userService: UserService,
+        private jwtService: JwtService,
     ) { }
 
 
@@ -121,35 +126,24 @@ export class AuthService {
 
 
     // 사용자 검증
-    async validateUser(username: string, password: string): Promise<any> {
-        this.logger.debug(`사용자 인증: ${username}`);
-        try {
-            // 사용자 정보 조회
-            const user = await this.authRepository.findByUsername(username);
-
-            if (!user) {
-                this.logger.warn(`${username} 사용자를 찾을 수 없음`);
-                return null;
-            }
-
-            // 비밀번호 검증
-            const isPasswordValid = await bcrypt.compare(password, user.password);
-
-            if (!isPasswordValid) {
-                this.logger.warn(`${username} 비밀번호 불일치`);
-                return null;
-            }
-
-            this.logger.debug(`${username} 인증 성공`);
-
-            // 비밀번호를 제외한 사용자 정보 반환
-            const { password: _, ...result } = user;
-            return result;
-        } catch (error: unknown) {
-            const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
-            this.logger.error(`인증 처리 중 오류: ${errorMessage}`);
-            throw error;
+    async validateUser(username: string, password?: string): Promise<any> {
+        this.logger.debug(`validateUser 호출 - username: ${username}`);
+        const user = await this.userService.findByUsername(username);
+        if (!user) {
+            this.logger.warn(`validateUser 실패 - username: ${username}: 사용자 없음`);
+            return null;
         }
+        if (!password) {
+            this.logger.debug(`validateUser 성공 (세션 기반) - username: ${username}, user: ${JSON.stringify(user)}`);
+            return user;
+        }
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        if (!isPasswordValid) {
+            this.logger.warn(`validateUser 실패 - username: ${username}: 비밀번호 불일치`);
+            return null;
+        }
+        this.logger.debug(`validateUser 성공 - username: ${username}, user: ${JSON.stringify(user)}`);
+        return user;
     }
 
 
@@ -207,32 +201,32 @@ export class AuthService {
         return tempPassword;
     }
 
-
-    // 세션 유효성 검사
     async validateSession(req: Request): Promise<any> {
-        if (!req.session || !req.session.user) {
-            this.logger.warn('유효하지 않은 세션: 세션 또는 사용자 정보 없음');
-            throw new UnauthorizedException('로그인이 필요합니다.');
-        }
-
-        // 세션 만료 시간 확인 (선택적) - 필요에 따라 AuthGuard에서만 체크하거나, AuthService에서 체크하도록 선택
-        const now = Date.now();
-        if (req.session.cookie.expires && new Date(req.session.cookie.expires).getTime() < now) {
-            this.logger.warn('유효하지 않은 세션: 세션 만료');
-            throw new UnauthorizedException('세션이 만료되었습니다. 다시 로그인해주세요.');
-        }
-        return true; // 세션 유효
+        // ... (existing validateSession method - if you still have it)
     }
 
+    async deserializeUser(userId: number, done: (err: Error | null, user: any) => void): Promise<void> {
+        this.logger.debug(`[deserializeUser] 사용자 역직렬화 시작: ${userId}`);
+        try {
+            const user = await this.findUserById(userId);
+            if (!user) {
+                this.logger.warn(`[deserializeUser] 사용자 ID ${userId}로 사용자 찾을 수 없음`);
+                return done(null, false);
+            }
 
-    // 세션 만료 시간 연장
-    extendSessionDuration(req: Request, durationInSeconds: number): void {
-        if (req.session && req.session.cookie) {
-            req.session.cookie.maxAge = durationInSeconds * 1000; // 밀리초 단위
-            req.session.touch();
-            this.logger.debug(`세션 만료 시간 연장 (세션 ID: ${req.sessionID}, 연장 시간: ${durationInSeconds}초)`);
-        } else {
-            this.logger.warn('세션 연장 실패: 세션 정보가 없습니다.');
+            this.logger.debug(`[deserializeUser] 사용자 정보 조회 성공: ${JSON.stringify(user)}`);
+            done(null, user); // user 객체를 done() 콜백으로 전달
+
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+            this.logger.error(`[deserializeUser] 사용자 역직렬화 실패: ${errorMessage}`);
+            // error가 Error 인스턴스인지 확인 후 done() 호출
+            if (error instanceof Error) {
+                done(error, false);
+            } else {
+                // Error 인스턴스가 아니면 새로운 Error 객체 생성하여 전달
+                done(new Error('사용자 역직렬화 중 알 수 없는 오류 발생'), false);
+            }
         }
     }
 }

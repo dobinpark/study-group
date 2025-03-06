@@ -13,7 +13,6 @@ import {
     HttpStatus,
     InternalServerErrorException,
     Logger,
-    Session,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiCookieAuth } from '@nestjs/swagger';
@@ -24,10 +23,8 @@ import { Request } from 'express';
 import { AuthSignupDto } from './dto/auth.signUp.dto';
 import { AuthLoginDto } from './dto/auth.login.dto';
 import { AuthFindPasswordDto } from './dto/auth.findPassword.dto';
-import { LocalAuthGuard } from './guards/local-auth.guard';
-import { AuthGuard } from './guards/authenticated.guard';
-import { CustomSession } from '../types/session.types';
 import { AuthMeResponseDto } from './dto/meResponse.dto';
+import { LocalAuthGuard } from './guards/local-auth.guard';
 
 @ApiTags('인증')
 @ApiCookieAuth()
@@ -274,47 +271,24 @@ export class AuthController {
 
     // 세션 상태 확인
     @ApiOperation({
-        summary: '세션 확인',
-        description: '현재 로그인된 사용자의 세션 정보를 확인합니다.'
+        summary: '세션 정보 확인',
+        description: '현재 로그인된 사용자의 세션 정보를 검증하고 사용자 정보를 반환합니다.'
     })
-    @ApiResponse({
-        status: 200,
-        description: '세션 정보 조회',
-        schema: {
-            example: {
-                success: true,
-                data: {
-                    user: {
-                        id: 1,
-                        username: 'user123',
-                        nickname: '홍길동',
-                        email: 'user@example.com',
-                        role: 'USER'
-                    }
-                }
-            }
-        }
-    })
+    @ApiResponse({ status: 200, description: '세션이 유효하며, 사용자 정보를 반환합니다.', type: AuthMeResponseDto })
+    @ApiResponse({ status: 401, description: '세션이 유효하지 않습니다.' })
     @Get('session')
     async getSession(@Req() req: Request) {
+        this.logger.debug('세션 검증 및 사용자 정보 조회 요청');
         try {
-            await this.authService.validateSession(req);
-            const user = await this.authService.findUserById((req.user as User).id);
-            if (!user) {
-                return {
-                    suceess: false,
-                    message: '사용자를 찾을 수 없습니다.'
-                };
+            if (req.user) {
+                return req.user;
+            } else {
+                throw new UnauthorizedException('로그인이 필요합니다.');
             }
-            return {
-                success: true,
-                data: {
-                    user: user // 최신정보를 넣어줍니다.
-                }
-            };
-        } catch (error) {
-            this.logger.error(`세션 조회 오류: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
-            throw new InternalServerErrorException('세션 조회 중 오류가 발생했습니다.');
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+            this.logger.error(`세션 조회 오류: ${errorMessage}`);
+            throw error;
         }
     }
 
@@ -333,7 +307,6 @@ export class AuthController {
         }
     })
     @ApiResponse({ status: 401, description: '인증되지 않은 사용자' })
-    @UseGuards(AuthGuard)
     @Get('me')
     async getMe(@Req() req: Request): Promise<DataResponse<AuthMeResponseDto>> {
         const user = req.user as User;
@@ -404,7 +377,6 @@ export class AuthController {
                 req.session.touch();
             }
             this.logger.debug(`세션 갱신 완료: ${req.sessionID}`);
-            this.authService.extendSessionDuration(req, 24 * 60 * 60); // 24시간 연장
             return {
                 success: true,
                 message: '세션이 갱신되었습니다.',
@@ -424,9 +396,7 @@ export class AuthController {
 
     // 세션 만료 시간 연장
     @Post('extend-session')
-    @UseGuards(AuthGuard)
     async extendSession(@Req() req: Request): Promise<BaseResponse> {
-        this.authService.extendSessionDuration(req, 60 * 60); // 1시간 연장
         return {
             success: true,
             message: '세션이 연장되었습니다.'

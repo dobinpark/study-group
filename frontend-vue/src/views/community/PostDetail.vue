@@ -123,7 +123,12 @@ const deletePost = async () => {
   }
 };
 
-const goBack = () => router.push('/posts');
+const goBack = () => {
+  router.push({
+    path: '/posts',
+    query: { category: post.value?.category }
+  });
+};
 
 onMounted(fetchPost);
 </script>

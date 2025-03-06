@@ -17,7 +17,7 @@
                 <input type="text" id="nickname" v-model="form.nickname" required />
               </div>
             </div>
-            
+
             <div class="form-row">
               <div class="form-group">
                 <label for="password">비밀번호</label>
@@ -28,7 +28,7 @@
                 <input type="password" id="confirmPassword" v-model="form.confirmPassword" required />
               </div>
             </div>
-            
+
             <div class="form-row">
               <div class="form-group">
                 <label for="email">이메일</label>
@@ -134,15 +134,15 @@ const handleSubmit = async () => {
   .form-row {
     grid-template-columns: 1fr !important;
   }
-  
+
   .page-content {
     padding: 1rem !important;
   }
-  
+
   .button-group {
     flex-direction: column !important;
   }
-  
+
   .btn {
     width: 100% !important;
   }

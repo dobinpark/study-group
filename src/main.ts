@@ -61,6 +61,7 @@ async function bootstrap() {
 }
 
 function setupSession(app: INestApplication, configService: ConfigService) {
+    console.log('SESSION_SECRET 값 (main.ts):', configService.get<string>('SESSION_SECRET'));
     app.use(
         session({
             secret: configService.get<string>('SESSION_SECRET') || 'secret',

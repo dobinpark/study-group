@@ -3,6 +3,7 @@ import axios from '../utils/axios';
 import apiClient from '../utils/axios';
 import type { User, UserProfile } from '../types/models';
 import { useAuthStore } from './auth';
+import { PersistOptions } from 'pinia-plugin-persist';
 
 interface UserState {
   user: User | null;
@@ -12,7 +13,7 @@ interface UserState {
   hasProfile: boolean;
 }
 
-export const useUserStore = defineStore('user', {
+export const useUserStore = defineStore<'user', UserState, any, any>('user', {
   state: (): UserState => ({
     user: null,
     userProfile: null,
@@ -23,15 +24,15 @@ export const useUserStore = defineStore('user', {
 
   getters: {
     // 사용자 정보 관련 getters
-    userId: (state) => state.user?.id,
-    userName: (state) => state.user?.username,
-    userEmail: (state) => state.user?.email,
-    userRole: (state) => state.user?.role,
-    isAdmin: (state) => state.user?.role === 'admin',
-    isLoggedIn: (state) => !!state.user,
+    userId: (state: UserState) => state.user?.id,
+    userName: (state: UserState) => state.user?.username,
+    userEmail: (state: UserState) => state.user?.email,
+    userRole: (state: UserState) => state.user?.role,
+    isAdmin: (state: UserState) => state.user?.role === 'admin',
+    isLoggedIn: (state: UserState) => !!state.user,
 
     // 사용자 프로필 정보
-    profile: (state) => ({
+    profile: (state: UserState) => ({
       name: state.user?.nickname || state.user?.username,
       email: state.user?.email,
       bio: (state.user as any)?.bio || '',
@@ -54,19 +55,21 @@ export const useUserStore = defineStore('user', {
 
     // 사용자 프로필 가져오기
     async fetchUserProfile() {
+      this.isLoading = true;
+      this.error = null;
       try {
-        this.isLoading = true;
-        const userId = this.userId;
-        const response = await apiClient.get('/users/profile');
-        if (response.status === 200) {
-          this.userProfile = response.data;
-          this.hasProfile = true;
+        const response = await axios.get(`/users/profile/${this.user?.id}`);
+        if (response.status === 200 && response.data.success) {
+          this.userProfile = response.data.data;
+          this.user = response.data.data;
+          console.log('UserStore: 프로필 정보 불러오기 성공', this.userProfile);
         } else {
-          this.hasProfile = false;
+          console.error('UserStore: 프로필 정보 불러오기 실패', response.status, response.data);
+          this.error = '프로필 정보를 불러오는데 실패했습니다.';
         }
       } catch (error: any) {
-        console.error('프로필 정보 불러오기 실패:', error);
-        this.hasProfile = false;
+        console.error('UserStore: 프로필 정보 불러오기 에러', error);
+        this.error = error;
         throw error;
       } finally {
         this.isLoading = false;
@@ -114,5 +117,9 @@ export const useUserStore = defineStore('user', {
         return false;
       }
     }
-  }
+  },
+
+  persist: {
+    enabled: true,
+  },
 });
