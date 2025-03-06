@@ -40,6 +40,7 @@ const routes: Array<RouteRecordRaw> = [
     path: '/find-password',
     name: 'findPassword',
     component: FindPasswordModal,
+    meta: { public: true },
   },
   {
     path: '/my-studies',
@@ -178,6 +179,10 @@ router.beforeEach(async (to, from, next) => {
     console.log('Router Guard: 세션 체크 대기 중...'); // 로깅 추가
     await authStore.checkSession();
     console.log('Router Guard: 세션 체크 완료'); // 로깅 추가
+    if (!authStore.sessionChecked) {
+      console.log('Router Guard: 세션 체크 실패, public 라우트로 진행');
+      return next(); // 세션 체크 실패 시 public 라우트는 허용
+    }
   }
 
   const requiresAuth = to.meta.requiresAuth;

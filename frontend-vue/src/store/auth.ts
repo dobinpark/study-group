@@ -32,47 +32,25 @@ export const useAuthStore = defineStore('auth', {
 
   actions: {
     // 세션 체크
-    async checkSession() {
-      console.log('AuthStore: checkSession 액션 시작');
-      this.isLoading = true;
-      this.sessionChecked = false;
-
-      try {
-        const response = await axios.get('/auth/session');
-
-        console.log('AuthStore: checkSession API 응답 상태:', response.status);
-        console.log('AuthStore: checkSession API 응답 데이터:', response.data);
-
-        if (response.status === 200) {
+    checkSession() {
+      console.log('AuthStore: checkSession 액션 호출');
+      return new Promise(async (resolve, reject) => {
+        try {
+          await axios.get('/auth/session');
           this.isAuthenticated = true;
-          this.user = response.data.user;
           this.sessionChecked = true;
-          console.log('AuthStore: 세션 유효, 로그인 상태 유지', this.isAuthenticated, this.user);
-          console.log('AuthStore: sessionChecked 상태 변경: true');
-
-          // 사용자 정보가 있으면 userStore에 설정
-          if (response.data.user) {
-            const userStore = useUserStore();
-            userStore.setUser(response.data.user);
-          }
-        } else {
+          console.log('AuthStore: 세션 유효, 로그인 상태 유지');
+          resolve(true);
+        } catch (error: any) {
           this.isAuthenticated = false;
-          this.user = null;
           this.sessionChecked = true;
-          console.log('AuthStore: 세션 무효, 로그아웃 상태', this.isAuthenticated);
-          console.log('AuthStore: sessionChecked 상태 변경: true');
+          console.log('AuthStore: 세션 유효하지 않음, 로그아웃 상태');
+          reject(false);
+        } finally {
+          console.log('AuthStore: 세션 체크 완료, sessionChecked 상태:', this.sessionChecked);
+          resolve(this.sessionChecked);
         }
-      } catch (error: any) {
-        this.isAuthenticated = false;
-        this.user = null;
-        this.sessionChecked = true;
-        console.log('AuthStore: sessionChecked 상태 변경: true (에러 발생)');
-        console.error('AuthStore: 세션 체크 실패', error);
-        console.error('AuthStore: 세션 체크 에러 응답:', error.response);
-      } finally {
-        this.isLoading = false;
-        console.log('AuthStore: checkSession 액션 완료, isLoading:', this.isLoading, 'isAuthenticated:', this.isAuthenticated, 'sessionChecked:', this.sessionChecked);
-      }
+      });
     },
 
     // 로그인
@@ -153,7 +131,7 @@ export const useAuthStore = defineStore('auth', {
         this.$reset();
         console.log('AuthStore: persist 상태 초기화 완료');
 
-        await router.push('/');
+        await router.push('/login');
       } catch (error: any) {
         console.error('AuthStore: 로그아웃 에러', error);
       } finally {

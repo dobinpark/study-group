@@ -73,11 +73,11 @@ const handleSubmit = async () => {
     router.push('/login');
     return;
   }
-  
+
   if (!authStore.sessionChecked) {
     await authStore.checkSession();
   }
-  
+
   try {
     const response = await axios.put(`/posts/${route.params.id}`, form);
     if (response.data.success) {
@@ -98,7 +98,7 @@ onMounted(async () => {
   if (!authStore.sessionChecked) {
     await authStore.checkSession();
   }
-  
+
   await fetchPost();
 });
 </script>

@@ -112,7 +112,7 @@ export class AuthService {
 
             await this.authRepository.updatePassword(user.id, hashedPassword);
 
-            // TODO: 이메일 발송 로직 추가
+            // TODO: 이메일 발송 로직 추가 (추후 구현)
             this.logger.log(`임시 비밀번호 발급: ${username} (ID: ${user.id})`);
             return { tempPassword };
         } catch (error) {
@@ -173,21 +173,28 @@ export class AuthService {
 
     // 사용자 ID로 검색
     async findUserById(id: number): Promise<AuthMeResponseDto | null> {
-        this.logger.debug(`사용자 ID 검색: ${id}`);
-        const user = await this.usersRepository.findOne({
-            where: { id },
-            select: ['id', 'username', 'nickname', 'role']
-        });
-        if (!user) {
-            return null;
+        this.logger.debug(`사용자 ID 검색 시작: ${id}`);
+        try {
+            const user = await this.usersRepository.findOne({
+                where: { id },
+                select: ['id', 'username', 'nickname', 'role']
+            });
+            if (!user) {
+                this.logger.warn(`사용자 ID ${id}로 사용자 정보 찾을 수 없음`);
+                return null;
+            }
+            const authMeResponseDto: AuthMeResponseDto = {
+                id: user.id,
+                username: user.username,
+                nickname: user.nickname,
+                role: user.role,
+            };
+            this.logger.debug(`사용자 ID 검색 완료: ${id}, 사용자 이름: ${user.username}`);
+            return authMeResponseDto;
+        } catch (error) {
+            this.logger.error(`사용자 ID 검색 중 오류 발생: ${id}`, error);
+            throw new InternalServerErrorException('사용자 정보 조회 중 오류가 발생했습니다.');
         }
-        const authMeResponseDto: AuthMeResponseDto = {
-            id: user.id,
-            username: user.username,
-            nickname: user.nickname,
-            role: user.role,
-        };
-        return authMeResponseDto;
     }
 
 
@@ -202,7 +209,24 @@ export class AuthService {
     }
 
     async validateSession(req: Request): Promise<any> {
+<<<<<<< HEAD
         // ... (existing validateSession method - if you still have it)
+=======
+        this.logger.debug(`세션 유효성 검사 시작 (세션 ID: ${req.sessionID})`);
+        if (!req.session || !req.session.user) {
+            this.logger.warn('유효하지 않은 세션: 세션 또는 사용자 정보 없음');
+            throw new UnauthorizedException('로그인이 필요합니다.');
+        }
+
+        // 세션 만료 시간 확인 (선택적) - 필요에 따라 AuthGuard에서만 체크하거나, AuthService에서 체크하도록 선택
+        const now = Date.now();
+        if (req.session.cookie.expires && new Date(req.session.cookie.expires).getTime() < now) {
+            this.logger.warn('유효하지 않은 세션: 세션 만료');
+            throw new UnauthorizedException('세션이 만료되었습니다. 다시 로그인해주세요.');
+        }
+        this.logger.debug(`세션 유효성 검사 통과 (세션 ID: ${req.sessionID}, 사용자 ID: ${req.session.user.id})`);
+        return true; // 세션 유효
+>>>>>>> origin/main
     }
 
     async deserializeUser(userId: number, done: (err: Error | null, user: any) => void): Promise<void> {

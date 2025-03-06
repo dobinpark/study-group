@@ -102,15 +102,20 @@ const loading = ref(true);
 const page = ref(1);
 const totalPages = ref(1);
 const searchQuery = ref('');
-const category = ref((route.query.category as string) || 'free');
+const category = ref(route.params.category as string || 'free');
 const errorMessage = ref('');
 const currentPage = ref(1);
 const pageSize = 10;
 
 // 카테고리 제목 표시
 const categoryTitle = computed(() => {
-  const category = route.query.category as keyof typeof PostCategoryKorean;
-  return PostCategoryKorean[category] || '게시판';
+  const titles = {
+    FREE: '자유게시판',
+    QUESTION: '질문게시판',
+    SUGGESTION: '건의게시판'
+  } as const;
+
+  return titles[category.value as keyof typeof titles] || '게시판';
 });
 
 watch(() => route.query.category, (newCategory) => {
@@ -125,7 +130,6 @@ const fetchPosts = async () => {
   errorMessage.value = '';
   posts.value = null;
   try {
-    console.log('fetchPosts - category.value:', category.value);
     const response = await axios.get(`/posts`, {
       params: {
         category: category.value,
@@ -135,8 +139,8 @@ const fetchPosts = async () => {
       },
     });
     if (response.status === 200) {
-      posts.value = response.data.data.items;
-      totalPages.value = response.data.data.totalPages;
+      posts.value = response.data.content;
+      totalPages.value = response.data.totalPages;
     } else {
       errorMessage.value = '게시글 목록을 불러올 수 없습니다.';
       posts.value = null;

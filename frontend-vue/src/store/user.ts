@@ -55,14 +55,13 @@ export const useUserStore = defineStore<'user', UserState, any, any>('user', {
 
     // 사용자 프로필 가져오기
     async fetchUserProfile() {
-      this.isLoading = true;
-      this.error = null;
       try {
-        const response = await axios.get(`/users/profile/${this.user?.id}`);
-        if (response.status === 200 && response.data.success) {
-          this.userProfile = response.data.data;
-          this.user = response.data.data;
-          console.log('UserStore: 프로필 정보 불러오기 성공', this.userProfile);
+        this.isLoading = true;
+        const userId = this.userId;
+        const response = await apiClient.get('/users/profile');
+        if (response.status === 200) {
+          this.userProfile = response.data;
+          this.hasProfile = true;
         } else {
           console.error('UserStore: 프로필 정보 불러오기 실패', response.status, response.data);
           this.error = '프로필 정보를 불러오는데 실패했습니다.';

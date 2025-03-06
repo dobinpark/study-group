@@ -278,17 +278,24 @@ export class AuthController {
     @ApiResponse({ status: 401, description: '세션이 유효하지 않습니다.' })
     @Get('session')
     async getSession(@Req() req: Request) {
-        this.logger.debug('세션 검증 및 사용자 정보 조회 요청');
         try {
-            if (req.user) {
-                return req.user;
-            } else {
-                throw new UnauthorizedException('로그인이 필요합니다.');
+            await this.authService.validateSession(req);
+            const user = await this.authService.findUserById((req.user as User).id);
+            if (!user) {
+                return {
+                    suceess: false,
+                    message: '사용자를 찾을 수 없습니다.'
+                };
             }
-        } catch (error: unknown) {
-            const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
-            this.logger.error(`세션 조회 오류: ${errorMessage}`);
-            throw error;
+            return {
+                success: true,
+                data: {
+                    user: user // 최신정보를 넣어줍니다.
+                }
+            };
+        } catch (error) {
+            this.logger.error(`세션 조회 오류: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
+            throw new InternalServerErrorException('세션 조회 중 오류가 발생했습니다.');
         }
     }
 

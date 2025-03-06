@@ -34,6 +34,7 @@
         </main>
       </div>
     </div>
+    <FindPasswordModal :is-open="isFindPasswordModalOpen" @close="closeFindPasswordModal" />
   </div>
 </template>
 
@@ -49,6 +50,7 @@ const authStore = useAuthStore();
 const userStore = useUserStore();
 const isLoading = ref(false);
 const loginError = ref('');
+const isFindPasswordModalOpen = ref(false);
 
 const form = reactive({
   username: '',
@@ -85,6 +87,14 @@ const resetForm = () => {
   form.password = '';
   form.rememberMe = false;
   loginError.value = '';
+};
+
+const openFindPasswordModal = () => {
+  isFindPasswordModalOpen.value = true;
+};
+
+const closeFindPasswordModal = () => {
+  isFindPasswordModalOpen.value = false;
 };
 
 onMounted(() => {
@@ -147,5 +157,26 @@ onMounted(() => {
 .remember-me input[type="checkbox"] {
   width: auto;
   margin: 0;
+}
+
+.auth-links {
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.auth-links a, .auth-links button.find-password-link {
+  margin: 0 0.5rem;
+  color: #666;
+  text-decoration: none;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.9rem;
+}
+
+.auth-links a:hover, .auth-links button.find-password-link:hover {
+  color: #4A90E2;
+  text-decoration: underline;
 }
 </style>

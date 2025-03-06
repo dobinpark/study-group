@@ -1,19 +1,24 @@
 <template>
 	<div id="app">
-		<Header />
-		<main>
-			<router-view :key="$route.fullPath" v-if="!isLoading"></router-view>
-			<div v-else class="loading">
-				<div class="loading-spinner"></div>
-				<p>로딩 중...</p>
-			</div>
-		</main>
-		<Footer />
+		<div v-if="!sessionChecked" class="loading-indicator">
+			Loading ...
+		</div>
+		<div v-else>
+			<Header />
+			<main>
+				<router-view :key="$route.fullPath" v-if="sessionChecked"></router-view>
+				<div v-else class="loading">
+					<div class="loading-spinner"></div>
+					<p>로딩 중...</p>
+				</div>
+			</main>
+			<Footer />
+		</div>
 	</div>
 </template>
 
 <script lang="ts">
-import { defineComponent, computed, onMounted, onBeforeUnmount } from 'vue';
+import { defineComponent, computed, onMounted, onBeforeUnmount, ref } from 'vue';
 import { useAuthStore } from './store/auth';
 import { useUserStore } from './store/user';
 import Header from './components/Header.vue';
@@ -32,7 +37,7 @@ export default defineComponent({
 		const userStore = useUserStore();
 		const router = useRouter();
 		const route = useRoute();
-		const isLoading = computed(() => authStore.isLoading);
+		const sessionChecked = ref(false);
 
 		// 401 오류 처리를 위한 이벤트 리스너
 		const handleUnauthorized = () => {
@@ -48,9 +53,12 @@ export default defineComponent({
 
 		// 앱 마운트 시 이벤트 리스너 등록 및 세션 체크
 		onMounted(async () => {
+			sessionChecked.value = false;
 			console.log('App.vue: onMounted - 세션 체크 시작');
-			await authStore.checkSession(); // sessionChecked 상태와 관계없이 항상 세션 체크
-			console.log('App.vue: onMounted - 세션 체크 완료');
+			await authStore.checkSession().finally(() => {
+				sessionChecked.value = true;
+			});
+			console.log('App.vue: onMounted - 세션 체크 완료, sessionChecked:', sessionChecked.value);
 
 			// 이벤트 리스너 등록
 			window.addEventListener('auth:unauthorized', handleUnauthorized);
@@ -75,7 +83,7 @@ export default defineComponent({
 		});
 
 		return {
-			isLoading,
+			sessionChecked,
 		};
 	}
 });
@@ -117,5 +125,13 @@ button {
 	cursor: pointer;
 	border: none;
 	outline: none;
+}
+
+.loading-indicator {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100vh;
 }
 </style>
