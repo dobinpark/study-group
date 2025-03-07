@@ -7,22 +7,19 @@ import { LoggingInterceptor } from './interceptors/logging.interceptor';
 import * as session from 'express-session';
 import * as passport from 'passport';
 import { DataSource } from 'typeorm';
+import { NestExpressApplication } from '@nestjs/platform-express';
 
 declare const module: any; // HMR 타입 선언 추가
 
 async function bootstrap() {
     // const app = await NestFactory.create(AppModule, { cors: true }); // 기존의 초기 cors 설정 제거
-    const app = await NestFactory.create(AppModule);
+    const app = await NestFactory.create<NestExpressApplication>(AppModule);
     const configService = app.get(ConfigService);
     const dataSource = app.get(DataSource);
     const logger = new Logger('Main');
 
     // 전역 파이프 설정
-    app.useGlobalPipes(new ValidationPipe({
-        whitelist: true,
-        transform: true,
-        forbidNonWhitelisted: true,
-    }));
+    // app.useGlobalPipes(new ValidationPipe()); // 전역 유효성 검사 파이프 주석 처리 또는 제거
 
     // 전역 인터셉터 설정
     app.useGlobalInterceptors(new LoggingInterceptor());
@@ -73,6 +70,7 @@ function setupSession(app: INestApplication, configService: ConfigService) {
                 secure: process.env.NODE_ENV === 'production',
                 sameSite: 'lax',
             },
+            store: undefined,
         }),
     );
 
@@ -82,8 +80,8 @@ function setupSession(app: INestApplication, configService: ConfigService) {
 
 function setupCors(app: INestApplication) {
     app.enableCors({
-        origin: 'http://localhost:8080', // 프론트엔드 주소 명시적으로 설정
-        credentials: true,                // credentials 활성화
+        origin: 'http://localhost:8080',
+        credentials: true,
     });
 }
 

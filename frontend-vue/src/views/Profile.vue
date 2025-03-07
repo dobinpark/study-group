@@ -53,7 +53,7 @@ const currentUser = computed(() => userStore.user);
 // 프로필 정보 불러오기
 const fetchProfile = async () => {
   try {
-    const response = await axios.get(`/users/profile/${currentUser.value?.id}`);
+    const response = await axios.get(`/users/profile`);
     if (response.data.success) {
       Object.assign(form, response.data.data);
     }

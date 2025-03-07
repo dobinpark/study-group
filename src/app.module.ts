@@ -41,7 +41,7 @@ import { CacheModule } from '@nestjs/cache-manager';
             ttl: 300,
         }),
         PostsModule,
-        PassportModule.register({ session: true }),
+        PassportModule.register({}),
     ],
     controllers: [],
     providers: [

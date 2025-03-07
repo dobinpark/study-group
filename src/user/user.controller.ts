@@ -1,4 +1,4 @@
-import { Controller, Get, Put, Body, Session, UnauthorizedException, UseInterceptors, ClassSerializerInterceptor, Param, NotFoundException, BadRequestException, Logger, UseGuards } from '@nestjs/common';
+import { Controller, Get, Put, Body, Session, UnauthorizedException, UseInterceptors, ClassSerializerInterceptor, Param, NotFoundException, BadRequestException, Logger, UseGuards, Req } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiOkResponse, ApiNotFoundResponse, ApiParam, ApiBody, ApiBadRequestResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { UserService } from './user.service';
 import { UserProfileResponseDto } from './dto/user.profileResponse.dto';
@@ -7,12 +7,14 @@ import { CustomSession } from '../types/session.types';
 import { DataResponse } from '../types/response.types';
 import { TransformInterceptor } from '../interceptors/response.interceptor';
 import { User } from './entities/user.entity';
-import { AuthGuard } from '../auth/guards/authenticated.guard';
+import { AuthGuard } from '../auth/guards/auth.guard';
+import { Request } from 'express';
 
 @ApiTags('사용자')
 @Controller('users')
 @UseInterceptors(ClassSerializerInterceptor)
 @UseInterceptors(TransformInterceptor)
+@UseGuards(AuthGuard)
 export class UserController {
 
     private readonly logger = new Logger(UserController.name);
@@ -22,30 +24,35 @@ export class UserController {
 
     // 사용자 프로필 조회 (본인 프로필)
     @Get('profile')
-    @UseGuards(AuthGuard)
     @ApiOperation({ summary: '본인 프로필 조회', description: '현재 로그인된 사용자의 프로필을 조회합니다.' })
     @ApiOkResponse({ description: '프로필 조회 성공', type: UserProfileResponseDto })
     @ApiNotFoundResponse({ description: '사용자를 찾을 수 없음' })
     @ApiBearerAuth()
-    async getMyProfile(@Session() session: CustomSession): Promise<DataResponse<UserProfileResponseDto>> {
-        this.logger.debug(`getMyProfile 호출: username = ${session.user?.username}`);
-        if (!session.user) {
-            this.logger.warn(`getMyProfile: 미인증 사용자 접근`);
-            throw new UnauthorizedException('로그인이 필요합니다.');
+    async getMyProfile(
+        @Req() req: Request
+    ): Promise<DataResponse<UserProfileResponseDto>> {
+        this.logger.debug(`getMyProfile 호출: username = ${(req.user as User)?.username}`);
+
+        this.logger.debug(`[UserController] getMyProfile - request.user: ${JSON.stringify(req.user)}`);
+        this.logger.debug(`[UserController] getMyProfile - request.isAuthenticated(): ${req.isAuthenticated()}`);
+
+        if (!req.user) {
+            this.logger.warn(`getMyProfile: request.user가 없습니다. 인증 실패 처리 필요`);
+            throw new UnauthorizedException('인증되지 않은 사용자입니다.');
         }
 
         try {
-            const userProfile = await this.userService.findUserProfileById(session.user.id);
-            this.logger.debug(`getMyProfile 완료: username = ${session.user.username}`);
+            const userProfile = await this.userService.findUserProfileById((req.user as User).id);
+            this.logger.debug(`getMyProfile 완료: username = ${(req.user as User).username}`);
             return {
                 success: true,
                 data: userProfile,
                 message: '프로필 정보 조회 성공'
             };
         } catch (error) {
-            this.logger.error(`getMyProfile: 프로필 조회 실패 - username = ${session.user?.username}`, error);
+            this.logger.error(`getMyProfile: 프로필 조회 실패 - username = ${(req.user as User)?.username}`, error);
             if (error instanceof NotFoundException) {
-                throw new NotFoundException(`사용자 ID '${session.user.id}'에 해당하는 사용자를 찾을 수 없습니다.`);
+                throw new NotFoundException(`사용자 ID '${(req.user as User).id}'에 해당하는 사용자를 찾을 수 없습니다.`);
             }
             throw error;
         }

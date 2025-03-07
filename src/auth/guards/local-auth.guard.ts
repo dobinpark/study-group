@@ -6,6 +6,7 @@ export class LocalAuthGuard extends AuthGuard('local') {
   private readonly logger = new Logger(LocalAuthGuard.name);
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
+    this.logger.debug('✅✅✅ LocalAuthGuard canActivate 메서드 진입 ✅✅✅');
     this.logger.debug('LocalAuthGuard canActivate 시작');
     try {
       // LocalStrategy를 실행하여 인증 시도

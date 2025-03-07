@@ -1,51 +1,40 @@
 import { Injectable, NestInterceptor, ExecutionContext, CallHandler, Logger } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { Request } from 'express';
 
 @Injectable()
 export class LoggingInterceptor implements NestInterceptor {
     private readonly logger = new Logger(LoggingInterceptor.name);
 
     intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
-        const req = context.switchToHttp().getRequest();
-        const { method, url, ip, body } = req;
-        const userAgent = req.get('user-agent') || '';
+        const req: Request = context.switchToHttp().getRequest();
         const now = Date.now();
+        const method = req.method;
+        const url = req.url;
+        const body = req.body;
+        const session = req.session;
+        const user = req.user;
 
-        if (process.env.NODE_ENV === 'development') {
-            this.logger.debug(`[요청] ${method} ${url}`);
-            if (body && Object.keys(body).length > 0) {
-                this.logger.debug(`요청 본문: ${JSON.stringify(body, null, 2)}`);
-            }
-            
-            // 세션 정보 로깅 (개발 환경에서만)
-            if (req.session) {
-                this.logger.debug(`세션 정보: ${JSON.stringify({
-                    id: req.session.id,
-                    user: req.session.user ? { id: req.session.user.id } : null,
-                    expires: req.session.cookie.expires
-                }, null, 2)}`);
-            }
+        this.logger.debug(`[요청] ${method} ${url}`);
+        if (Object.keys(body).length > 0) {
+            this.logger.debug(`요청 본문: ${JSON.stringify(body)}`);
         }
+        this.logger.debug(`세션 정보: ${JSON.stringify(session)}`);
+        this.logger.debug(`request.user 정보: ${JSON.stringify(user)}`);
 
-        return next.handle().pipe(
-            tap((data) => {
-                const response = context.switchToHttp().getResponse();
-                const delay = Date.now() - now;
-                this.logger.log(
-                    `${method} ${url} ${response.statusCode} ${delay}ms - ${ip} ${userAgent}`
-                );
-                if (process.env.NODE_ENV === 'development') {
-                    if (response.statusCode >= 400) {
-                        this.logger.error(`오류 응답: ${JSON.stringify(data, null, 2)}`);
-                        if (body && Object.keys(body).length > 0) {
-                            this.logger.error(`실패한 요청 본문: ${JSON.stringify(body, null, 2)}`);
-                        }
-                    } else {
-                        this.logger.debug(`Response: ${JSON.stringify(data)}`);
+        return next
+            .handle()
+            .pipe(
+                tap((response) => {
+                    const responseTime = Date.now() - now;
+                    const statusCode = context.switchToHttp().getResponse().statusCode;
+
+                    this.logger.log(`[응답] ${method} ${url} ${statusCode} ${responseTime}ms - ${req.ip} ${req.get('User-Agent')}`);
+                    if (response) {
+                        this.logger.debug(`Response: ${JSON.stringify(response)}`);
                     }
-                }
-            }),
-        );
+                }),
+            );
     }
 }

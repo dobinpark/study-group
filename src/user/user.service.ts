@@ -175,4 +175,12 @@ export class UserService {
         const { password, ...rest } = user;
         return rest as UserProfileResponseDto;
     }
+
+    async findUserById(id: number): Promise<User> {
+        const user = await this.userRepository.findOne({ where: { id } });
+        if (!user) {
+            throw new NotFoundException(`User with id ${id} not found`);
+        }
+        return user;
+    }
 }

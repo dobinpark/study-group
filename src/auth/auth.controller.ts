@@ -19,12 +19,13 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiCookieAuth } from '@nes
 import { User } from '../user/entities/user.entity';
 import { TransformInterceptor } from '../interceptors/response.interceptor';
 import { BaseResponse, DataResponse } from '../types/response.types';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { AuthSignupDto } from './dto/auth.signUp.dto';
 import { AuthLoginDto } from './dto/auth.login.dto';
 import { AuthFindPasswordDto } from './dto/auth.findPassword.dto';
 import { AuthMeResponseDto } from './dto/meResponse.dto';
 import { LocalAuthGuard } from './guards/local-auth.guard';
+import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags('인증')
 @ApiCookieAuth()
@@ -185,7 +186,8 @@ export class AuthController {
     })
     @HttpCode(HttpStatus.OK)
     @Post('logout')
-    async logout(@Req() req: Request): Promise<any> {
+    @UseGuards(AuthGuard('session'))
+    async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response): Promise<any> {
         try {
             const wasLoggedIn = req.isAuthenticated();
 
@@ -277,26 +279,13 @@ export class AuthController {
     @ApiResponse({ status: 200, description: '세션이 유효하며, 사용자 정보를 반환합니다.', type: AuthMeResponseDto })
     @ApiResponse({ status: 401, description: '세션이 유효하지 않습니다.' })
     @Get('session')
-    async getSession(@Req() req: Request) {
-        try {
-            await this.authService.validateSession(req);
-            const user = await this.authService.findUserById((req.user as User).id);
-            if (!user) {
-                return {
-                    suceess: false,
-                    message: '사용자를 찾을 수 없습니다.'
-                };
-            }
-            return {
-                success: true,
-                data: {
-                    user: user // 최신정보를 넣어줍니다.
-                }
-            };
-        } catch (error) {
-            this.logger.error(`세션 조회 오류: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
-            throw new InternalServerErrorException('세션 조회 중 오류가 발생했습니다.');
+    async getSession(@Req() req: Request): Promise<any> {
+        this.logger.debug(`세션 정보 조회 요청`);
+        if (!req.session || !req.session.passport || !req.session.passport.user) {
+            this.logger.warn(`유효하지 않은 세션: 세션 또는 사용자 정보 없음`);
+            throw new UnauthorizedException('로그인이 필요합니다.');
         }
+        return { success: true, data: { session: req.session } };
     }
 
 

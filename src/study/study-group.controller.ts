@@ -417,6 +417,11 @@ export class StudyGroupController {
         this.logger.debug(`getMyStudies - req.user type: ${typeof req.user}, value: ${JSON.stringify(req.user)}`);
         this.logger.debug(`getMyStudies - session 정보: ${JSON.stringify(req.session)}`);
 
+        console.log("=== StudyGroupController.getMyStudies 메서드 진입 ===");
+        console.log(`getMyStudies - controller - req.user type: ${typeof req.user}, value: ${JSON.stringify(req.user)}`);
+        const userIdFromReq = (req.user as User)?.id;
+        console.log(`getMyStudies - controller - 추출된 userId: ${userIdFromReq}, type: ${typeof userIdFromReq}`);
+
         try {
             const studies = await this.studyGroupService.getMyStudies((req.user as User).id);
             return {

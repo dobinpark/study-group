@@ -10,8 +10,6 @@ import { Repository } from 'typeorm';
 import { AuthMeResponseDto } from './dto/meResponse.dto';
 import { Request } from 'express';
 import { UserService } from '../user/user.service';
-import { JwtService } from '@nestjs/jwt';
-import { LoginRequestDto } from './dto/login-request.dto';
 
 @Injectable()
 export class AuthService {
@@ -23,7 +21,6 @@ export class AuthService {
         @InjectRepository(User)
         private usersRepository: Repository<User>,
         private userService: UserService,
-        private jwtService: JwtService,
     ) { }
 
 
@@ -128,7 +125,7 @@ export class AuthService {
     // 사용자 검증
     async validateUser(username: string, password?: string): Promise<any> {
         this.logger.debug(`validateUser 호출 - username: ${username}`);
-        const user = await this.userService.findByUsername(username);
+        const user = await this.userService.findUserByUsername(username);
         if (!user) {
             this.logger.warn(`validateUser 실패 - username: ${username}: 사용자 없음`);
             return null;
@@ -172,25 +169,18 @@ export class AuthService {
 
 
     // 사용자 ID로 검색
-    async findUserById(id: number): Promise<AuthMeResponseDto | null> {
+    async findUserById(id: number): Promise<User | null> {
         this.logger.debug(`사용자 ID 검색 시작: ${id}`);
         try {
             const user = await this.usersRepository.findOne({
                 where: { id },
-                select: ['id', 'username', 'nickname', 'role']
             });
             if (!user) {
                 this.logger.warn(`사용자 ID ${id}로 사용자 정보 찾을 수 없음`);
                 return null;
             }
-            const authMeResponseDto: AuthMeResponseDto = {
-                id: user.id,
-                username: user.username,
-                nickname: user.nickname,
-                role: user.role,
-            };
             this.logger.debug(`사용자 ID 검색 완료: ${id}, 사용자 이름: ${user.username}`);
-            return authMeResponseDto;
+            return user;
         } catch (error) {
             this.logger.error(`사용자 ID 검색 중 오류 발생: ${id}`, error);
             throw new InternalServerErrorException('사용자 정보 조회 중 오류가 발생했습니다.');
@@ -209,9 +199,6 @@ export class AuthService {
     }
 
     async validateSession(req: Request): Promise<any> {
-<<<<<<< HEAD
-        // ... (existing validateSession method - if you still have it)
-=======
         this.logger.debug(`세션 유효성 검사 시작 (세션 ID: ${req.sessionID})`);
         if (!req.session || !req.session.user) {
             this.logger.warn('유효하지 않은 세션: 세션 또는 사용자 정보 없음');
@@ -226,7 +213,6 @@ export class AuthService {
         }
         this.logger.debug(`세션 유효성 검사 통과 (세션 ID: ${req.sessionID}, 사용자 ID: ${req.session.user.id})`);
         return true; // 세션 유효
->>>>>>> origin/main
     }
 
     async deserializeUser(userId: number, done: (err: Error | null, user: any) => void): Promise<void> {
