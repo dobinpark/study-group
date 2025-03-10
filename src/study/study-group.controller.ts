@@ -68,11 +68,9 @@ export class StudyGroupController {
             '기본 예시': {
                 value: {
                     name: '자바 개발 스터디원 구합니다',
-                    category: {
-                        main: '지역별',
-                        sub: '서울',
-                        detail: '강남구'
-                    },
+                    mainCategory: '지역별',
+                    subCategory: '서울',
+                    detailCategory: '강남구',
                     content: '자바 개발 스터디 그룹입니다. 초보자도 환영합니다!',
                     maxMembers: 4,
                     isOnline: true
@@ -95,23 +93,16 @@ export class StudyGroupController {
     })
     @ApiBadRequestResponse({ description: '잘못된 요청' })
     @ApiUnauthorizedResponse({ description: '인증 필요' })
-    @ApiHeader({
-        name: 'Cookie',
-        description: '로그인 세션 쿠키',
-        required: true
-    })
     @Post()
     @HttpCode(HttpStatus.CREATED)
+    @UseGuards(AuthGuard)
     async create(
         @Body() createStudyGroupDto: CreateStudyGroupDto,
-        @Session() session: CustomSession,
         @Req() req: Request
     ): Promise<DataResponse<StudyGroup>> {
-        if (!session.user) {
-            throw new UnauthorizedException('로그인이 필요합니다.');
-        }
         try {
-            const studyGroup = await this.studyGroupService.create(createStudyGroupDto, session.user.id);
+            const user = req.user as User;
+            const studyGroup = await this.studyGroupService.create(createStudyGroupDto, user.id);
             return { success: true, data: studyGroup };
         } catch (error: unknown) {
             const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
@@ -209,7 +200,8 @@ export class StudyGroupController {
                 value: {
                     name: '스터디 그룹 이름 변경',
                     content: '스터디 내용 업데이트',
-                    maxMembers: 5
+                    maxMembers: 5,
+                    isOnline: false
                 }
             }
         }

@@ -15,11 +15,6 @@
           </header>
 
           <main class="page-content">
-            <div v-if="route.query.mainCategory" class="category-path">
-              <span class="main-category">{{ route.query.mainCategory }}</span>
-              <span v-if="route.query.subCategory" class="path-separator"> > </span>
-              <span v-if="route.query.subCategory" class="sub-category">{{ route.query.subCategory }}</span>
-            </div>
             <div v-if="loading" class="loading">로딩 중...</div>
             <div v-else-if="studyGroups && studyGroups.length > 0" class="study-groups">
               <div v-for="studyGroup in studyGroups" :key="studyGroup.id" class="study-group-card"
@@ -98,6 +93,7 @@ const loading = ref(true);
 const categories = ref<Category[]>([]);
 const totalPages = ref(1);
 const totalItems = ref(0);
+const error = ref<string | null>(null);
 
 // URI 쿼리 파라미터 처리
 const mainCategory = ref(route.query.mainCategory?.toString() || '');
@@ -123,6 +119,7 @@ watch(
 // 스터디 그룹 목록 가져오기
 const fetchStudyGroups = async (page = 1) => {
   loading.value = true;
+  error.value = null;
   try {
     const params: any = { page, limit: 9 };
 
@@ -138,16 +135,23 @@ const fetchStudyGroups = async (page = 1) => {
 
     const response = await axios.get('/study-groups', { params });
 
+    console.log('API 응답 데이터:', response.data);
+    console.log('response.data.data:', response.data.data);
+    console.log('response.data.data.items:', response.data.data.items);
+
     if (response.data.success) {
-      studyGroups.value = response.data.data || [];
-      totalItems.value = response.data.pagination?.total || 0;
-      totalPages.value = response.data.pagination?.totalPages || 1;
+      studyGroups.value = response.data.data.items || [];
+      totalItems.value = response.data.data?.total || 0;
+      totalPages.value = response.data.data?.totalPages || 1;
+    } else {
+      error.value = response.data.message || '스터디 그룹 목록을 불러오는데 실패했습니다.';
+      studyGroups.value = [];
     }
   } catch (error: any) {
     console.error('스터디 그룹 목록 로드 실패:', error);
-    // 오류 메시지 개선
-const errorMsg = (error as any).response?.data?.message || '스터디 그룹 목록을 불러오는데 실패했습니다.';
-    alert(errorMsg);
+    const errorMsg = error.response?.data?.message || '스터디 그룹 목록을 불러오는데 실패했습니다.';
+    error.value = errorMsg;
+    studyGroups.value = [];
   } finally {
     loading.value = false;
   }
@@ -157,16 +161,13 @@ const errorMsg = (error as any).response?.data?.message || '스터디 그룹 목
 const fetchCategories = async () => {
   try {
     const response = await axios.get('/study-groups/categories/stats');
-    categories.value = response.data;
+    categories.value = response.data.data || [];
     console.log('카테고리 데이터:', response.data);
   } catch (error: any) {
-    if (error.response?.status === 401 || error.response?.status === 403) {
-      alert('로그인이 필요합니다. 다시 로그인해주세요.');
-      await router.push('/login');
-    } else {
-      console.error('카테고리 조회 실패:', error);
-      alert('카테고리 정보를 불러오는데 실패했습니다.');
-    }
+    console.error('카테고리 조회 실패:', error);
+    const errorMsg = error.response?.data?.message || '카테고리 정보를 불러오는데 실패했습니다.';
+    error.value = errorMsg;
+    alert(errorMsg);
   }
 };
 

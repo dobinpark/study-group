@@ -8,8 +8,8 @@
         <main class="page-content">
           <div class="action-bar">
             <div class="search-box">
-              <input type="text" v-model="searchQuery" placeholder="검색어 입력" @keyup.enter="search" />
-              <button class="search-button" @click="search">검색</button>
+              <input type="text" v-model="searchQuery" placeholder="검색어 입력" @keyup.enter="search" :disabled="loading" />
+              <button class="search-button" @click="search" :disabled="loading">검색</button>
             </div>
           </div>
 
@@ -42,24 +42,29 @@
 
           <!-- 로딩 중일 때 표시 -->
           <div v-if="loading" class="loading">
-            게시글을 불러오는 중입니다...
+            <div class="spinner"></div>
+            <p>게시글을 불러오는 중입니다...</p>
+          </div>
+          <div v-else-if="errorMessage" class="error-message">
+            {{ errorMessage }}
           </div>
           <div v-else-if="!posts" class="loading">
-            게시글 목록을 불러오는데 실패했습니다.
+            게시글 목록이 없습니다.
           </div>
 
           <!-- 페이지네이션 및 글쓰기 버튼 -->
           <div class="bottom-actions">
             <div class="pagination" v-if="totalPages > 0">
-              <button :disabled="page === 1" @click="changePage(page - 1)">
+              <button :disabled="loading || page === 1" @click="changePage(page - 1)">
                 이전
               </button>
               <span>{{ page }} / {{ totalPages }}</span>
-              <button :disabled="page === totalPages || totalPages === 0" @click="changePage(page + 1)">
+              <button :disabled="loading || page === totalPages || totalPages === 0" @click="changePage(page + 1)">
                 다음
               </button>
             </div>
-            <button class="write-button" @click="createPost" v-if="userStore.isLoggedIn">글쓰기</button>
+            <button class="write-button" @click="createPost" v-if="userStore.isLoggedIn"
+              :disabled="loading">글쓰기</button>
           </div>
         </main>
       </div>
@@ -74,8 +79,15 @@ import axios from '../../utils/axios';
 import { useUserStore } from '../../store/user';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ko';
-import { PostCategoryKorean } from '@/types/models';
+import { PostCategoryKorean } from '../../types/models';
 dayjs.locale('ko');
+
+// PostList.vue 스크립트 setup 바깥쪽에 상수 정의
+const categoryTitles = {
+  FREE: '자유게시판',
+  QUESTION: '질문게시판',
+  SUGGESTION: '건의게시판'
+} as const;
 
 // 게시글 타입 정의 수정 - 백엔드 응답 구조에 맞게 조정
 interface Post {
@@ -102,25 +114,20 @@ const loading = ref(true);
 const page = ref(1);
 const totalPages = ref(1);
 const searchQuery = ref('');
-const category = ref(route.params.category as string || 'free');
+const category = ref((route.query.category as string) || 'FREE');
 const errorMessage = ref('');
 const currentPage = ref(1);
 const pageSize = 10;
 
 // 카테고리 제목 표시
 const categoryTitle = computed(() => {
-  const titles = {
-    FREE: '자유게시판',
-    QUESTION: '질문게시판',
-    SUGGESTION: '건의게시판'
-  } as const;
-
-  return titles[category.value as keyof typeof titles] || '게시판';
+  return categoryTitles[category.value as keyof typeof categoryTitles] || '게시판';
 });
 
 watch(() => route.query.category, (newCategory) => {
-  category.value = newCategory as string || 'free';
+  category.value = newCategory as string || 'FREE';
   currentPage.value = 1;
+  console.log('watch: route.query.category 변경 감지 - newCategory:', newCategory, 'category.value:', category.value);
   fetchPosts();
 });
 
@@ -130,6 +137,8 @@ const fetchPosts = async () => {
   errorMessage.value = '';
   posts.value = null;
   try {
+    console.log('fetchPosts: category.value:', category.value);
+
     const response = await axios.get(`/posts`, {
       params: {
         category: category.value,
@@ -138,16 +147,19 @@ const fetchPosts = async () => {
         searchKeyword: searchQuery.value,
       },
     });
+    console.log('fetchPosts: API 요청 params:', response.config.params);
+    console.log('fetchPosts: API 응답 데이터:', response.data);
+    console.log('fetchPosts: 전체 API 응답 객체:', response);
     if (response.status === 200) {
-      posts.value = response.data.content;
-      totalPages.value = response.data.totalPages;
+      posts.value = response.data.data.items;
+      totalPages.value = response.data.data.totalPages;
     } else {
-      errorMessage.value = '게시글 목록을 불러올 수 없습니다.';
+      errorMessage.value = `게시글 목록을 불러올 수 없습니다. 상태 코드: ${response.status}`;
       posts.value = null;
     }
   } catch (error: any) {
     console.error('게시글 목록 불러오기 오류', error);
-    errorMessage.value = '게시글 목록을 불러오는 중 오류가 발생했습니다.';
+    errorMessage.value = '게시글 목록을 불러오는 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
     posts.value = null;
   } finally {
     loading.value = false;
@@ -301,11 +313,28 @@ onMounted(() => {
 
 .loading {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   height: 200px;
   font-size: 1.2rem;
   color: #666;
+}
+
+.spinner {
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-top-color: #3498db;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 10px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .no-posts {
@@ -342,6 +371,16 @@ onMounted(() => {
 
 .category-tab.active:hover {
   background: #357ABD;
+}
+
+.error-message {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  font-size: 1.2rem;
+  color: #e74c3c;
+  text-align: center;
 }
 
 @media (max-width: 768px) {

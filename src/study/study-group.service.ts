@@ -16,17 +16,16 @@ export class StudyGroupService {
         @InjectRepository(StudyGroup)
         private readonly studyGroupRepository: Repository<StudyGroup>,
         private readonly connection: Connection
-    ) {
-        console.log("StudyGroupService constructor 테스트 로그 - 클래스 인스턴스 생성 확인");
-    }
+    ) { }
 
     // 스터디 그룹 생성
     async create(createStudyGroupDto: CreateStudyGroupDto, userId: number): Promise<StudyGroup> {
         const studyGroup = this.studyGroupRepository.create({
             ...createStudyGroupDto,
-            creatorId: userId
+            creatorId: userId,
+            isOnline: createStudyGroupDto.isOnline !== undefined ? createStudyGroupDto.isOnline : true
         });
-        
+
         return await this.studyGroupRepository.save(studyGroup) as StudyGroup;
     }
 
@@ -83,7 +82,10 @@ export class StudyGroupService {
             throw new ForbiddenException('스터디 그룹을 수정할 권한이 없습니다.');
         }
 
-        await this.studyGroupRepository.update(id, updateStudyGroupDto);
+        await this.studyGroupRepository.update(id, {
+            ...updateStudyGroupDto,
+            isOnline: updateStudyGroupDto.isOnline
+        });
         return await this.findOne(id);
     }
 

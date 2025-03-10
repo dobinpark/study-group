@@ -9,7 +9,7 @@
           <div class="loading-spinner"></div>
           <p class="loading-text">스터디 그룹을 생성 중입니다...</p>
         </div>
-        <main class="page-content">
+        <main class="page-content" v-if="isSessionChecked">
           <form @submit.prevent="handleSubmit" class="study-form">
             <div class="form-group">
               <label for="name">스터디 그룹 이름</label>
@@ -86,6 +86,12 @@
             </div>
           </form>
         </main>
+        <main v-else-if="!isSessionChecked && !loadingCategories" class="page-content">
+          <p>세션 확인 중...</p>
+        </main>
+        <main v-else class="page-content">
+          <p>카테고리 정보 불러오는 중...</p>
+        </main>
       </div>
     </div>
   </div>
@@ -129,6 +135,8 @@ const selectedMainCategory = ref('');
 const selectedSubCategory = ref('');
 const categories = ref<any[]>([]);
 const isSubmitting = ref(false);
+const isSessionChecked = ref(false);
+const loadingCategories = ref(true);
 
 // 필터링된 중분류와 소분류 계산 속성
 const filteredSubCategories = computed(() => {
@@ -235,24 +243,28 @@ const categoryData: CategoryData = {
     '자연과학계열': ['수학', '물리학', '화학', '생물학', '지구과학', '통계학'],
     '공학계열': ['기계공학', '전기전자공학', '컴퓨터공학', '화학공학', '토목공학', '건축학', '로봇공학'],
     '의학/보건학계열': ['의학', '치의학', '약학', '간호학', '수의학', '보건학'],
-    '예체능계역': ['음악', '미술', '연극/영화', '무용', '체육학']
+    '예체능계열': ['음악', '미술', '연극/영화', '무용', '체육학']
   }
 };
 
-// 컴포넌트 마운트 시 카테고리 초기화
+// 컴포넌트 마운트 시 카테고리 초기화 및 세션 체크
 onMounted(async () => {
-  categories.value = Object.keys(categoryData).map(name => ({ name }));
+  loadingCategories.value = true;
+  try {
+    categories.value = Object.keys(categoryData).map(name => ({ name }));
+  } finally {
+    loadingCategories.value = false;
+  }
 
-  // 로그인 상태 확인
   if (!userStore.isLoggedIn) {
     alert('로그인이 필요한 페이지입니다.');
     router.push('/login');
     return;
   }
 
-  // 세션 유효성 검증
   try {
     await authStore.checkSession();
+    isSessionChecked.value = true;
   } catch (error) {
     alert('세션이 만료되었습니다. 다시 로그인해주세요.');
     router.push('/login');
@@ -294,38 +306,18 @@ const validateForm = () => {
 const handleSubmit = async () => {
   isSubmitting.value = true;
   try {
-    // 로그인 상태 확인
-    if (!userStore.isLoggedIn) {
-      alert('로그인이 필요합니다.');
-      router.push('/login');
-      return;
-    }
-
-    // 세션 유효성 확인
-    await authStore.checkSession();
-
-    // 세션 만료 확인
-    if (!userStore.isLoggedIn) {
-      alert('세션이 만료되었습니다. 다시 로그인해주세요.');
-      router.push('/login');
-      return;
-    }
-
-    // 최종 데이터 검증
     if (!selectedMainCategory.value || !selectedSubCategory.value || !studyGroup.value.detailCategory) {
       alert('모든 카테고리를 선택해주세요.');
       isSubmitting.value = false;
       return;
     }
 
-    // 설명 글자 수 검증
     if (studyGroup.value.description.length < 20) {
       alert('스터디 설명은 최소 20자 이상 작성해주세요.');
       isSubmitting.value = false;
       return;
     }
 
-    // API 요청 데이터 구성
     const studyGroupData = {
       name: studyGroup.value.name,
       mainCategory: selectedMainCategory.value,
@@ -338,7 +330,6 @@ const handleSubmit = async () => {
 
     console.log('스터디 그룹 생성 요청 데이터:', studyGroupData);
 
-    // API 호출
     try {
       const response = await axios.post('/study-groups', studyGroupData, {
         timeout: 10000,
@@ -365,7 +356,6 @@ const handleSubmit = async () => {
       alert(`오류: ${errorMessage}`);
     }
   } catch (error: Error | unknown) {
-    // 타입 가드를 사용하여 에러 타입 확인
     const apiError = error as {
       response?: {
         data?: {
@@ -396,36 +386,36 @@ const goBack = () => {
 <style scoped>
 @import '../../assets/styles/common.css';
 
-.create-study-container {
+.page-container {
   min-height: calc(100vh - 200px);
   padding: 2rem 0;
   background: linear-gradient(135deg, #f5f7fa 0%, #e4e9f2 100%);
 }
 
-.create-study-inner {
+.page-inner {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 2rem;
 }
 
-.study-card {
+.content-card {
   border-radius: 20px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
   overflow: hidden;
   transition: transform 0.3s ease;
 }
 
-.study-card:hover {
+.content-card:hover {
   transform: translateY(-5px);
 }
 
-.study-header {
+.page-header {
   padding: 2rem;
   text-align: center;
   background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
 }
 
-.study-header h1 {
+.page-header h1 {
   color: white;
   font-size: 2rem;
   font-weight: 700;
@@ -433,7 +423,7 @@ const goBack = () => {
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.study-content {
+.page-content {
   padding: 2rem;
 }
 
@@ -539,7 +529,7 @@ const goBack = () => {
 }
 
 @media (max-width: 768px) {
-  .create-study-inner {
+  .page-inner {
     padding: 0 1rem;
   }
 
@@ -548,15 +538,15 @@ const goBack = () => {
     gap: 1rem;
   }
 
-  .study-header {
+  .page-header {
     padding: 1.5rem;
   }
 
-  .study-header h1 {
+  .page-header h1 {
     font-size: 1.5rem;
   }
 
-  .study-content {
+  .page-content {
     padding: 1.5rem;
   }
 

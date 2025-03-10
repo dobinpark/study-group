@@ -79,10 +79,14 @@ function setupSession(app: INestApplication, configService: ConfigService) {
 }
 
 function setupCors(app: INestApplication) {
-    app.enableCors({
+    const corsOptions = {
         origin: 'http://localhost:8080',
         credentials: true,
-    });
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
+    };
+    console.log('CORS 설정 (main.ts):', corsOptions);
+    app.enableCors(corsOptions);
 }
 
 function setupSwagger(app: INestApplication) {

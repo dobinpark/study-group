@@ -46,9 +46,6 @@ export const useAuthStore = defineStore('auth', {
           this.sessionChecked = true;
           console.log('AuthStore: 세션 유효하지 않음, 로그아웃 상태');
           reject(false);
-        } finally {
-          console.log('AuthStore: 세션 체크 완료, sessionChecked 상태:', this.sessionChecked);
-          resolve(this.sessionChecked);
         }
       });
     },
@@ -62,16 +59,20 @@ export const useAuthStore = defineStore('auth', {
 
         if (response.status === 200 && response.data.success === true) {
           this.isAuthenticated = true;
+          let userFromResponse = null; // 사용자 정보 변수 선언
           // API 응답 데이터 구조에 따라 사용자 정보 추출 방식 수정 (data 안에 user 정보가 있을 경우)
           if (response.data.data && response.data.data.user) {
-            this.user = response.data.data.user; // <--- 수정: response.data.data.user 에서 user 정보 추출 시도
+            userFromResponse = response.data.data.user; // <--- 수정: response.data.data.user 에서 user 정보 추출 시도
           } else if (response.data.user) {
-            this.user = response.data.user; // 기존 방식: response.data.user 에 user 정보가 있을 경우
+            userFromResponse = response.data.user; // 기존 방식: response.data.user 에 user 정보가 있을 경우
           }
           else {
             console.warn('AuthStore: 로그인 API 응답에 user 정보가 없습니다.', response.data);
-            this.user = response.data; // 최후의 수단: response.data 전체를 user 로 사용
+            userFromResponse = response.data; // 최후의 수단: response.data 전체를 user 로 사용
           }
+
+          this.user = userFromResponse; // 사용자 정보 할당
+          console.log('AuthStore: login 액션 - API 응답 user 정보:', userFromResponse); // ✅ 로그 추가
 
           if (!this.user) {
             console.error('AuthStore: user 정보 추출 실패. API 응답 구조를 확인하세요.', response.data);

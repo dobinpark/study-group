@@ -40,6 +40,14 @@ export class StudyGroup {
     @Column()
     creatorId!: number;
 
+    @ApiProperty({
+        description: '온라인 스터디 여부',
+        example: true,
+        default: true
+    })
+    @Column({ default: true })
+    isOnline!: boolean;
+
     @ApiProperty({ 
         description: '스터디 그룹 생성자',
         type: () => User

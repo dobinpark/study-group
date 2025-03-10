@@ -55,6 +55,7 @@ import { reactive } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from '../utils/axios';
 import { useAuthStore } from '../store/auth';
+import { getErrorMessage } from '../utils/axios';
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -69,7 +70,7 @@ const form = reactive({
 });
 
 const handleSubmit = async () => {
-  if (form.password !== form.confirmPassword) {
+  if (form.password.trim() !== form.confirmPassword.trim()) {
     alert('비밀번호가 일치하지 않습니다.');
     return;
   }
@@ -84,11 +85,14 @@ const handleSubmit = async () => {
     });
 
     if (response.data.success) {
-      alert('회원가입이 완료되었습니다. 로그인해주세요.');
+      console.log('회원가입 성공:', response.data.message);
+      alert('회원가입이 완료되었습니다.');
       router.push('/login');
     }
   } catch (error: any) {
-    alert(error.response?.data?.message || '회원가입에 실패했습니다');
+    const message = getErrorMessage(error);
+    console.error('회원가입 실패:', message);
+    alert(`회원가입에 실패했습니다: ${message}`);
   }
 };
 </script>

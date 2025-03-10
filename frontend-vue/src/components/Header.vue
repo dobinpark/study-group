@@ -137,6 +137,7 @@ import { useUserStore } from '../store/user';
 import { useRouter } from 'vue-router';
 import type { Category, SubCategory } from '../types/models';
 import axios from '../utils/axios';
+import { PostCategoryKorean } from '../types/models';
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -688,16 +689,22 @@ const handleSubCategoryClick = (mainCategory: string, subCategory: string) => {
 
 // 커뮤니티 카테고리 클릭 핸들러
 const handleCommunityClick = (categoryName: string) => {
-  const categoryMap = {
-    자유게시판: 'FREE',
-    질문게시판: 'QUESTION',
-    건의게시판: 'SUGGESTION',
-  };
+  // PostCategoryKorean 객체를 이용하여 categoryMap 생성
+  const categoryMap = Object.entries(PostCategoryKorean).reduce((map, [key, koreanName]) => {
+    if (communityCategories.value.some(communityCategory => communityCategory.name === koreanName)) {
+      map[koreanName] = key;
+    }
+    return map;
+  }, {} as Record<string, string>);
+
+  console.log('handleCommunityClick 호출 - categoryName:', categoryName);
+  console.log('categoryMap:', categoryMap);
+  console.log('categoryMap[categoryName]:', categoryMap[categoryName as keyof typeof categoryMap]);
 
   router.push({
     path: '/posts',
     query: {
-      category: categoryMap[categoryName as keyof typeof categoryMap],
+      category: String(categoryMap[categoryName as keyof typeof categoryMap]),
     },
   });
 };
