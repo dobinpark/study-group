@@ -7,7 +7,6 @@ import {
     Body,
     Param,
     Query,
-    Session,
     UnauthorizedException,
     HttpCode,
     HttpStatus,
@@ -15,9 +14,9 @@ import {
     ClassSerializerInterceptor,
     ParseIntPipe,
     InternalServerErrorException,
-    UseGuards,
     Req,
     Logger,
+    UseGuards,
 } from '@nestjs/common';
 import {
     ApiTags,
@@ -93,9 +92,9 @@ export class StudyGroupController {
     })
     @ApiBadRequestResponse({ description: '잘못된 요청' })
     @ApiUnauthorizedResponse({ description: '인증 필요' })
+    @UseGuards(AuthGuard)
     @Post()
     @HttpCode(HttpStatus.CREATED)
-    @UseGuards(AuthGuard)
     async create(
         @Body() createStudyGroupDto: CreateStudyGroupDto,
         @Req() req: Request
@@ -227,16 +226,18 @@ export class StudyGroupController {
         description: '로그인 세션 쿠키',
         required: true
     })
+    @UseGuards(AuthGuard)
     @Put(':id')
     async update(
         @Param('id', ParseIntPipe) id: number,
         @Body() updateStudyGroupDto: UpdateStudyGroupDto,
-        @Session() session: CustomSession
+        @Req() req: Request
     ): Promise<DataResponse<StudyGroup>> {
-        if (!session.user) {
+        const user = req.user as User;
+        if (!user) {
             throw new UnauthorizedException('로그인이 필요합니다.');
         }
-        const updatedGroup = await this.studyGroupService.update(id, updateStudyGroupDto, session.user.id);
+        const updatedGroup = await this.studyGroupService.update(id, updateStudyGroupDto, user.id);
         return { success: true, data: updatedGroup };
     }
 
@@ -259,15 +260,17 @@ export class StudyGroupController {
         description: '로그인 세션 쿠키',
         required: true
     })
+    @UseGuards(AuthGuard)
     @Delete(':id')
     async remove(
         @Param('id', ParseIntPipe) id: number,
-        @Session() session: CustomSession
+        @Req() req: Request
     ): Promise<BaseResponse> {
-        if (!session.user) {
+        const user = req.user as User;
+        if (!user) {
             throw new UnauthorizedException('로그인이 필요합니다.');
         }
-        await this.studyGroupService.remove(id, session.user.id);
+        await this.studyGroupService.remove(id, user.id);
         return { success: true, message: '스터디 그룹이 삭제되었습니다.' };
     }
 
@@ -291,15 +294,17 @@ export class StudyGroupController {
         description: '로그인 세션 쿠키',
         required: true
     })
+    @UseGuards(AuthGuard)
     @Post(':id/join')
     async join(
         @Param('id', ParseIntPipe) id: number,
-        @Session() session: CustomSession
+        @Req() req: Request
     ): Promise<BaseResponse> {
-        if (!session.user) {
+        const user = req.user as User;
+        if (!user) {
             throw new UnauthorizedException('로그인이 필요합니다.');
         }
-        await this.studyGroupService.joinGroup(id, session.user.id);
+        await this.studyGroupService.joinGroup(id, user.id);
         return { success: true, message: '스터디 그룹에 참여했습니다.' };
     }
 
@@ -323,15 +328,17 @@ export class StudyGroupController {
         description: '로그인 세션 쿠키',
         required: true
     })
+    @UseGuards(AuthGuard)
     @Delete(':id/leave')
     async leave(
         @Param('id', ParseIntPipe) id: number,
-        @Session() session: CustomSession
+        @Req() req: Request
     ): Promise<BaseResponse> {
-        if (!session.user) {
+        const user = req.user as User;
+        if (!user) {
             throw new UnauthorizedException('로그인이 필요합니다.');
         }
-        await this.studyGroupService.leaveGroup(id, session.user.id);
+        await this.studyGroupService.leaveGroup(id, user.id);
         return { success: true, message: '스터디 그룹을 탈퇴했습니다.' };
     }
 
@@ -399,30 +406,24 @@ export class StudyGroupController {
     })
     @UseGuards(AuthGuard)
     @Get('my-studies')
-    async getMyStudies(
-        @Req() req: Request
-    ): Promise<DataResponse<{ created: StudyGroup[], joined: StudyGroup[] }>> {
-        if (!req.isAuthenticated()) {
-            throw new UnauthorizedException('로그인이 필요합니다.');
+    async getMyStudies(@Req() req: Request): Promise<any> {
+        console.log('StudyGroupController.getMyStudies 호출됨');
+        console.log('인증된 사용자:', req.user);
+        
+        if (!req.user) {
+            throw new UnauthorizedException('인증되지 않은 사용자입니다.');
         }
-
-        this.logger.debug(`getMyStudies - req.user type: ${typeof req.user}, value: ${JSON.stringify(req.user)}`);
-        this.logger.debug(`getMyStudies - session 정보: ${JSON.stringify(req.session)}`);
-
-        console.log("=== StudyGroupController.getMyStudies 메서드 진입 ===");
-        console.log(`getMyStudies - controller - req.user type: ${typeof req.user}, value: ${JSON.stringify(req.user)}`);
-        const userIdFromReq = (req.user as User)?.id;
-        console.log(`getMyStudies - controller - 추출된 userId: ${userIdFromReq}, type: ${typeof userIdFromReq}`);
-
+        
+        const userId = (req.user as User).id;
+        console.log('사용자 ID:', userId);
+        
         try {
-            const studies = await this.studyGroupService.getMyStudies((req.user as User).id);
-            return {
-                success: true,
-                message: '스터디 목록을 성공적으로 조회했습니다.',
-                data: studies
-            };
+            const result = await this.studyGroupService.getMyStudies(userId);
+            console.log('조회 결과:', result);
+            return result;
         } catch (error) {
-            throw new InternalServerErrorException('스터디 목록을 조회하는 중 오류가 발생했습니다.');
+            console.error('내 스터디 조회 중 오류:', error);
+            throw new InternalServerErrorException('내 스터디 목록 조회 중 오류가 발생했습니다.');
         }
     }
 }

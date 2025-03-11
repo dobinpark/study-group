@@ -179,32 +179,30 @@ export class StudyGroupService {
         }));
     }
 
-    // 내가 생성한 스터디
-    async getMyStudies(userId: number): Promise<{ created: StudyGroup[], joined: StudyGroup[] }> {
-        try {
-            // 내가 생성한 스터디
-            const created = await this.studyGroupRepository.createQueryBuilder('group')
-                .leftJoinAndSelect('group.creator', 'creator')
-                .leftJoinAndSelect('group.members', 'members')
-                .where('group.creatorId = :userId', { userId })
-                .orderBy('group.createdAt', 'DESC')
-                .getMany();
-
-            // 내가 참여한 스터디 (내가 만든 스터디 제외)
-            const joined = await this.studyGroupRepository.createQueryBuilder('group')
-                .leftJoinAndSelect('group.creator', 'creator')
-                .leftJoinAndSelect('group.members', 'members')
-                .innerJoin('group.members', 'member', 'member.id = :userId', { userId })
-                .where('group.creatorId != :userId', { userId })
-                .orderBy('group.createdAt', 'DESC')
-                .getMany();
-
-            return {
-                created,
-                joined
-            };
-        } catch (error) {
-            throw new InternalServerErrorException('스터디 목록을 조회하는 중 오류가 발생했습니다.');
-        }
+    // 내 스터디 목록 조회 (리팩토링)
+    async getMyStudies(userId: number): Promise<{ created: StudyGroup[]; joined: StudyGroup[] }> {
+        console.log('StudyGroupService.getMyStudies 호출됨, userId:', userId);
+        
+        // 간단한 형태로 쿼리 단순화
+        const created = await this.studyGroupRepository.find({
+            where: { creator: { id: userId } },
+            take: 10
+        });
+        
+        const joined = await this.connection
+            .getRepository(StudyGroup)
+            .createQueryBuilder('studyGroup')
+            .leftJoinAndSelect('studyGroup.members', 'members')
+            .leftJoin('members', 'member')
+            .where('member.id = :userId', { userId })
+            .take(10)
+            .getMany();
+        
+        console.log('찾은 스터디 그룹 수 - 생성:', created.length, ', 참여:', joined.length);
+        
+        return {
+            created,
+            joined: joined
+        };
     }
 }

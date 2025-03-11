@@ -109,13 +109,16 @@ interface StudyGroupResponse {
 const fetchMyStudies = async () => {
   try {
     loading.value = true;
+    console.log('MyStudies.vue: fetchMyStudies() - API 요청 시작'); // ✅ 요청 시작 로그
     const response = await axios.get<StudyGroupResponse>('study-groups/my-studies');
+    console.log('MyStudies.vue: fetchMyStudies() - API 응답 성공', response); // ✅ 응답 성공 로그
 
     if (response.data.success) {
       createdStudies.value = response.data.data.created || [];
       joinedStudies.value = response.data.data.joined || [];
     }
   } catch (error) {
+    console.error('MyStudies.vue: fetchMyStudies() - API 요청 에러', error); // ✅ 에러 로그
     if (isAxiosError(error)) {
       if (error.response?.status === 401) {
         alert('로그인이 필요한 서비스입니다.');
@@ -126,10 +129,12 @@ const fetchMyStudies = async () => {
       } else {
         const errorMessage = error.response?.data?.message || '스터디 그룹 조회에 실패했습니다.';
         alert(errorMessage);
+        console.error("API 오류:", error);
       }
     }
   } finally {
     loading.value = false;
+    console.log('MyStudies.vue: fetchMyStudies() - API 요청 완료 (finally)'); // ✅ finally 로그
   }
 };
 
@@ -180,7 +185,17 @@ onMounted(() => {
 <style scoped>
 @import '../../assets/styles/common.css';
 
-/* 페이지별 고유한 스타일만 추가 */
+.page-container {
+  padding: 2rem 0;
+  min-height: calc(100vh - 200px);
+}
+
+.page-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
 .study-section {
   margin-bottom: 3rem;
 }

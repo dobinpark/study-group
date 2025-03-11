@@ -19,26 +19,33 @@ export class SessionSerializer extends PassportSerializer {
 
     async deserializeUser(userId: User['id'], done: (err: Error | null, user: User | null) => void): Promise<void> {
         this.logger.debug(`[deserializeUser] 🚀🚀🚀 사용자 역직렬화 시작 - userId: ${userId} 🚀🚀🚀`); // ✅ 시작 로그 (화려하게 강조)
+        console.log("deserializeUser 호출 시작, userId:", userId, typeof userId); // <-- 추가: userId 값과 타입 로깅
         try {
             this.logger.debug(`[deserializeUser] 사용자 ID 검색 시작: ${userId}`);
+            console.log("deserializeUser - 사용자 ID 검색 시작, userId:", userId); // <-- 추가: 사용자 ID 검색 시작 로그
             const user = await this.userService.findUserById(userId);
             if (!user) {
                 this.logger.warn(`[deserializeUser] 사용자 ID ${userId}로 사용자 찾을 수 없음`);
                 this.logger.debug(`[deserializeUser] done(null, null) 호출`); // ✅ done(null, null) 호출 로그
+                console.log("deserializeUser - 사용자 찾을 수 없음, done(null, null) 호출"); // <-- 추가: 사용자 찾을 수 없음 로그
                 return done(null, null);
             }
 
             this.logger.debug(`[deserializeUser] ✅ 사용자 찾음: ${user.username}`); // ✅ 사용자 찾음 로그 (강조)
             this.logger.debug(`[deserializeUser] done(null, user) 호출 - 사용자 정보: ${user.username}`); // ✅ done(null, user) 호출 로그
+            console.log("deserializeUser - 사용자 찾음, done(null, user) 호출, username:", user.username); // <-- 추가: 사용자 찾음, done(null, user) 호출 로그
             done(null, user);
             this.logger.debug(`[deserializeUser] done(null, user) 호출 완료`); // ✅ done(null, user) 완료 로그
-
+            console.log("deserializeUser - done(null, user) 호출 완료"); // <-- 추가: done(null, user) 완료 로그
         } catch (error) {
             this.logger.error(`[deserializeUser] ❌ 사용자 역직렬화 중 오류 발생: ${(error as Error).message}`, error); // ✅ 오류 로그 (강조)
             this.logger.debug(`[deserializeUser] done(error, null) 호출 - error: ${(error as Error).message}`); // ✅ done(error, null) 호출 로그
+            console.error("deserializeUser - 에러 발생:", error); // <-- 추가: 에러 상세 로그
+            console.log("deserializeUser - done(error, null) 호출"); // <-- 추가: done(error, null) 호출 로그
             done(error as Error, null);
         } finally {
             this.logger.debug(`[deserializeUser] 🏁🏁🏁 사용자 역직렬화 완료 (finally 블록) - userId: ${userId} 🏁🏁🏁`); // ✅ 종료 로그 (화려하게 강조)
+            console.log("deserializeUser - finally 블록 완료"); // <-- 추가: finally 블록 완료 로그
         }
     }
 }

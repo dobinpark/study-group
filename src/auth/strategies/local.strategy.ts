@@ -40,6 +40,7 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
         // ✅ req.session 을 SessionWithPassport 타입으로 단언하여 passport 속성 접근
         (req.session as SessionWithPassport).passport = { user: user.id };
         this.logger.debug(`[LocalStrategy] validate 메서드 - session.passport 설정 완료: ${JSON.stringify((req.session as SessionWithPassport).passport)}`);
+        this.logger.debug(`[LocalStrategy] validate 메서드 - 세션 정보 (passport 설정 직후): ${JSON.stringify(req.session)}`);
 
         // ✅ req.session.save() 호출하여 세션 명시적으로 저장
         req.session.save((err) => {

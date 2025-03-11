@@ -48,7 +48,7 @@ export class StudyGroup {
     @Column({ default: true })
     isOnline!: boolean;
 
-    @ApiProperty({ 
+    @ApiProperty({
         description: '스터디 그룹 생성자',
         type: () => User
     })
@@ -56,7 +56,7 @@ export class StudyGroup {
     @JoinColumn({ name: 'creatorId' })
     creator!: User;
 
-    @ApiProperty({ 
+    @ApiProperty({
         description: '스터디 그룹 멤버들',
         type: () => [User]
     })
@@ -75,4 +75,5 @@ export class StudyGroup {
     @ApiProperty({ description: '수정일' })
     @UpdateDateColumn()
     updatedAt!: Date;
+    studyGroup: any;
 }

@@ -3,24 +3,26 @@
     <div class="page-inner">
       <div class="content-card">
         <header class="page-header">
-          <h1>{{ categoryTitle }} 글쓰기</h1>
+          <h1>{{ categoryTitle }} 게시글 작성</h1>
         </header>
 
         <main class="page-content">
           <form @submit.prevent="handleSubmit">
             <div class="form-group">
               <label for="title">제목</label>
-              <input type="text" id="title" v-model="form.title" required />
+              <input type="text" id="title" v-model="form.title" required class="form-control" />
             </div>
-
             <div class="form-group">
               <label for="content">내용</label>
-              <textarea id="content" v-model="form.content" rows="15" required></textarea>
+              <textarea id="content" v-model="form.content" rows="15" required class="form-control"></textarea>
             </div>
-
+            <div class="error-message" v-if="errorMessage">{{ errorMessage }}</div>
             <div class="button-group">
+              <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
+                <span v-if="!isSubmitting">작성 완료</span>
+                <span v-else>작성 중...</span>
+              </button>
               <button type="button" @click="goBack" class="btn btn-secondary">취소</button>
-              <button type="submit" class="btn btn-primary">등록</button>
             </div>
           </form>
         </main>
@@ -30,88 +32,141 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, computed, ref } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { ref, computed } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import axios from '../../utils/axios';
 import { SupportCategoryKorean } from '../../types/models';
-
+import { useUserStore } from '../../store/user';
+import { useAuthStore } from '../../store/auth';
 const route = useRoute();
 const router = useRouter();
+const userStore = useUserStore();
+const authStore = useAuthStore();
 
-// 단순한 폼 데이터 관리
-const form = reactive({
+const form = ref({
+  category: route.query.category || 'NOTICE',
   title: '',
   content: '',
-  category: route.params.category
 });
+const isSubmitting = ref(false);
 
 // 카테고리 제목 표시
 const categoryTitle = computed(() => {
-  const category = route.params.category as keyof typeof SupportCategoryKorean;
-  return SupportCategoryKorean[category] || '게시판';
+  const category = route.query.category as keyof typeof SupportCategoryKorean;
+  return SupportCategoryKorean[category] || '고객센터';
 });
 
 const errorMessage = ref('');
-
-const createSupport = async () => {
-  errorMessage.value = '';
-  if (!form.title.trim() || !form.content.trim()) {
-    errorMessage.value = '제목과 내용을 모두 입력해주세요.';
+const handleSubmit = async () => {
+  if (!authStore.isAuthenticated) {
+    alert('로그인이 필요합니다.');
+    router.push('/login');
     return;
   }
 
+  if (isSubmitting.value) {
+    return;
+  }
+  isSubmitting.value = true;
+  errorMessage.value = '';
+
   try {
-    const response = await axios.post('/support', {
-      title: form.title,
-      content: form.content,
+    if (!form.value.category) {
+      errorMessage.value = '카테고리를 선택해주세요.';
+      return;
+    }
+    if (!form.value.title) {
+      errorMessage.value = '제목을 입력해주세요.';
+      return;
+    }
+    if (!form.value.content) {
+      errorMessage.value = '내용을 입력해주세요.';
+      return;
+    }
+
+    // 게시글 작성
+    const response = await axios.post('/supports', { // API 엔드포인트 수정: /supports
+      title: form.value.title,
+      content: form.value.content,
+      category: String(form.value.category).toUpperCase()
     });
-    if (response.status === 201) {
-      alert('문의사항이 성공적으로 등록되었습니다.');
-      await router.push('/support/list');
-    }
-  } catch (error: any) {
-    errorMessage.value = '문의사항 등록에 실패했습니다.';
-    console.error(error);
-  }
-};
-
-const handleSubmit = async () => {
-  try {
-    const response = await axios.post('/supports', form);
     if (response.data.success) {
-      router.push(`/supports/${response.data.data.id}`);
+      router.push(`/supports/${response.data.data.id}`); // 경로 수정: /supports/:id
     }
   } catch (error: any) {
-    alert(error.response?.data?.message || '게시글 작성에 실패했습니다');
+    errorMessage.value = '게시글 작성에 실패했습니다.';
+    console.error('Error creating post:', error);
+  } finally {
+    isSubmitting.value = false;
   }
 };
 
+// 뒤로 가기
 const goBack = () => {
-  router.push('/supports');
+  router.push({ // 목록 페이지로 돌아갈 때 카테고리 쿼리 파라미터 유지
+    path: '/supports',
+    query: { category: form.value.category } // 쿼리 파라미터 유지
+  });
 };
 </script>
 
 <style scoped>
+@import '../../assets/styles/common.css';
+
+.page-container {
+  min-height: calc(100vh - 200px); /* 다른 페이지와 통일된 min-height 값 적용 */
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.form-control {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+  color: #333;
+}
+
+.form-control:focus {
+  border-color: #4A90E2;
+  box-shadow: 0 0 0 0.15rem rgba(74, 144, 226, 0.25);
+  outline: 0;
+}
+
 .error-message {
-  color: #e53e3e;
-  font-size: 0.875rem;
-  margin-top: 0.5rem;
+  color: #e74c3c;
+  margin-bottom: 1rem;
 }
 
-.error {
-  border-color: #e53e3e !important;
+.button-group {
+  margin-top: 2rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
 }
 
-.error:focus {
-  box-shadow: 0 0 0 3px rgba(229, 62, 62, 0.1) !important;
-}
-
-textarea {
-  resize: vertical;
-  min-height: 200px;
-}
-
-.form-group textarea {
+textarea.form-control {
   min-height: 300px;
 }
+</style>
+<style>
+.support-header h1 {
+  color: #333;
+}
+
+/* header 폰트 색상 변경 */
+.content-card {
+  background-color: #f8f8f8;
+}
+
+/* content-card 배경색 변경 */
 </style>

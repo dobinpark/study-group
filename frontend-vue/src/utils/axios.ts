@@ -3,6 +3,13 @@ import type { ApiResponse } from '../types/api';
 import router from '../router';
 import { useUserStore } from '../store/user';
 
+// Augment the InternalAxiosRequestConfig interface to include _retry
+declare module 'axios' {
+  interface InternalAxiosRequestConfig {
+    _retry?: boolean;
+  }
+}
+
 // 환경별 API URL 설정 (production 환경에서 사용될 수 있음)
 const API_URL = process.env.NODE_ENV === 'production'
   ? process.env.VUE_APP_API_URL || '/api'
@@ -41,32 +48,49 @@ apiClient.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
     // 개발 환경에서 요청 로깅
     if (process.env.NODE_ENV === 'development') {
-      console.log(`[API 요청] ${config.method?.toUpperCase()} ${config.url}`);
+      console.log(`[API 요청 인터셉터] ${config.method?.toUpperCase()} ${config.url}`); // ✅ 요청 인터셉터 로그
+      console.log('[API 요청 헤더]', config.headers); // ✅ 요청 헤더 로그
+      console.log('[API 요청 데이터]', config.data); // ✅ 요청 데이터 로그 (body)
     }
     // 더 이상 요청 인터셉터에서 useAuthStore를 사용하지 않습니다.
     // 필요한 경우, 컴포넌트 또는 서비스에서 직접 헤더에 토큰을 추가하세요.
     return config;
   },
-  (error: AxiosError) => Promise.reject(error)
+  (error: AxiosError) => {
+    console.error('[API 요청 인터셉터 오류]', error); // ✅ 요청 인터셉터 오류 로그
+    return Promise.reject(error);
+  }
 );
 
 // 응답 인터셉터 개선
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[API 응답 인터셉터] ${response.status} ${response.config.url}`); // ✅ 응답 인터셉터 로그
+      console.log('[API 응답 데이터]', response.data); // ✅ 응답 데이터 로그
+      console.log('[API 응답 헤더]', response.headers); // ✅ 응답 헤더 로그
+    }
+    return response;
+  },
   async (error: AxiosError) => {
-    // 오류 로깅
-    console.error('API 오류:', {
+    const originalRequest = error.config as InternalAxiosRequestConfig; // 타입 단언 추가
+    console.error('[API 응답 인터셉터 오류]', error); // ✅ 응답 인터셉터 오류 로그
+    console.error('API 오류 상세:', {
       status: error.response?.status,
-      url: error.config?.url,
-      message: (error.response?.data as { message?: string })?.message || error.message
+      url: originalRequest?.url,
+      method: originalRequest?.method, // ✅ 요청 메소드 로그 추가
+      headers: originalRequest?.headers, // ✅ 요청 헤더 로그 추가
+      requestData: originalRequest?.data, // ✅ 요청 데이터 로그 추가
+      responseHeaders: error.response?.headers, // ✅ 응답 헤더 로그 추가
+      responseData: error.response?.data, // ✅ 응답 데이터 로그 추가
+      message: (error.response?.data as { message?: string })?.message || error.message,
     });
 
-    // 401 오류 처리 개선 (useAuthStore 제거)
-    if (error.response?.status === 401) {
-      // 401 에러 발생 시, 필요한 경우 컴포넌트 또는 서비스에서 직접 토큰 갱신 로직을 처리하세요.
-      // 더 이상 axios 인터셉터에서 자동 갱신을 시도하지 않습니다.
-    }
 
+    if (error.response?.status === 401 && !originalRequest?._retry) {
+      originalRequest!._retry = true;
+      // ... existing refresh token logic ...
+    }
     return Promise.reject(error);
   }
 );

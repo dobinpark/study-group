@@ -3,7 +3,14 @@
     <div class="page-inner">
       <div class="content-card">
         <header class="page-header">
-          <h1>스터디 그룹 수정</h1>
+          <h1 class="title">스터디 그룹 수정</h1>
+          <div class="category-path" v-if="studyGroup">
+            <span>{{ studyGroup.mainCategory }}</span>
+            <span class="separator">></span>
+            <span>{{ studyGroup.subCategory }}</span>
+            <span class="separator">></span>
+            <span>{{ studyGroup.detailCategory }}</span>
+          </div>
         </header>
         <div v-if="isSubmitting" class="loading-overlay">
           <div class="loading-spinner"></div>
@@ -61,9 +68,9 @@
               </div>
               <div class="form-group">
                 <label for="studyWay">스터디 방식</label>
-                <select id="studyWay" v-model="studyGroup.studyWay" class="form-select">
-                  <option value="ONLINE">온라인</option>
-                  <option value="OFFLINE">오프라인</option>
+                <select id="studyWay" v-model="studyGroup.isOnline" class="form-select">
+                  <option value=true>온라인</option>
+                  <option value=false>오프라인</option>
                 </select>
               </div>
             </div>
@@ -79,16 +86,17 @@
               </div>
             </div>
 
-            <div class="button-group">
-              <button type="button" @click="goBack" class="btn btn-secondary">취소</button>
-              <button type="submit" class="btn btn-primary" :disabled="isSubmitting || descriptionLength < 20">
+            <div class="action-buttons">
+              <button type="submit" class="edit-button" :disabled="isSubmitting || descriptionLength < 20">
                 {{ isSubmitting ? '수정 중...' : '수정하기' }}
               </button>
+              <button type="button" @click="goBack" class="list-button">취소</button>
             </div>
           </form>
         </main>
         <main v-else class="page-content">
-          <p>스터디 그룹 정보를 불러오는 중...</p>
+          <div class="loading-spinner"></div>
+          <p class="loading-text">스터디 그룹 정보를 불러오는 중...</p>
         </main>
       </div>
     </div>
@@ -111,7 +119,7 @@ interface StudyGroup {
   detailCategory: string;
   content: string;
   maxMembers: number;
-  studyWay: 'ONLINE' | 'OFFLINE';
+  isOnline: boolean;
 }
 
 // 스터디 그룹 정보 초기화
@@ -122,7 +130,7 @@ const studyGroup = ref<StudyGroup>({
   detailCategory: '',
   content: '',
   maxMembers: 2,
-  studyWay: 'ONLINE',
+  isOnline: true,
 });
 
 // 카테고리 데이터를 위한 인터페이스
@@ -228,8 +236,8 @@ const loadStudyGroup = async () => {
     console.log('API 응답 데이터 (response.data):', response.data);
     console.log('response.data.data:', response.data.data);
 
-    const { name, mainCategory, subCategory, detailCategory, content, maxMembers, studyWay } = response.data.data;
-    studyGroup.value = { name, mainCategory, subCategory, detailCategory, content, maxMembers, studyWay };
+    const { name, mainCategory, subCategory, detailCategory, content, maxMembers, isOnline } = response.data.data;
+    studyGroup.value = { name, mainCategory, subCategory, detailCategory, content, maxMembers, isOnline };
 
     console.log('스터디 그룹 데이터 (studyGroup.value):', studyGroup.value);
 
@@ -265,7 +273,7 @@ const handleSubmit = async () => {
       detailCategory: studyGroup.value.detailCategory,
       content: studyGroup.value.content,
       maxMembers: Number(studyGroup.value.maxMembers),
-      isOnline: studyGroup.value.studyWay === 'ONLINE'
+      isOnline: studyGroup.value.isOnline
     };
 
     await axios.put(`/study-groups/${route.params.id}`, updateData);
@@ -315,6 +323,17 @@ const validateForm = () => {
   }
 };
 
+// 대분류 변경 시 중분류 초기화
+const onMainCategoryChange = () => {
+  studyGroup.value.subCategory = '';
+  studyGroup.value.detailCategory = '';
+};
+
+// 중분류 변경 시 소분류 초기화
+const onSubCategoryChange = () => {
+  studyGroup.value.detailCategory = '';
+};
+
 // 컴포넌트가 마운트될 때 스터디 그룹 정보 로드
 onMounted(() => {
   loadStudyGroup();
@@ -325,40 +344,45 @@ onMounted(() => {
 @import '../../assets/styles/common.css';
 
 .page-container {
-  min-height: calc(100vh - 200px);
-  padding: 2rem 0;
-  background: linear-gradient(135deg, #f5f7fa 0%, #e4e9f2 100%);
+  width: 100%;
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 0 1rem;
 }
 
 .page-inner {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 2rem;
+  width: 100%;
 }
 
 .content-card {
-  border-radius: 20px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   overflow: hidden;
-  transition: transform 0.3s ease;
-}
-
-.content-card:hover {
-  transform: translateY(-5px);
 }
 
 .page-header {
+  color: white;
   padding: 2rem;
   text-align: center;
   background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
 }
 
-.page-header h1 {
-  color: white;
-  font-size: 2rem;
+.page-header h1.title {
+  font-size: 2.5rem;
   font-weight: 700;
-  margin: 0;
+  margin-bottom: 1rem;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  color: white;
+}
+
+.category-path {
+  font-size: 1.1rem;
+  opacity: 0.9;
+}
+
+.separator {
+  margin: 0 0.5rem;
+  opacity: 0.7;
 }
 
 .page-content {
@@ -371,13 +395,9 @@ onMounted(() => {
 }
 
 .form-row {
+  display: flex;
+  gap: 1.5rem;
   margin-bottom: 1.5rem;
-}
-
-.category-row {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 2rem;
 }
 
 .form-group {
@@ -391,18 +411,6 @@ onMounted(() => {
   color: #4a5568;
   margin-bottom: 0.5rem;
   font-weight: 500;
-}
-
-.form-group input,
-.form-group select,
-.form-group textarea {
-  width: 100%;
-  padding: 0.75rem;
-  border: 2px solid #e2e8f0;
-  border-radius: 10px;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-  background: white;
 }
 
 .form-input,
@@ -421,9 +429,9 @@ onMounted(() => {
   min-height: 150px;
 }
 
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
   outline: none;
   border-color: #4A90E2;
   box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
@@ -434,81 +442,51 @@ onMounted(() => {
   justify-content: space-between;
   margin-top: 0.5rem;
   font-size: 0.875rem;
-  color: var(--text-color-lighter);
+  color: #718096;
 }
 
-.button-group {
+.action-buttons {
   display: flex;
-  justify-content: flex-end;
   gap: 1rem;
+  justify-content: center;
   margin-top: 2rem;
 }
 
-.btn-cancel,
-.btn-submit {
-  padding: 0.75rem 2rem;
-  border-radius: 10px;
-  font-size: 1rem;
+.action-buttons button {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
   font-weight: 600;
+  font-size: 1rem;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.btn-cancel {
-  background-color: #e2e8f0;
+.edit-button {
+  background: #48BB78;
+  color: white;
+  border: none;
+}
+
+.edit-button:hover {
+  background: #38A169;
+}
+
+.edit-button:disabled {
+  background: #cbd5e0;
+  cursor: not-allowed;
+}
+
+.list-button {
+  background: #e2e8f0;
   color: #4a5568;
   border: none;
 }
 
-.btn-submit {
-  background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
-  color: white;
-  border: none;
-  box-shadow: 0 4px 6px rgba(74, 144, 226, 0.2);
-}
-
-.btn-cancel:hover {
-  background-color: #cbd5e0;
-  transform: translateY(-1px);
-}
-
-.btn-submit:hover {
-  background: linear-gradient(135deg, #357ABD 0%, #2868A6 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 6px 8px rgba(74, 144, 226, 0.3);
-}
-
-@media (max-width: 768px) {
-  .page-inner {
-    padding: 0 1rem;
-  }
-
-  .category-row {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-
-  .page-header {
-    padding: 1.5rem;
-  }
-
-  .page-header h1 {
-    font-size: 1.5rem;
-  }
-
-  .page-content {
-    padding: 1.5rem;
-  }
-
-  .button-group {
-    flex-direction: column;
-  }
-
-  .btn-cancel,
-  .btn-submit {
-    width: 100%;
-    margin-top: 0.5rem;
-  }
+.list-button:hover {
+  background: #cbd5e0;
 }
 
 .text-danger {
@@ -548,9 +526,27 @@ onMounted(() => {
   0% {
     transform: rotate(0deg);
   }
-
   100% {
     transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 768px) {
+  .title {
+    font-size: 2rem;
+  }
+
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+  }
+
+  .action-buttons button {
+    width: 100%;
   }
 }
 </style>

@@ -17,10 +17,13 @@
               <label for="content">내용</label>
               <textarea id="content" v-model="form.content" rows="15" required></textarea>
             </div>
-
+            <div class="error-message" v-if="errorMessage">{{ errorMessage }}</div>
             <div class="button-group">
+              <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
+                <span v-if="!isSubmitting">작성 완료</span>
+                <span v-else>작성 중...</span>
+              </button>
               <button type="button" @click="goBack" class="btn btn-secondary">취소</button>
-              <button type="submit" class="btn btn-primary">생성하기</button>
             </div>
           </form>
         </main>
@@ -48,6 +51,7 @@ const form = reactive({
   content: '',
   category: String(route.query.category || 'FREE')
 });
+const isSubmitting = ref(false);
 
 // 카테고리 제목 표시
 const categoryTitle = computed(() => {
@@ -109,6 +113,10 @@ const goBack = () => {
 
 <style scoped>
 @import '../../assets/styles/common.css';
+
+.page-container {
+  min-height: calc(100vh - 200px);
+}
 
 .error-message {
   color: #e53e3e;

@@ -1,55 +1,53 @@
 <template>
-  <div class="study-list-container">
-    <div class="page-container">
-      <div class="page-inner">
-        <div class="content-card">
-          <header class="page-header">
-            <h1>스터디 그룹 찾기</h1>
-            <div class="category-path">
-              <span v-if="mainCategory">{{ mainCategory }}</span>
-              <span v-if="mainCategory && subCategory" class="path-separator">></span>
-              <span v-if="subCategory">{{ subCategory }}</span>
-              <span v-if="(mainCategory || subCategory) && detailCategory" class="path-separator">></span>
-              <span v-if="detailCategory" class="detail-category">{{ detailCategory }}</span>
-            </div>
-          </header>
+  <div class="page-container">
+    <div class="page-inner">
+      <div class="content-card">
+        <header class="page-header">
+          <h1 class="title">스터디 그룹 찾기</h1>
+          <div class="category-path">
+            <span v-if="mainCategory">{{ mainCategory }}</span>
+            <span v-if="mainCategory && subCategory" class="separator">></span>
+            <span v-if="subCategory">{{ subCategory }}</span>
+            <span v-if="(mainCategory || subCategory) && detailCategory" class="separator">></span>
+            <span v-if="detailCategory" class="detail-category">{{ detailCategory }}</span>
+          </div>
+        </header>
 
-          <main class="page-content">
-            <div v-if="loading" class="loading">로딩 중...</div>
-            <div v-else-if="studyGroups && studyGroups.length > 0" class="study-groups">
-              <div v-for="studyGroup in studyGroups" :key="studyGroup.id" class="study-group-card"
-                @click="goToDetail(studyGroup.id)">
-                <h2 class="study-group-title">{{ studyGroup.name }}</h2>
-                <div class="study-group-meta">
-                  <span class="category">{{ studyGroup.mainCategory }} >
-                    {{ studyGroup.subCategory }} >
-                    {{ studyGroup.detailCategory }}</span>
-                  <span class="creator">작성자: {{ studyGroup.creator?.nickname }}</span>
-                  <span class="members">참여 인원: {{ studyGroup.members?.length || 0 }}/{{
-                    studyGroup.maxMembers
-                  }}</span>
-                  <span class="date">{{
-                    formatDate(studyGroup.createdAt)
-                  }}</span>
-                </div>
-                <p class="study-group-content">
-                  {{ truncateContent(studyGroup?.description) }}
-                </p>
+        <main class="page-content">
+          <div v-if="loading" class="loading">로딩 중...</div>
+          <div v-else-if="studyGroups && studyGroups.length > 0" class="study-groups">
+            <div v-for="studyGroup in studyGroups" :key="studyGroup.id" class="study-group-card"
+              @click="goToDetail(studyGroup.id)">
+              <h2 class="study-group-title">{{ studyGroup.name }}</h2>
+              <div class="study-group-meta">
+                <span class="category">{{ studyGroup.mainCategory }} >
+                  {{ studyGroup.subCategory }} >
+                  {{ studyGroup.detailCategory }}</span>
+                <span class="creator">작성자: {{ studyGroup.creator?.nickname }}</span>
+                <span class="members">참여 인원: {{ studyGroup.members?.length || 0 }}/{{
+                  studyGroup.maxMembers
+                }}</span>
+                <span class="date">{{
+                  formatDate(studyGroup.createdAt)
+                }}</span>
               </div>
+              <p class="study-group-content">
+                {{ truncateContent(studyGroup?.description) }}
+              </p>
             </div>
-            <div v-else class="no-results">검색 결과가 없습니다.</div>
+          </div>
+          <div v-else class="no-results">검색 결과가 없습니다.</div>
 
-            <div class="action-bar">
-              <div class="search-box">
-                <input type="text" v-model="searchQuery" placeholder="스터디 그룹 검색" @keyup.enter="search" />
-                <button @click="search" class="search-button">검색</button>
-              </div>
-              <button @click="goToCreateStudyGroup" class="create-button">
-                스터디 만들기
-              </button>
+          <div class="action-bar">
+            <div class="search-box">
+              <input type="text" v-model="searchQuery" placeholder="스터디 그룹 검색" @keyup.enter="search" />
+              <button @click="search" class="search-button">검색</button>
             </div>
-          </main>
-        </div>
+            <button @click="goToCreateStudyGroup" class="create-button">
+              스터디 만들기
+            </button>
+          </div>
+        </main>
       </div>
     </div>
   </div>
@@ -272,17 +270,55 @@ const handleCategoryClick = (main: string, sub: string, detail: string) => {
 <style scoped>
 @import '../../assets/styles/common.css';
 
-.study-list-container {
+.page-container {
+  width: 100%;
   max-width: 1200px;
   margin: 2rem auto;
   padding: 0 1rem;
 }
 
-.title {
-  font-size: 2rem;
-  color: #2d3748;
-  margin-bottom: 2rem;
+.page-inner {
+  width: 100%;
+}
+
+.content-card {
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.page-header {
+  color: white;
+  padding: 2rem;
   text-align: center;
+  background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
+}
+
+.page-header h1.title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  color: white;
+}
+
+.category-path {
+  font-size: 1.1rem;
+  opacity: 0.9;
+  color: white;
+}
+
+.separator {
+  margin: 0 0.5rem;
+  opacity: 0.7;
+}
+
+.detail-category {
+  font-weight: 600;
+}
+
+.page-content {
+  padding: 2rem;
 }
 
 .study-groups {
@@ -407,29 +443,7 @@ const handleCategoryClick = (main: string, sub: string, detail: string) => {
   color: #4a5568;
 }
 
-.category-path {
-  text-align: center;
-  margin-bottom: 2rem;
-  padding: 1rem;
-  border-radius: 8px;
-  color: #4a5568;
-}
-
-.main-category {
-  font-weight: 600;
-  color: #4a90e2;
-}
-
-.path-separator {
-  margin: 0 0.5rem;
-  color: #718096;
-}
-
-.sub-category {
-  font-weight: 600;
-  color: #4a90e2;
-}
-
+/* 이하 기존 스타일은 유지 */
 .category-section {
   margin: 2rem 0;
   padding: 1rem;
@@ -470,22 +484,13 @@ const handleCategoryClick = (main: string, sub: string, detail: string) => {
   color: white;
 }
 
-/* 카테고리 경로 스타일 */
-.category-path {
-  display: flex;
-  align-items: center;
-  margin-top: 0.5rem;
-  font-size: 0.95rem;
-  color: var(--text-color-light);
-}
-
-.path-separator {
-  margin: 0 0.5rem;
-  color: var(--text-color-lighter);
-}
-
-.detail-category {
-  color: var(--primary-color);
-  font-weight: 500;
+@media (max-width: 768px) {
+  .title {
+    font-size: 2rem;
+  }
+  
+  .action-bar {
+    flex-direction: column;
+  }
 }
 </style>

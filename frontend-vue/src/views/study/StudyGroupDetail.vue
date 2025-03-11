@@ -3,13 +3,13 @@
     <div class="page-inner">
       <div class="content-card">
         <header class="page-header">
-          <h1 class="title">{{ studyGroup.name }}</h1>
+          <h1 class="title">{{ studyGroup?.name }}</h1>
           <div class="category-path">
-            <span>{{ studyGroup.mainCategory }}</span>
+            <span>{{ studyGroup?.mainCategory }}</span>
             <span class="separator">></span>
-            <span>{{ studyGroup.subCategory }}</span>
+            <span>{{ studyGroup?.subCategory }}</span>
             <span class="separator">></span>
-            <span>{{ studyGroup.detailCategory }}</span>
+            <span>{{ studyGroup?.detailCategory }}</span>
           </div>
         </header>
 
@@ -225,7 +225,14 @@ const formatDate = (dateString: string) => {
 };
 
 const goToList = () => {
-  router.push('/study-groups');
+  router.push({
+    path: '/study-groups',
+    query: {
+      mainCategory: studyGroup.value?.mainCategory,
+      subCategory: studyGroup.value?.subCategory,
+      detailCategory: studyGroup.value?.detailCategory,
+    },
+  });
 };
 
 onMounted(async () => {
@@ -241,12 +248,6 @@ onMounted(async () => {
   max-width: 1200px;
   margin: 2rem auto;
   padding: 0 1rem;
-}
-
-.page-inner {
-  border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
 }
 
 .content-card {

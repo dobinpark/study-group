@@ -14,7 +14,7 @@ import PostCreate from '../views/community/CreatePost.vue';
 import PostDetail from '../views/community/PostDetail.vue';
 import PostEdit from '../views/community/EditPost.vue';
 import PostList from '../views/community/PostList.vue';
-import SupportCreate from '../views/support/CreateSupport.vue';
+import CreateSupport from '../views/support/CreateSupport.vue';
 import SupportDetail from '../views/support/SupportDetail.vue';
 import EditSupport from '../views/support/EditSupport.vue';
 import SupportList from '../views/support/SupportList.vue';
@@ -125,7 +125,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/supports/create',
     name: 'supports-create',
-    component: SupportCreate,
+    component: CreateSupport,
     meta: { requiresAuth: true }
   },
   {
@@ -174,13 +174,15 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore();
 
+  console.log(`Router Guard: beforeEach 시작 - to.path: ${to.path}, from.path: ${from.path}`); // ✅ beforeEach 시작 로그
+
   // 세션 체크가 완료되지 않았으면 대기 (초기 로딩 시 불필요한 리다이렉트 방지)
   if (!authStore.sessionChecked) {
-    console.log('Router Guard: 세션 체크 대기 중...'); // 로깅 추가
+    console.log('Router Guard: 세션 체크 대기 중... - to.path:', to.path); // ✅ 세션 체크 대기 로그
     await authStore.checkSession();
-    console.log('Router Guard: 세션 체크 완료'); // 로깅 추가
+    console.log('Router Guard: 세션 체크 완료 - to.path:', to.path, ', sessionChecked:', authStore.sessionChecked); // ✅ 세션 체크 완료 로그
     if (!authStore.sessionChecked) {
-      console.log('Router Guard: 세션 체크 실패, public 라우트로 진행');
+      console.log('Router Guard: 세션 체크 실패, public 라우트로 진행 - to.path:', to.path); // ✅ 세션 체크 실패 로그
       return next(); // 세션 체크 실패 시 public 라우트는 허용
     }
   }
@@ -188,27 +190,28 @@ router.beforeEach(async (to, from, next) => {
   const requiresAuth = to.meta.requiresAuth;
   const isAuth = authStore.isAuthenticated;
 
-  console.log(`Router Guard: to.path: ${to.path}, requiresAuth: ${requiresAuth}, isAuthenticated: ${isAuth}`); // 로깅 추가
+  console.log(`Router Guard: 라우트 가드 검사 - to.path: ${to.path}, requiresAuth: ${requiresAuth}, isAuthenticated: ${isAuth}`); // ✅ 라우트 가드 검사 로그
 
   if (requiresAuth) {
     if (!isAuth) {
-      console.log('Router Guard: 인증 필요, 로그인 페이지로 리다이렉트 - to.path:', to.path); // 로깅 메시지 개선
+      console.log('Router Guard: 인증 필요, 로그인 페이지로 리다이렉트 - to.path:', to.path); // ✅ 인증 필요, 리다이렉트 로그
       next({
         path: '/login',
         query: { redirect: to.fullPath },
       });
     } else {
-      console.log('Router Guard: 인증 완료, 라우트 진행 - to.path:', to.path); // 로깅 메시지 개선
+      console.log('Router Guard: 인증 완료, 라우트 진행 - to.path:', to.path); // ✅ 인증 완료, 진행 로그
       next();
     }
   } else if (to.name === 'login' && isAuth) {
-    console.log('Router Guard: 로그인 페이지 접근, 이미 로그인 상태, 홈으로 리다이렉트 - to.path:', to.path); // 로깅 메시지 개선
+    console.log('Router Guard: 로그인 페이지 접근, 이미 로그인 상태, 홈으로 리다이렉트 - to.path:', to.path); // ✅ 로그인 페이지 접근, 홈 리다이렉트 로그
     next({ path: '/' });
   }
   else {
-    console.log('Router Guard: public 라우트, 라우트 진행 - to.path:', to.path); // 로깅 메시지 개선
+    console.log('Router Guard: public 라우트, 라우트 진행 - to.path:', to.path); // ✅ public 라우트, 진행 로그
     next();
   }
+  console.log('Router Guard: beforeEach 완료 - to.path:', to.path); // ✅ beforeEach 완료 로그
 });
 
 export default router;

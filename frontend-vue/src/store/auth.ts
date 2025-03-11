@@ -33,19 +33,23 @@ export const useAuthStore = defineStore('auth', {
   actions: {
     // 세션 체크
     checkSession() {
-      console.log('AuthStore: checkSession 액션 호출');
+      console.log('AuthStore: checkSession 액션 호출 시작'); // ✅ 세션 체크 시작 로그
       return new Promise(async (resolve, reject) => {
         try {
+          console.log('AuthStore: checkSession - axios.get(/auth/session) 요청'); // ✅ axios 요청 로그
           await axios.get('/auth/session');
           this.isAuthenticated = true;
           this.sessionChecked = true;
-          console.log('AuthStore: 세션 유효, 로그인 상태 유지');
+          console.log('AuthStore: 세션 유효, 로그인 상태 유지 - checkSession 성공'); // ✅ 세션 유효 로그
+          console.log('AuthStore: checkSession - document.cookie 값:', document.cookie); // ✅ 쿠키 값 로그 추가
           resolve(true);
         } catch (error: any) {
           this.isAuthenticated = false;
           this.sessionChecked = true;
-          console.log('AuthStore: 세션 유효하지 않음, 로그아웃 상태');
+          console.log('AuthStore: 세션 유효하지 않음, 로그아웃 상태 - checkSession 실패', error); // ✅ 세션 무효 로그
           reject(false);
+        } finally {
+          console.log('AuthStore: checkSession 액션 완료 (finally)'); // ✅ finally 로그
         }
       });
     },
@@ -73,6 +77,7 @@ export const useAuthStore = defineStore('auth', {
 
           this.user = userFromResponse; // 사용자 정보 할당
           console.log('AuthStore: login 액션 - API 응답 user 정보:', userFromResponse); // ✅ 로그 추가
+          console.log('AuthStore: login 액션 - document.cookie 값:', document.cookie); // ✅ 쿠키 값 로그 추가
 
           if (!this.user) {
             console.error('AuthStore: user 정보 추출 실패. API 응답 구조를 확인하세요.', response.data);

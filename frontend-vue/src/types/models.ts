@@ -41,12 +41,12 @@ export enum PostCategory {
 }
 
 export const PostCategoryKorean = {
-  [PostCategory.FREE]: '자유게시판',
-  [PostCategory.QUESTION]: '질문게시판',
-  [PostCategory.SUGGESTION]: '건의게시판'
-};
+  FREE: '자유게시판',
+  QUESTION: '질문게시판',
+  SUGGESTION: '건의게시판',
+} as const;
 
-export type PostCategoryType = keyof typeof PostCategoryKorean;
+export type PostCategoryKeys = keyof typeof PostCategoryKorean;
 
 export interface SubCategory {
   name: string;
@@ -109,7 +109,9 @@ export enum SupportCategory {
 }
 
 export const SupportCategoryKorean = {
-  [SupportCategory.INQUIRY]: '문의하기',
-  [SupportCategory.REPORT]: '신고하기',
-  [SupportCategory.FEEDBACK]: '피드백'
-};
+  NOTICE: '공지사항',
+  FAQ: '자주 묻는 질문',
+  INQUIRY: '1:1 문의',
+} as const;
+
+export type SupportCategoryKeys = keyof typeof SupportCategoryKorean;

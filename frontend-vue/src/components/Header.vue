@@ -713,13 +713,13 @@ const handleCommunityClick = (categoryName: string) => {
 const handleSupportClick = (category: string) => {
   switch (category) {
     case '공지사항':
-      router.push('/supports');
+      router.push({ path: '/supports', query: { category: 'NOTICE' } });
       break;
     case '자주묻는질문':
-      router.push('/supports/categories/FAQ');
+      router.push({ path: '/supports', query: { category: 'FAQ' } });
       break;
     case '1:1문의':
-      router.push('/supports/categories/INQUIRY');
+      router.push({ path: '/supports', query: { category: 'INQUIRY' } });
       break;
   }
 };
@@ -832,7 +832,6 @@ const fetchSubCategories = async (mainCategoryValue: string) => {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin: 0 auto;
 }
 
 .right-section {
@@ -873,7 +872,7 @@ const fetchSubCategories = async (mainCategoryValue: string) => {
 }
 
 .nav-wrapper {
-  background-color: #4a90e2;
+  background-color: #4a90e2 !important;
   width: 100%;
   padding: 10px 0;
 }

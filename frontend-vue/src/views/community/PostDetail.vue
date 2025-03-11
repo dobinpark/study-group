@@ -114,7 +114,7 @@ const editPost = () => router.push(`/posts/${route.params.id}/edit`);
 
 const deletePost = async () => {
   if (!confirm('정말 삭제하시겠습니까?')) return;
-  
+
   try {
     await axios.delete(`/posts/${route.params.id}`);
     router.push('/posts');
