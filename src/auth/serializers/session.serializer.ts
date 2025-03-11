@@ -1,51 +1,56 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { PassportSerializer } from '@nestjs/passport';
-import { UserService } from '../../user/user.service';
-import { User } from '../../user/entities/user.entity';
+import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
+import { PassportStrategy } from '@nestjs/passport';
+import { Strategy } from 'passport-local';
+import { AuthService } from '../auth.service';
+import { Request } from 'express';
+import { Session } from 'express-session';
+
+// ✅ passport 속성을 포함하는 Session 인터페이스 정의
+interface SessionWithPassport extends Session {
+    passport?: {
+        user: number;
+    };
+}
 
 @Injectable()
-export class SessionSerializer extends PassportSerializer {
-    private readonly logger = new Logger(SessionSerializer.name);
+export class LocalStrategy extends PassportStrategy(Strategy) {
+    private readonly logger = new Logger(LocalStrategy.name);
 
-    constructor(private readonly userService: UserService) {
-        super();
+    constructor(private readonly authService: AuthService) {
+        super({
+            usernameField: 'username',
+            passwordField: 'password',
+            passReqToCallback: true,
+        });
+        this.logger.debug('LocalStrategy constructor 호출');
     }
 
-    serializeUser(user: User, done: (err: Error | null, userId: User['id']) => void): void {
-        this.logger.debug(`[serializeUser] 사용자 직렬화 시작 - userId: ${user.id}`);
-        done(null, user.id);
-        this.logger.debug(`[serializeUser] 사용자 직렬화 완료 - userId: ${user.id}`);
-    }
+    async validate(req: Request, username: string, password?: string): Promise<any> {
+        this.logger.debug(`[LocalStrategy] validate 메서드 호출 - username: ${username}`);
+        const user = await this.authService.validateUser(username, password);
 
-    async deserializeUser(userId: User['id'], done: (err: Error | null, user: User | null) => void): Promise<void> {
-        this.logger.debug(`[deserializeUser] 🚀🚀🚀 사용자 역직렬화 시작 - userId: ${userId} 🚀🚀🚀`); // ✅ 시작 로그 (화려하게 강조)
-        console.log("deserializeUser 호출 시작, userId:", userId, typeof userId); // <-- 추가: userId 값과 타입 로깅
-        try {
-            this.logger.debug(`[deserializeUser] 사용자 ID 검색 시작: ${userId}`);
-            console.log("deserializeUser - 사용자 ID 검색 시작, userId:", userId); // <-- 추가: 사용자 ID 검색 시작 로그
-            const user = await this.userService.findUserById(userId);
-            if (!user) {
-                this.logger.warn(`[deserializeUser] 사용자 ID ${userId}로 사용자 찾을 수 없음`);
-                this.logger.debug(`[deserializeUser] done(null, null) 호출`); // ✅ done(null, null) 호출 로그
-                console.log("deserializeUser - 사용자 찾을 수 없음, done(null, null) 호출"); // <-- 추가: 사용자 찾을 수 없음 로그
-                return done(null, null);
-            }
-
-            this.logger.debug(`[deserializeUser] ✅ 사용자 찾음: ${user.username}`); // ✅ 사용자 찾음 로그 (강조)
-            this.logger.debug(`[deserializeUser] done(null, user) 호출 - 사용자 정보: ${user.username}`); // ✅ done(null, user) 호출 로그
-            console.log("deserializeUser - 사용자 찾음, done(null, user) 호출, username:", user.username); // <-- 추가: 사용자 찾음, done(null, user) 호출 로그
-            done(null, user);
-            this.logger.debug(`[deserializeUser] done(null, user) 호출 완료`); // ✅ done(null, user) 완료 로그
-            console.log("deserializeUser - done(null, user) 호출 완료"); // <-- 추가: done(null, user) 완료 로그
-        } catch (error) {
-            this.logger.error(`[deserializeUser] ❌ 사용자 역직렬화 중 오류 발생: ${(error as Error).message}`, error); // ✅ 오류 로그 (강조)
-            this.logger.debug(`[deserializeUser] done(error, null) 호출 - error: ${(error as Error).message}`); // ✅ done(error, null) 호출 로그
-            console.error("deserializeUser - 에러 발생:", error); // <-- 추가: 에러 상세 로그
-            console.log("deserializeUser - done(error, null) 호출"); // <-- 추가: done(error, null) 호출 로그
-            done(error as Error, null);
-        } finally {
-            this.logger.debug(`[deserializeUser] 🏁🏁🏁 사용자 역직렬화 완료 (finally 블록) - userId: ${userId} 🏁🏁🏁`); // ✅ 종료 로그 (화려하게 강조)
-            console.log("deserializeUser - finally 블록 완료"); // <-- 추가: finally 블록 완료 로그
+        if (!user) {
+            this.logger.warn(`[LocalStrategy] validate 메서드 실패: 사용자 인증 실패 - username: ${username}`);
+            throw new UnauthorizedException('Invalid credentials');
         }
+
+        this.logger.debug(`[LocalStrategy] validate 메서드 성공: 사용자 인증 성공 - username: ${username}, userId: ${user.id}`);
+        this.logger.debug(`[LocalStrategy] validate 메서드 - 인증된 사용자 정보: ${JSON.stringify(user)}`);
+
+        // ✅ req.session 을 SessionWithPassport 타입으로 단언하여 passport 속성 접근
+        (req.session as SessionWithPassport).passport = { user: user.id };
+        this.logger.debug(`[LocalStrategy] validate 메서드 - session.passport 설정 완료: ${JSON.stringify((req.session as SessionWithPassport).passport)}`);
+
+        // ✅ req.session.save() 호출하여 세션 명시적으로 저장
+        req.session.save((err) => {
+            if (err) {
+                this.logger.error(`[LocalStrategy] session.save() 실패: ${err.message}`, err.stack);
+            } else {
+                this.logger.debug(`[LocalStrategy] session.save() 성공`);
+                this.logger.debug(`[LocalStrategy] session 정보 (save() 직후): ${JSON.stringify(req.session)}`); // ✅ session 정보 로깅 (save() 직후)
+            }
+        });
+
+        return user;
     }
 }

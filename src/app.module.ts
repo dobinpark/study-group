@@ -10,9 +10,6 @@ import { PassportModule } from '@nestjs/passport';
 import { SessionSerializer } from './types/session.serializer';
 import { AuthModule } from './auth/auth.module';
 import { CacheModule } from '@nestjs/cache-manager';
-import { SupportModule } from './support/support.module';
-import { DataSource } from 'typeorm';
-import { Session } from './auth/entities/session.entity';
 
 @Module({
     imports: [
@@ -32,7 +29,6 @@ import { Session } from './auth/entities/session.entity';
                 database: configService.get<string>('DB_DATABASE'),
                 entities: [__dirname + '/**/*.entity{.ts,.js}'],
                 synchronize: true,
-                logging: true,
             }),
             inject: [ConfigService],
         }),
@@ -46,8 +42,6 @@ import { Session } from './auth/entities/session.entity';
         }),
         PostsModule,
         PassportModule.register({}),
-        SupportModule,
-        TypeOrmModule.forFeature([Session]),
     ],
     controllers: [],
     providers: [

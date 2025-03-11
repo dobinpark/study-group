@@ -150,8 +150,6 @@ export class AuthController {
             // 로그인 성공 시 디버깅 정보 추가
             this.logger.debug(`세션 ID: ${req.sessionID}`);
             this.logger.debug(`세션 데이터: ${JSON.stringify(req.session)}`);
-            this.logger.debug(`요청 쿠키: ${JSON.stringify(req.cookies)}`);
-            this.logger.debug(`응답 헤더 (Set-Cookie 확인): ${JSON.stringify(req.res?.getHeader('Set-Cookie'))}`);
             
             return {
                 success: true,
@@ -287,9 +285,6 @@ export class AuthController {
             this.logger.warn(`유효하지 않은 세션: 세션 또는 사용자 정보 없음`);
             throw new UnauthorizedException('로그인이 필요합니다.');
         }
-        this.logger.debug(`세션 정보: ${JSON.stringify(req.session)}`);
-        this.logger.debug(`요청 쿠키: ${JSON.stringify(req.cookies)}`);
-
         return { success: true, data: { session: req.session } };
     }
 

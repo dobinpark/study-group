@@ -3,12 +3,11 @@ import { AppModule } from './app.module';
 import { INestApplication, ValidationPipe, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { LoggingInterceptor } from './interceptors/logging.interceptor';
 import * as session from 'express-session';
 import * as passport from 'passport';
 import { DataSource } from 'typeorm';
 import { NestExpressApplication } from '@nestjs/platform-express';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import * as cookieParser from 'cookie-parser';
 
 declare const module: any; // HMR 타입 선언 추가
 
@@ -19,14 +18,11 @@ async function bootstrap() {
     const dataSource = app.get(DataSource);
     const logger = new Logger('Main');
 
-    // 전역 인터셉터 및 가드 주석 처리 (모두!)
-    // app.useGlobalInterceptors(new LoggingInterceptor());  // ❌ 주석 처리
-    // app.useGlobalGuards(new AuthGuard());             // ❌ 주석 처리
-    // app.useGlobalPipes(new ValidationPipe({           // ✅ ValidationPipe 는 일단 유지
-    //     whitelist: true,
-    //     forbidNonWhitelisted: true,
-    //     transform: true
-    // }));
+    // 전역 파이프 설정
+    // app.useGlobalPipes(new ValidationPipe()); // 전역 유효성 검사 파이프 주석 처리 또는 제거
+
+    // 전역 인터셉터 설정
+    app.useGlobalInterceptors(new LoggingInterceptor());
 
     // API 경로 접두사
     app.setGlobalPrefix('api');
@@ -51,7 +47,6 @@ async function bootstrap() {
 
     // 서버 시작
     const port = configService.get<number>('PORT', 3000);
-    app.use(cookieParser());
     await app.listen(port);
 
     // HMR 활성화 (개발 모드인 경우)
@@ -64,7 +59,6 @@ async function bootstrap() {
 
 function setupSession(app: INestApplication, configService: ConfigService) {
     console.log('SESSION_SECRET 값 (main.ts):', configService.get<string>('SESSION_SECRET'));
-    app.use(cookieParser());
     app.use(
         session({
             secret: configService.get<string>('SESSION_SECRET') || 'secret',
