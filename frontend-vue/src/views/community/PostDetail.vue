@@ -32,11 +32,11 @@
 
           <div v-else class="error-message">
             <p>게시글을 불러올 수 없습니다.</p>
-            <button @click="goBack" class="btn btn-secondary">목록으로</button>
+            <button @click="goBack" class="btn btn-secondary">목록</button>
           </div>
 
           <div class="button-group">
-            <button @click="goBack" class="btn btn-secondary">목록으로</button>
+            <button @click="goBack" class="btn btn-secondary">목록</button>
           </div>
         </main>
       </div>
@@ -198,5 +198,11 @@ onMounted(fetchPost);
     width: 100%;
     justify-content: space-between;
   }
+}
+
+.button-group {
+  margin-top: 2rem;
+  text-align: center;
+  justify-content: center;
 }
 </style>

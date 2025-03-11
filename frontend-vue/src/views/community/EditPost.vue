@@ -19,8 +19,8 @@
             </div>
 
             <div class="button-group">
-              <button type="button" @click="goBack" class="btn btn-secondary">취소</button>
               <button type="submit" class="btn btn-primary">수정</button>
+              <button type="button" @click="goBack" class="btn btn-secondary">취소</button>
             </div>
           </form>
         </main>
@@ -127,5 +127,11 @@ textarea {
 
 .form-group textarea {
   min-height: 300px;
+}
+
+.button-group {
+  margin-top: 2rem;
+  text-align: center;
+  justify-content: center;
 }
 </style>

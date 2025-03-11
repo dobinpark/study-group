@@ -9,41 +9,40 @@
               <span class="title">함공</span>
             </a>
           </div>
-          <div class="right-section">
-            <div class="auth-container" :class="{ 'mobile-auth': isMobile }">
-              <template v-if="isLoggedInComputed && currentUser">
-                <span class="welcome-text">
-                  {{
-                    currentUser?.nickname ||
-                    currentUser?.username
-                  }}님 환영합니다!
-                </span>
-                <div class="nav-buttons" :class="{ 'mobile-nav-buttons': isMobile }">
-                  <router-link class="nav-button" to="/my-studies">
-                    내 스터디
-                  </router-link>
-                  <router-link class="nav-button" to="/profile">
-                    프로필
-                  </router-link>
-                </div>
-                <button class="logout-button" @click="handleLogout" :disabled="isLoggingOut">
+          <div v-if="isLoggedInComputed" class="welcome-container">
+            <span class="welcome-text">
+              {{
+                currentUser?.nickname ||
+                currentUser?.username
+              }}님 환영합니다!
+            </span>
+          </div>
+          <div class="auth-container" :class="{ 'mobile-auth': isMobile }">
+            <template v-if="isLoggedInComputed && currentUser">
+              <div class="nav-buttons" :class="{ 'mobile-nav-buttons': isMobile }">
+                <router-link class="nav-button" to="/my-studies">
+                  내 스터디
+                </router-link>
+                <router-link class="nav-button" to="/profile">
+                  프로필
+                </router-link>
+                <button class="nav-button" @click="handleLogout" :disabled="isLoggingOut" style="background-color: red;">
                   {{
                     isLoggingOut
                       ? '로그아웃 중...'
                       : '로그아웃'
                   }}
                 </button>
-              </template>
-              <template v-else>
-                <span class="login-text">로그인 해주세요.</span>
-                <router-link to="/login">
-                  <button class="login-button">
-                    <img alt="로그인" class="login-icon" src="../assets/images/man.png" />
-                    로그인
-                  </button>
-                </router-link>
-              </template>
-            </div>
+              </div>
+            </template>
+            <template v-else>
+              <router-link to="/login">
+                <button class="login-button">
+                  <img alt="로그인" class="login-icon" src="../assets/images/man.png" />
+                  로그인
+                </button>
+              </router-link>
+            </template>
           </div>
         </div>
       </div>
@@ -823,15 +822,22 @@ const fetchSubCategories = async (mainCategoryValue: string) => {
   width: 100%;
   height: 100%;
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   position: relative;
+}
+
+.welcome-container {
+  width: auto;
+  max-width: 30%;
 }
 
 .logo-container {
   display: flex;
   align-items: center;
   gap: 10px;
+  margin-right: auto;
+  margin-left: 485px;
 }
 
 .right-section {
@@ -867,8 +873,17 @@ const fetchSubCategories = async (mainCategoryValue: string) => {
 }
 
 .welcome-text {
-  font-size: 16px;
+  font-size: 18px;
   color: #666;
+  word-break: break-word;
+  line-height: 1.4;
+  text-align: left;
+}
+
+@media (max-width: 768px) {
+  .welcome-text {
+    font-size: 14px;
+  }
 }
 
 .nav-wrapper {
@@ -1149,6 +1164,8 @@ const fetchSubCategories = async (mainCategoryValue: string) => {
   transition: all 0.3s ease;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   cursor: pointer;
+  min-width: 100px;
+  min-height: 2.5rem;
 }
 
 .logout-button:hover {
@@ -1198,6 +1215,10 @@ const fetchSubCategories = async (mainCategoryValue: string) => {
 
   .sub-menu-item {
     flex-direction: column;
+  }
+
+  .welcome-text {
+    font-size: 14px;
   }
 }
 </style>

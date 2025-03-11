@@ -8,6 +8,8 @@ import { PassportModule } from '@nestjs/passport';
 import { LocalStrategy } from './strategies/local.strategy';
 import { UserService } from '../user/user.service';
 import { UserModule } from '../user/user.module';
+import { SessionSerializer } from '../types/session.serializer';
+import { AuthGuard } from './guards/auth.guard';
 
 @Module({
     imports: [
@@ -21,7 +23,9 @@ import { UserModule } from '../user/user.module';
         AuthRepository,
         LocalStrategy,
         UserService,
+        SessionSerializer,
+        AuthGuard,
     ],
-    exports: [AuthService],
+    exports: [AuthService, AuthGuard],
 })
 export class AuthModule { }

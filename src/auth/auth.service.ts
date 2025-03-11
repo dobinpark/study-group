@@ -221,7 +221,7 @@ export class AuthService {
             const user = await this.findUserById(userId);
             if (!user) {
                 this.logger.warn(`[deserializeUser] 사용자 ID ${userId}로 사용자 찾을 수 없음`);
-                return done(null, false);
+                return done(null, null); // 사용자 없을 시 null 전달
             }
 
             this.logger.debug(`[deserializeUser] 사용자 정보 조회 성공: ${JSON.stringify(user)}`);
@@ -232,10 +232,10 @@ export class AuthService {
             this.logger.error(`[deserializeUser] 사용자 역직렬화 실패: ${errorMessage}`);
             // error가 Error 인스턴스인지 확인 후 done() 호출
             if (error instanceof Error) {
-                done(error, false);
+                done(error, null); // 오류 발생 시 err, null 전달
             } else {
                 // Error 인스턴스가 아니면 새로운 Error 객체 생성하여 전달
-                done(new Error('사용자 역직렬화 중 알 수 없는 오류 발생'), false);
+                done(new Error('사용자 역직렬화 중 알 수 없는 오류 발생'), null); // 오류 발생 시 err, null 전달
             }
         }
     }

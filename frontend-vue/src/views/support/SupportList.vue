@@ -139,12 +139,12 @@ const fetchPosts = async () => {
   try {
     console.log('fetchPosts: category.value:', category.value);
 
-    const response = await axios.get(`/supports`, { // API 엔드포인트 수정: /supports
+    const response = await axios.get('/supports', {
       params: {
         category: category.value,
         page: currentPage.value,
-        size: pageSize,
-        searchKeyword: searchQuery.value,
+        limit: pageSize,
+        search: searchQuery.value,
       },
     });
     console.log('fetchSupports: API 요청 params:', response.config.params);
@@ -184,13 +184,13 @@ const changePage = (newPage: number) => {
 // 고객센터 게시글 작성 페이지로 이동
 const createSupport = () => {
   router.push({
-    path: '/supports/create', // 경로 수정: /supports/create
+    path: '/supports/create',
     query: { category: route.query.category }
   });
 };
 
 // 고객센터 게시글 상세 페이지로 이동
-const viewSupport = (id: number) => router.push(`/supports/${id}`); // 경로 수정: /supports/:id
+const viewSupport = (id: number) => router.push(`/supports/${id}`);
 
 onMounted(() => {
   fetchPosts();

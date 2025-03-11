@@ -11,8 +11,6 @@ import {
     UnauthorizedException,
     HttpCode,
     HttpStatus,
-    UseInterceptors,
-    ClassSerializerInterceptor,
     ParseIntPipe,
     InternalServerErrorException,
     UseGuards,
@@ -42,7 +40,6 @@ import { UpdateStudyGroupDto } from './dto/update-study-group.dto';
 import { StudyGroup } from './entities/study-group.entity';
 import { CategoryDto } from './dto/category.dto';
 import { CustomSession } from '../types/session.types';
-import { TransformInterceptor } from '../interceptors/response.interceptor';
 import { DataResponse, BaseResponse } from '../types/response.types';
 import { Request } from 'express';
 import { User } from '../user/entities/user.entity';
@@ -51,8 +48,7 @@ import { AuthGuard } from '../auth/guards/auth.guard';
 @ApiTags('스터디')
 @ApiExtraModels(StudyGroup, CategoryDto, DataResponse<any>, BaseResponse)
 @Controller('study-groups')
-@UseInterceptors(ClassSerializerInterceptor)
-@UseInterceptors(TransformInterceptor)
+@UseGuards(AuthGuard)
 export class StudyGroupController {
     private readonly logger = new Logger(StudyGroupController.name);
 
@@ -95,13 +91,14 @@ export class StudyGroupController {
     @ApiUnauthorizedResponse({ description: '인증 필요' })
     @Post()
     @HttpCode(HttpStatus.CREATED)
-    @UseGuards(AuthGuard)
     async create(
         @Body() createStudyGroupDto: CreateStudyGroupDto,
         @Req() req: Request
     ): Promise<DataResponse<StudyGroup>> {
         try {
             const user = req.user as User;
+            this.logger.debug(`createStudyGroup - controller - user.id: ${user.id}, type: ${typeof user.id}`);
+
             const studyGroup = await this.studyGroupService.create(createStudyGroupDto, user.id);
             return { success: true, data: studyGroup };
         } catch (error: unknown) {
@@ -228,16 +225,22 @@ export class StudyGroupController {
         required: true
     })
     @Put(':id')
+    @UseGuards(AuthGuard)
     async update(
         @Param('id', ParseIntPipe) id: number,
         @Body() updateStudyGroupDto: UpdateStudyGroupDto,
-        @Session() session: CustomSession
+        @Req() req: Request
     ): Promise<DataResponse<StudyGroup>> {
-        if (!session.user) {
-            throw new UnauthorizedException('로그인이 필요합니다.');
+        const user = req.user as User;
+        this.logger.debug(`updateStudyGroup - controller - user.id: ${user.id}, type: ${typeof user.id}`);
+        try {
+            const updatedGroup = await this.studyGroupService.update(id, updateStudyGroupDto, user.id);
+            return { success: true, data: updatedGroup };
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+            this.logger.error(`스터디 그룹 수정 실패: ${errorMessage}`);
+            throw new InternalServerErrorException('스터디 그룹 수정 중 오류가 발생했습니다.');
         }
-        const updatedGroup = await this.studyGroupService.update(id, updateStudyGroupDto, session.user.id);
-        return { success: true, data: updatedGroup };
     }
 
 
@@ -262,13 +265,17 @@ export class StudyGroupController {
     @Delete(':id')
     async remove(
         @Param('id', ParseIntPipe) id: number,
-        @Session() session: CustomSession
+        @Req() req: Request
     ): Promise<BaseResponse> {
-        if (!session.user) {
-            throw new UnauthorizedException('로그인이 필요합니다.');
+        const user = req.user as User;
+        try {
+            await this.studyGroupService.remove(id, user.id);
+            return { success: true, message: '스터디 그룹이 삭제되었습니다.' };
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+            this.logger.error(`스터디 그룹 삭제 실패: ${errorMessage}`);
+            throw new InternalServerErrorException('스터디 그룹 삭제 중 오류가 발생했습니다.');
         }
-        await this.studyGroupService.remove(id, session.user.id);
-        return { success: true, message: '스터디 그룹이 삭제되었습니다.' };
     }
 
 
@@ -294,13 +301,17 @@ export class StudyGroupController {
     @Post(':id/join')
     async join(
         @Param('id', ParseIntPipe) id: number,
-        @Session() session: CustomSession
+        @Req() req: Request
     ): Promise<BaseResponse> {
-        if (!session.user) {
-            throw new UnauthorizedException('로그인이 필요합니다.');
+        const user = req.user as User;
+        try {
+            await this.studyGroupService.joinGroup(id, user.id);
+            return { success: true, message: '스터디 그룹에 참여했습니다.' };
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+            this.logger.error(`스터디 그룹 참여 실패: ${errorMessage}`);
+            throw new InternalServerErrorException('스터디 그룹 참여 중 오류가 발생했습니다.');
         }
-        await this.studyGroupService.joinGroup(id, session.user.id);
-        return { success: true, message: '스터디 그룹에 참여했습니다.' };
     }
 
 
@@ -326,13 +337,17 @@ export class StudyGroupController {
     @Delete(':id/leave')
     async leave(
         @Param('id', ParseIntPipe) id: number,
-        @Session() session: CustomSession
+        @Req() req: Request
     ): Promise<BaseResponse> {
-        if (!session.user) {
-            throw new UnauthorizedException('로그인이 필요합니다.');
+        const user = req.user as User;
+        try {
+            await this.studyGroupService.leaveGroup(id, user.id);
+            return { success: true, message: '스터디 그룹을 탈퇴했습니다.' };
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+            this.logger.error(`스터디 그룹 탈퇴 실패: ${errorMessage}`);
+            throw new InternalServerErrorException('스터디 그룹 탈퇴 중 오류가 발생했습니다.');
         }
-        await this.studyGroupService.leaveGroup(id, session.user.id);
-        return { success: true, message: '스터디 그룹을 탈퇴했습니다.' };
     }
 
 
@@ -397,15 +412,10 @@ export class StudyGroupController {
         description: '로그인 세션 쿠키',
         required: true
     })
-    @UseGuards(AuthGuard)
     @Get('my-studies')
     async getMyStudies(
         @Req() req: Request
-    ): Promise<DataResponse<{ created: StudyGroup[], joined: StudyGroup[] }>> {
-        if (!req.isAuthenticated()) {
-            throw new UnauthorizedException('로그인이 필요합니다.');
-        }
-
+    ): Promise<DataResponse<{ created: StudyGroup[]; joined: StudyGroup[] }>> {
         this.logger.debug(`getMyStudies - req.user type: ${typeof req.user}, value: ${JSON.stringify(req.user)}`);
         this.logger.debug(`getMyStudies - session 정보: ${JSON.stringify(req.session)}`);
 

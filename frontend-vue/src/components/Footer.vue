@@ -1,7 +1,7 @@
 <template>
   <footer class="footer">
     <div class="footer-content">
-      <p>&copy; 2024 학공. All rights reserved.</p>
+      <p>&copy; 2025 학공. All rights reserved.</p>
     </div>
   </footer>
 </template>
@@ -26,4 +26,4 @@ export default defineComponent({
   max-width: 1200px;
   margin: 0 auto;
 }
-</style> 
+</style>

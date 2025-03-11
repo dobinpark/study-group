@@ -36,7 +36,7 @@
           </div>
 
           <div class="button-group">
-            <button @click="goBack" class="list-button">목록</button>
+            <button @click="goBack" class="btn btn-secondary">목록</button>
           </div>
         </main>
       </div>
@@ -171,6 +171,12 @@ onMounted(() => {
 .author-actions button {
   margin-left: 0.5rem;
   font-size: 0.875rem;
+  color: white !important;
+}
+
+.author-actions button {
+  margin-left: 0.5rem;
+  font-size: 0.875rem;
   color: #4a90e2;
 }
 
@@ -184,6 +190,7 @@ onMounted(() => {
 .button-group {
   margin-top: 2rem;
   text-align: center;
+  justify-content: center;
 }
 
 .list-button {
@@ -191,7 +198,7 @@ onMounted(() => {
   border: 1px solid #ddd;
   border-radius: 4px;
   background-color: white;
-  color: #4a90e2;
+  color: white !important;
   cursor: pointer;
   transition: background-color 0.2s;
 }

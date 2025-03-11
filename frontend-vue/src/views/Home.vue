@@ -2,7 +2,7 @@
 <template>
   <div class="page-container">
     <div class="page-inner">
-      <div class="content-card">
+      <div class="content-card hero-section">
         <h1 class="hero-title">함공과 함께라면<br>공부도 즐거움이 됩니다.</h1>
         <p class="hero-subtitle">함께 공부하는 공간, 함공</p>
         <button class="hero-button" @click="goToStudyGroups">
@@ -10,12 +10,48 @@
           <span class="btn-arrow">→</span>
         </button>
       </div>
+
+      <div class="board-section">
+        <div class="board-column notice-board">
+          <h2 class="board-title">공지사항</h2>
+          <ul class="board-list">
+            <li v-for="post in noticePosts.items" :key="post.id" class="board-item">
+              <a href="#" class="board-link">
+                <span class="item-title">{{ post.title }}</span>
+              </a>
+            </li>
+            <li v-if="noticePosts.length === 0" class="board-item empty-item">
+              공지사항이 없습니다.
+            </li>
+          </ul>
+          <button class="board-more-button" @click="goToNoticeBoard">
+            더보기
+          </button>
+        </div>
+
+        <div class="board-column free-board">
+          <h2 class="board-title">자유게시판</h2>
+          <ul class="board-list">
+            <li v-for="post in freePosts.items" :key="post.id" class="board-item">
+              <a href="#" class="board-link">
+                <span class="item-title">{{ post.title }}</span>
+              </a>
+            </li>
+            <li v-if="freePosts.length === 0" class="board-item empty-item">
+              게시글이 없습니다.
+            </li>
+          </ul>
+          <button class="board-more-button" @click="goToFreeBoard">
+            더보기
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, computed } from 'vue';
+import { onMounted, computed, ref } from 'vue';
 import { useAuthStore } from '../store/auth';
 import { useUserStore } from '../store/user';
 import { useRouter } from 'vue-router';
@@ -33,6 +69,17 @@ const isLoading = computed(() => authStore.isLoading);
 // 사용자 정보는 userStore에서
 const user = computed(() => userStore.user);
 
+// 게시글 데이터 타입 정의
+interface Post {
+  id: number;
+  title: string;
+  createdAt: string;
+}
+
+// 게시판 게시글 데이터 (타입 명시)
+const noticePosts = ref<Post[]>([]);
+const freePosts = ref<Post[]>([]);
+
 const goToStudyGroups = () => {
   if (isAuthenticated.value) {
     router.push('/study-groups/create');
@@ -41,11 +88,56 @@ const goToStudyGroups = () => {
   }
 };
 
+// 공지사항 게시판 더보기 버튼 클릭 핸들러
+const goToNoticeBoard = () => {
+  router.push({ path: '/supports', query: { category: 'NOTICE' } });
+};
+
+// 자유게시판 더보기 버튼 클릭 핸들러
+const goToFreeBoard = () => {
+  router.push({ path: '/posts', query: { category: 'FREE' } });
+};
+
+// 공지사항 게시글 목록 가져오기
+const fetchNoticePosts = async () => {
+  try {
+    const response = await axios.get('/supports', {
+      params: { category: 'NOTICE', page: 1, size: 5 }, // 최신 5개만 가져오기
+    });
+    console.log('공지사항 API 응답:', response);
+    if (response.status === 200) {
+      noticePosts.value = response.data.data;
+      console.log('공지사항 게시글 데이터:', noticePosts.value); // 데이터 로그
+    }
+  } catch (error: any) {
+    console.error('공지사항 게시글을 불러오는데 실패했습니다.', error);
+  }
+};
+
+// 자유게시판 게시글 목록 가져오기
+const fetchFreePosts = async () => {
+  try {
+    const response = await axios.get('/posts', {
+      params: { category: 'FREE', page: 1, size: 5 }, // 최신 5개만 가져오기
+    });
+    console.log('자유게시판 API 응답:', response);
+    if (response.status === 200) {
+      freePosts.value = response.data.data;
+      console.log('자유게시판 게시글 데이터:', freePosts.value); // 데이터 로그
+    }
+  } catch (error: any) {
+    console.error('자유게시판 게시글을 불러오는데 실패했습니다.', error);
+  }
+};
+
 onMounted(async () => {
   // 세션 체크는 authStore 사용
   if (!authStore.sessionChecked) {
     await authStore.checkSession();
   }
+  // 게시글 목록 가져오기
+  fetchNoticePosts();
+  fetchFreePosts();
 });
 </script>
 
@@ -142,6 +234,125 @@ onMounted(async () => {
     width: 100%;
     padding: 0.8rem 1.5rem;
     font-size: 1rem;
+  }
+}
+
+.board-section {
+  display: flex;
+  gap: 2rem;
+  max-width: 1200px;
+  margin: 2rem auto;
+}
+
+.board-column {
+  flex: 1;
+  background-color: var(--white);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--box-shadow-sm);
+  padding: 1.5rem;
+}
+
+.board-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  color: var(--text-color);
+  text-align: center;
+}
+
+.board-list {
+  list-style: none;
+  padding: 0;
+  margin-bottom: 1rem;
+}
+
+.board-item {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.board-item:last-child {
+  border-bottom: none;
+}
+
+.board-link {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--text-color);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.board-link:hover {
+  color: var(--primary-color);
+}
+
+.item-title {
+  flex: 1;
+  margin-right: 1rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.item-date {
+  font-size: 0.875rem;
+  color: var(--gray-color);
+  white-space: nowrap;
+}
+
+.board-item.empty-item {
+  text-align: center;
+  color: var(--gray-color);
+  padding: 1rem 0;
+}
+
+.board-more-button {
+  display: block;
+  width: 100%;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: var(--border-radius-sm);
+  background-color: var(--primary-color);
+  color: var(--white);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.board-more-button:hover {
+  background-color: var(--primary-color-dark);
+}
+
+@media (max-width: 768px) {
+  .board-section {
+    flex-direction: column;
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .board-column {
+    padding: 1rem;
+  }
+
+  .board-title {
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+  }
+
+  .board-item {
+    padding: 0.5rem 0;
+  }
+
+  .item-title,
+  .item-date {
+    font-size: 0.875rem;
+  }
+
+  .board-more-button {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.9rem;
   }
 }
 </style>

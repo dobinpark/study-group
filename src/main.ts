@@ -12,17 +12,16 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 declare const module: any; // HMR 타입 선언 추가
 
 async function bootstrap() {
-    // const app = await NestFactory.create(AppModule, { cors: true }); // 기존의 초기 cors 설정 제거
     const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
     const configService = app.get(ConfigService);
+
     const dataSource = app.get(DataSource);
+
     const logger = new Logger('Main');
 
     // 전역 파이프 설정
-    // app.useGlobalPipes(new ValidationPipe()); // 전역 유효성 검사 파이프 주석 처리 또는 제거
-
-    // 전역 인터셉터 설정
-    app.useGlobalInterceptors(new LoggingInterceptor());
+    app.useGlobalPipes(new ValidationPipe());
 
     // API 경로 접두사
     app.setGlobalPrefix('api');
@@ -48,17 +47,16 @@ async function bootstrap() {
     // 서버 시작
     const port = configService.get<number>('PORT', 3000);
     await app.listen(port);
+    console.log(`애플리케이션이 포트 ${port}에서 실행 중입니다.`);
 
     // HMR 활성화 (개발 모드인 경우)
     if (module.hot) {
         module.hot.accept();
         module.hot.dispose(() => app.close());
     }
-    logger.log(`애플리케이션이 포트 ${port}에서 실행 중입니다.`);
 }
 
 function setupSession(app: INestApplication, configService: ConfigService) {
-    console.log('SESSION_SECRET 값 (main.ts):', configService.get<string>('SESSION_SECRET'));
     app.use(
         session({
             secret: configService.get<string>('SESSION_SECRET') || 'secret',
@@ -70,7 +68,6 @@ function setupSession(app: INestApplication, configService: ConfigService) {
                 secure: process.env.NODE_ENV === 'production',
                 sameSite: 'lax',
             },
-            store: undefined,
         }),
     );
 
@@ -85,7 +82,6 @@ function setupCors(app: INestApplication) {
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
     };
-    console.log('CORS 설정 (main.ts):', corsOptions);
     app.enableCors(corsOptions);
 }
 
@@ -98,6 +94,7 @@ function setupSwagger(app: INestApplication) {
         .addTag('사용자', '사용자 관련 API')
         .addTag('스터디', '스터디 그룹 관련 API')
         .addTag('게시판', '게시판 관련 API')
+        .addTag('고객센터', '고객센터 관련 API')
         .addBearerAuth()
         .build();
 

@@ -102,4 +102,10 @@ onMounted(() => {
   max-width: 600px;
   margin: 0 auto;
 }
+
+.button-group {
+  text-align: center;
+  display: flex;
+  justify-content: center;
+}
 </style>

@@ -17,11 +17,11 @@
               <textarea id="content" v-model="form.content" rows="10" required class="form-control"></textarea>
             </div>
             <div class="button-group">
-              <button type="submit" class="submit-button" :disabled="isSubmitting">
-                <span v-if="!isSubmitting">수정 완료</span>
+              <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
+                <span v-if="!isSubmitting">수정</span>
                 <span v-else>수정 중...</span>
               </button>
-              <button type="button" @click="goBack" class="cancel-button">취소</button>
+              <button type="button" @click="goBack" class="btn btn-secondary">취소</button>
             </div>
           </form>
         </main>
@@ -138,6 +138,7 @@ onMounted(async () => {
 .button-group {
   margin-top: 2rem;
   text-align: center;
+  justify-content: center;
 }
 
 .submit-button,

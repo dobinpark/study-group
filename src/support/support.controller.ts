@@ -95,7 +95,7 @@ export class SupportController { // 클래스 이름 수정
         }
     })
     async findByCategory(
-        @Query('category') category: SupportCategory, // PostCategory -> SupportCategory 로 변경
+        @Query('category') category: SupportCategory,
         @Query('page') page?: string,
         @Query('limit') limit?: string,
         @Query('search') search?: string

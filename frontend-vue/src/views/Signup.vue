@@ -126,7 +126,7 @@ const handleSubmit = async () => {
   display: flex !important;
   gap: var(--spacing-md) !important;
   margin-top: var(--spacing-lg) !important;
-  justify-content: flex-end !important;
+  justify-content: center !important;
 }
 
 .btn {

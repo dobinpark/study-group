@@ -1,4 +1,3 @@
-console.log("StudyGroupService 파일 테스트 로그 - 파일 로드 확인");
 import { Injectable, NotFoundException, ForbiddenException, BadRequestException, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like, FindOptionsWhere } from 'typeorm';
@@ -20,6 +19,7 @@ export class StudyGroupService {
 
     // 스터디 그룹 생성
     async create(createStudyGroupDto: CreateStudyGroupDto, userId: number): Promise<StudyGroup> {
+        console.log(`createStudyGroup - service - userId: ${userId}, type: ${typeof userId}`);
         const studyGroup = this.studyGroupRepository.create({
             ...createStudyGroupDto,
             creatorId: userId,

@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ScheduleModule } from '@nestjs/schedule';
@@ -6,10 +6,11 @@ import { UserModule } from './user/user.module';
 import { StudyModule } from './study/study.module';
 import { PostsModule } from './posts/posts.module';
 import { validate } from './config/env.validation';
-import { PassportModule } from '@nestjs/passport';
-import { SessionSerializer } from './types/session.serializer';
 import { AuthModule } from './auth/auth.module';
 import { CacheModule } from '@nestjs/cache-manager';
+import { SupportModule } from './support/support.module';
+import { DataSource } from 'typeorm';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
     imports: [
@@ -34,18 +35,22 @@ import { CacheModule } from '@nestjs/cache-manager';
         }),
         ScheduleModule.forRoot(),
         UserModule,
-        StudyModule,
-        AuthModule,
-        CacheModule.register({
+        forwardRef(() => StudyModule),
+        forwardRef(() => AuthModule),
+        CacheModule.register<any>({
             isGlobal: true,
             ttl: 300,
         }),
         PostsModule,
-        PassportModule.register({}),
+        SupportModule,
+        HttpModule,
     ],
     controllers: [],
     providers: [
-        SessionSerializer
     ],
 })
-export class AppModule { }
+export class AppModule {
+    constructor() {
+        console.log('AppModule이 로딩되었습니다.');
+    }
+}

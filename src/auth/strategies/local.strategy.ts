@@ -30,7 +30,7 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
         const user = await this.authService.validateUser(username, password);
 
         if (!user) {
-            this.logger.warn(`[LocalStrategy] validate 메서드 실패: 사용자 인증 실패 - username: ${username}`);
+            this.logger.error(`[LocalStrategy] validate 메서드 - 사용자 인증 실패: username=${username}`);
             throw new UnauthorizedException('Invalid credentials');
         }
 
