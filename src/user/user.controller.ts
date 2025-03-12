@@ -108,30 +108,30 @@ export class UserController {
     @ApiBadRequestResponse({ description: '잘못된 요청' })
     @Put('/profile')
     async updateProfile(
-        @Session() session: CustomSession,
+        @Req() req: Request,
         @Body() updateUserDto: UpdateUserDto,
     ): Promise<DataResponse<UserProfileResponseDto>> {
-        this.logger.debug(`updateProfile 호출: username = ${session.user?.username}`);
-        if (!session.user) {
+        this.logger.debug(`updateProfile 호출: username = ${(req.user as User)?.username}`);
+        if (!req.user) {
             this.logger.warn(`updateProfile: 미인증 사용자 접근`);
             throw new UnauthorizedException('로그인이 필요합니다.');
         }
 
-        if (session.user.id !== session.user.id) {
-            this.logger.warn(`updateProfile: 권한 없는 사용자 접근 - username = ${session.user.username}, userId = ${session.user.id}`);
+        if ((req.user as User).id !== (req.user as User).id) {
+            this.logger.warn(`updateProfile: 권한 없는 사용자 접근 - username = ${(req.user as User).username}, userId = ${(req.user as User).id}`);
             throw new UnauthorizedException('본인 프로필만 수정할 수 있습니다.');
         }
 
         try {
-            const updatedProfile = await this.userService.updateUserProfile(session.user.username, updateUserDto);
-            this.logger.log(`updateProfile 완료: username = ${session.user.username}`);
+            const updatedProfile = await this.userService.updateUserProfile((req.user as User).username, updateUserDto);
+            this.logger.log(`updateProfile 완료: username = ${(req.user as User).username}`);
             return {
                 success: true,
                 data: updatedProfile,
                 message: '프로필이 성공적으로 수정되었습니다.'
             };
         } catch (error) {
-            this.logger.error(`updateProfile: 프로필 수정 실패 - username = ${session.user.username}`, error);
+            this.logger.error(`updateProfile: 프로필 수정 실패 - username = ${(req.user as User).username}`, error);
             throw error;
         }
     }

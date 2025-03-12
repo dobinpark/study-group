@@ -1,12 +1,10 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { INestApplication, ValidationPipe, Logger } from '@nestjs/common';
+import { INestApplication, ValidationPipe, Logger, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import { LoggingInterceptor } from './interceptors/logging.interceptor';
 import * as session from 'express-session';
 import * as passport from 'passport';
-import { DataSource } from 'typeorm';
 import { NestExpressApplication } from '@nestjs/platform-express';
 
 declare const module: any; // HMR 타입 선언 추가
@@ -16,12 +14,24 @@ async function bootstrap() {
 
     const configService = app.get(ConfigService);
 
-    const dataSource = app.get(DataSource);
-
     const logger = new Logger('Main');
 
     // 전역 파이프 설정
-    app.useGlobalPipes(new ValidationPipe());
+    app.useGlobalPipes(new ValidationPipe({
+        transform: true,
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        stopAtFirstError: true,
+        exceptionFactory: (errors) => {
+            console.error('Validation failed:');
+            errors.forEach(error => {
+                console.error(`  Property: ${error.property}`);
+                console.error(`  Value: ${error.value}`);
+                console.error(`  Constraints: ${JSON.stringify(error.constraints)}`);
+            });
+            return new BadRequestException(errors);
+        },
+    }));
 
     // API 경로 접두사
     app.setGlobalPrefix('api');

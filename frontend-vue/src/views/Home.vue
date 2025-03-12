@@ -15,7 +15,7 @@
         <div class="board-column notice-board">
           <h2 class="board-title">공지사항</h2>
           <ul class="board-list">
-            <li v-for="post in noticePosts.items" :key="post.id" class="board-item">
+            <li v-for="post in noticePosts" :key="post.id" class="board-item">
               <a href="#" class="board-link">
                 <span class="item-title">{{ post.title }}</span>
               </a>
@@ -32,7 +32,7 @@
         <div class="board-column free-board">
           <h2 class="board-title">자유게시판</h2>
           <ul class="board-list">
-            <li v-for="post in freePosts.items" :key="post.id" class="board-item">
+            <li v-for="post in freePosts" :key="post.id" class="board-item">
               <a href="#" class="board-link">
                 <span class="item-title">{{ post.title }}</span>
               </a>
@@ -106,7 +106,7 @@ const fetchNoticePosts = async () => {
     });
     console.log('공지사항 API 응답:', response);
     if (response.status === 200) {
-      noticePosts.value = response.data.data;
+      noticePosts.value = response.data.data.items;
       console.log('공지사항 게시글 데이터:', noticePosts.value); // 데이터 로그
     }
   } catch (error: any) {
@@ -122,7 +122,7 @@ const fetchFreePosts = async () => {
     });
     console.log('자유게시판 API 응답:', response);
     if (response.status === 200) {
-      freePosts.value = response.data.data;
+      freePosts.value = response.data.data.items;
       console.log('자유게시판 게시글 데이터:', freePosts.value); // 데이터 로그
     }
   } catch (error: any) {
@@ -268,11 +268,12 @@ onMounted(async () => {
 
 .board-item {
   padding: 0.75rem 0;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 2px solid #e0e0e0 !important;
+  margin-bottom: 0.5rem;
 }
 
 .board-item:last-child {
-  border-bottom: none;
+  border-bottom: none !important;
 }
 
 .board-link {

@@ -109,18 +109,29 @@ interface StudyGroupResponse {
 const fetchMyStudies = async () => {
   try {
     loading.value = true;
-    console.log('MyStudies.vue: fetchMyStudies() - API 요청 시작'); // ✅ 요청 시작 로그
+
+    // ✅ 요청 전 로깅 추가
+    console.log('MyStudies.vue: fetchMyStudies() - API 요청 시작');
     const response = await axios.get<StudyGroupResponse>('study-groups/my-studies');
-    console.log('MyStudies.vue: fetchMyStudies() - API 응답 성공', response); // ✅ 응답 성공 로그
+
+    // ✅ 응답 성공 시 로깅 추가
+    console.log('MyStudies.vue: fetchMyStudies() - API 응답 성공');
+    console.log('MyStudies.vue: fetchMyStudies() - 응답 상태:', response.status);
+    console.log('MyStudies.vue: fetchMyStudies() - 응답 데이터:', response.data);
 
     if (response.data.success) {
       createdStudies.value = response.data.data.created || [];
       joinedStudies.value = response.data.data.joined || [];
     }
   } catch (error) {
-    console.error('MyStudies.vue: fetchMyStudies() - API 요청 에러', error); // ✅ 에러 로그
+    // ✅ 오류 시 상세 로깅 추가
+    console.error('MyStudies.vue: fetchMyStudies() - API 요청 에러', error);
+    console.error('MyStudies.vue: fetchMyStudies() - 오류 객체 전체:', error); // 전체 오류 객체 로깅
     if (isAxiosError(error)) {
-      if (error.response?.status === 401) {
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        alert('접근 권한이 없습니다.');
+        await router.push('/login');
+      } else if (error.response?.status === 401) {
         alert('로그인이 필요한 서비스입니다.');
         await router.push('/login');
       } else if (error.response?.status === 403) {
@@ -134,7 +145,6 @@ const fetchMyStudies = async () => {
     }
   } finally {
     loading.value = false;
-    console.log('MyStudies.vue: fetchMyStudies() - API 요청 완료 (finally)'); // ✅ finally 로그
   }
 };
 

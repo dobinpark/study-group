@@ -27,6 +27,9 @@ const apiClient = axios.create({
   }
 });
 
+// ✅ baseURL 설정 값 로깅 (생성 시점)
+console.log('[axios.ts] apiClient baseURL 설정:', apiClient.defaults.baseURL);
+
 // 개발 환경에서만 로그 표시하는 헬퍼 함수
 const devLog = (message: string, data?: any): void => {
   if (process.env.NODE_ENV === 'development') {
@@ -48,16 +51,15 @@ apiClient.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
     // 개발 환경에서 요청 로깅
     if (process.env.NODE_ENV === 'development') {
-      console.log(`[API 요청 인터셉터] ${config.method?.toUpperCase()} ${config.url}`); // ✅ 요청 인터셉터 로그
-      console.log('[API 요청 헤더]', config.headers); // ✅ 요청 헤더 로그
-      console.log('[API 요청 데이터]', config.data); // ✅ 요청 데이터 로그 (body)
+      console.log(`[API 요청 인터셉터] ${config.method?.toUpperCase()} ${config.url}`);
+      console.log('[API 요청 헤더]', config.headers);
+      console.log('[API 요청 데이터]', config.data);
+      console.log('[API 요청 baseURL - 인터셉터]', apiClient.defaults.baseURL); // ✅ baseURL 로깅 유지 (인터셉터)
     }
-    // 더 이상 요청 인터셉터에서 useAuthStore를 사용하지 않습니다.
-    // 필요한 경우, 컴포넌트 또는 서비스에서 직접 헤더에 토큰을 추가하세요.
     return config;
   },
   (error: AxiosError) => {
-    console.error('[API 요청 인터셉터 오류]', error); // ✅ 요청 인터셉터 오류 로그
+    console.error('[API 요청 인터셉터 오류]', error);
     return Promise.reject(error);
   }
 );

@@ -5,7 +5,7 @@ import { AuthService } from '../auth.service';
 import { Request } from 'express';
 import { Session } from 'express-session';
 
-// ✅ passport 속성을 포함하는 Session 인터페이스 정의
+// ✅ SessionWithPassport 인터페이스는 session-serializer.ts 파일로 이동 (또는 auth.module.ts 등 공통으로 사용될 수 있는 위치)
 interface SessionWithPassport extends Session {
     passport?: {
         user: number;
@@ -30,7 +30,7 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
         const user = await this.authService.validateUser(username, password);
 
         if (!user) {
-            this.logger.error(`[LocalStrategy] validate 메서드 - 사용자 인증 실패: username=${username}`);
+            this.logger.warn(`[LocalStrategy] validate 메서드 실패: 사용자 인증 실패 - username: ${username}`);
             throw new UnauthorizedException('Invalid credentials');
         }
 
@@ -40,18 +40,7 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
         // ✅ req.session 을 SessionWithPassport 타입으로 단언하여 passport 속성 접근
         (req.session as SessionWithPassport).passport = { user: user.id };
         this.logger.debug(`[LocalStrategy] validate 메서드 - session.passport 설정 완료: ${JSON.stringify((req.session as SessionWithPassport).passport)}`);
-        this.logger.debug(`[LocalStrategy] validate 메서드 - 세션 정보 (passport 설정 직후): ${JSON.stringify(req.session)}`);
-
-        // ✅ req.session.save() 호출하여 세션 명시적으로 저장
-        req.session.save((err) => {
-            if (err) {
-                this.logger.error(`[LocalStrategy] session.save() 실패: ${err.message}`, err.stack);
-            } else {
-                this.logger.debug(`[LocalStrategy] session.save() 성공`);
-                this.logger.debug(`[LocalStrategy] session 정보 (save() 직후): ${JSON.stringify(req.session)}`); // ✅ session 정보 로깅 (save() 직후)
-            }
-        });
 
         return user;
     }
-} 
+}

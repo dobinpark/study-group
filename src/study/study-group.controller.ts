@@ -7,20 +7,18 @@ import {
     Body,
     Param,
     Query,
-    Session,
-    UnauthorizedException,
     HttpCode,
     HttpStatus,
     ParseIntPipe,
     InternalServerErrorException,
-    UseGuards,
     Req,
     Logger,
+    UnauthorizedException,
+    Patch,
 } from '@nestjs/common';
 import {
     ApiTags,
     ApiOperation,
-    ApiResponse,
     ApiQuery,
     ApiCreatedResponse,
     ApiBadRequestResponse,
@@ -39,20 +37,17 @@ import { CreateStudyGroupDto } from './dto/create-study-group.dto';
 import { UpdateStudyGroupDto } from './dto/update-study-group.dto';
 import { StudyGroup } from './entities/study-group.entity';
 import { CategoryDto } from './dto/category.dto';
-import { CustomSession } from '../types/session.types';
 import { DataResponse, BaseResponse } from '../types/response.types';
 import { Request } from 'express';
 import { User } from '../user/entities/user.entity';
 import { AuthGuard } from '../auth/guards/auth.guard';
+import { GetMyStudiesResponseDto } from './dto/get-my-studies-response.dto';
 
 @ApiTags('스터디')
 @ApiExtraModels(StudyGroup, CategoryDto, DataResponse<any>, BaseResponse)
 @Controller('study-groups')
-@UseGuards(AuthGuard)
 export class StudyGroupController {
-    private readonly logger = new Logger(StudyGroupController.name);
-
-    constructor(private readonly studyGroupService: StudyGroupService) { }
+    constructor(private readonly studyGroupService: StudyGroupService, private readonly logger: Logger) { }
 
 
     // 스터디 그룹 생성
@@ -225,16 +220,21 @@ export class StudyGroupController {
         required: true
     })
     @Put(':id')
-    @UseGuards(AuthGuard)
     async update(
         @Param('id', ParseIntPipe) id: number,
-        @Body() updateStudyGroupDto: UpdateStudyGroupDto,
+        @Body() updateData: UpdateStudyGroupDto,
         @Req() req: Request
     ): Promise<DataResponse<StudyGroup>> {
+        this.logger.debug(`update 메서드 호출 - ID: ${id}`);
+        this.logger.debug('Request User:', req.user);
         const user = req.user as User;
+        if (!user || !user.id) {
+            throw new Error('User information is missing in the request.');
+        }
+        this.logger.debug(`updateStudyGroup - controller - user: ${JSON.stringify(user)}`);
         this.logger.debug(`updateStudyGroup - controller - user.id: ${user.id}, type: ${typeof user.id}`);
         try {
-            const updatedGroup = await this.studyGroupService.update(id, updateStudyGroupDto, user.id);
+            const updatedGroup = await this.studyGroupService.update(id, updateData, user.id);
             return { success: true, data: updatedGroup };
         } catch (error: unknown) {
             const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
@@ -380,26 +380,13 @@ export class StudyGroupController {
     @ApiOperation({ summary: '내 스터디 목록 조회' })
     @ApiOkResponse({
         description: '내 스터디 목록 조회 성공',
+        type: DataResponse<GetMyStudiesResponseDto>,
         schema: {
             allOf: [
                 { $ref: getSchemaPath(DataResponse) },
                 {
                     properties: {
-                        data: {
-                            type: 'object',
-                            properties: {
-                                created: {
-                                    type: 'array',
-                                    items: { $ref: getSchemaPath(StudyGroup) },
-                                    description: '내가 생성한 스터디 그룹'
-                                },
-                                joined: {
-                                    type: 'array',
-                                    items: { $ref: getSchemaPath(StudyGroup) },
-                                    description: '내가 참여한 스터디 그룹'
-                                }
-                            }
-                        }
+                        data: { $ref: getSchemaPath(GetMyStudiesResponseDto) }
                     }
                 }
             ]
@@ -413,26 +400,11 @@ export class StudyGroupController {
         required: true
     })
     @Get('my-studies')
-    async getMyStudies(
-        @Req() req: Request
-    ): Promise<DataResponse<{ created: StudyGroup[]; joined: StudyGroup[] }>> {
-        this.logger.debug(`getMyStudies - req.user type: ${typeof req.user}, value: ${JSON.stringify(req.user)}`);
-        this.logger.debug(`getMyStudies - session 정보: ${JSON.stringify(req.session)}`);
-
-        console.log("=== StudyGroupController.getMyStudies 메서드 진입 ===");
-        console.log(`getMyStudies - controller - req.user type: ${typeof req.user}, value: ${JSON.stringify(req.user)}`);
-        const userIdFromReq = (req.user as User)?.id;
-        console.log(`getMyStudies - controller - 추출된 userId: ${userIdFromReq}, type: ${typeof userIdFromReq}`);
-
-        try {
-            const studies = await this.studyGroupService.getMyStudies((req.user as User).id);
-            return {
-                success: true,
-                message: '스터디 목록을 성공적으로 조회했습니다.',
-                data: studies
-            };
-        } catch (error) {
-            throw new InternalServerErrorException('스터디 목록을 조회하는 중 오류가 발생했습니다.');
-        }
+    async getMyStudies(@Req() req: Request) {
+        console.log('✅✅✅ getMyStudies 메서드 진입 ✅✅✅');
+        this.logger.debug('getMyStudies 메서드 호출');
+        this.logger.debug(`User 정보: ${JSON.stringify(req.user)}`);
+        const user = req.user as User;
+        return this.studyGroupService.getMyStudies(user.id);
     }
 }
