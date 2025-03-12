@@ -31,8 +31,8 @@ deploy() {
 
     # 백엔드 Production 실행
     echo "백엔드 Production 서버 실행..." >> $LOG_FILE
-    NODE_ENV=production npm run start:prod >> $LOG_FILE 2>&1 &
-    if ! NODE_ENV=production npm run start:prod >> $LOG_FILE 2>&1 & then
+    npm run start:prod >> $LOG_FILE 2>&1 &
+    if ! npm run start:prod >> $LOG_FILE 2>&1 & then
         echo "백엔드 Production 서버 실행 실패" >> $LOG_FILE
         return 1
     fi
