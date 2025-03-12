@@ -49,10 +49,10 @@ async function bootstrap() {
     app.enableShutdownHooks();
 
     // 디버그 모드 설정
-    if (process.env.NODE_ENV !== 'production') {
-        logger.log('디버그 모드로 실행 중입니다.');
-        process.env.DEBUG = 'express:*,passport:*,connect:*';
-    }
+    // if (process.env.NODE_ENV !== 'production') { // Production 환경에서는 제거 또는 로깅 레벨 조정
+    //     logger.log('디버그 모드로 실행 중입니다.');
+    //     process.env.DEBUG = 'express:*,passport:*,connect:*';
+    // }
 
     // 서버 시작
     const port = configService.get<number>('PORT', 3000);
@@ -87,7 +87,9 @@ function setupSession(app: INestApplication, configService: ConfigService) {
 
 function setupCors(app: INestApplication) {
     const corsOptions = {
-        origin: 'http://localhost:8080',
+        origin: process.env.NODE_ENV !== 'production'
+            ? 'http://localhost:8080' // 개발 환경에서는 8080 포트 허용
+            : 'http://3.34.184.97',
         credentials: true,
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
