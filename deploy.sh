@@ -46,17 +46,13 @@ deploy() {
 if deploy; then
     echo "배포 성공" >> $LOG_FILE
     echo "백엔드 재시작 중..." >> $LOG_FILE
-    {{ # /home/ec2-user/.nvm/versions/node/v22.13.1/bin/pm2 restart all >> $LOG_FILE 2>&1 }} // 기존 pm2 절대 경로 (주석 처리)
-    {{ pm2 restart all >> $LOG_FILE 2>&1 }} // 상대 경로 (pm2) 사용
-    {{ # $(which pm2) restart all >> $LOG_FILE 2>&1 }} // which pm2 를 사용하여 절대 경로를 동적으로 찾아서 사용 (더 안전한 방법)
-    {{ sudo systemctl restart nginx >> $LOG_FILE 2>&1 }}
+    pm2 restart all >> $LOG_FILE 2>&1
+    sudo systemctl restart nginx >> $LOG_FILE 2>&1
 else
     echo "배포 실패" >> $LOG_FILE
     echo "백엔드 재시작 중..." >> $LOG_FILE
-    {{ # /home/ec2-user/.nvm/versions/node/v22.13.1/bin/pm2 restart all >> $LOG_FILE 2>&1 }} // 기존 pm2 절대 경로 (주석 처리)
-    {{ pm2 restart all >> $LOG_FILE 2>&1 }} // 상대 경로 (pm2) 사용
-    {{ # $(which pm2) restart all >> $LOG_FILE 2>&1 }} // which pm2 를 사용하여 절대 경로를 동적으로 찾아서 사용 (더 안전한 방법)
-    {{ sudo systemctl restart nginx >> $LOG_FILE 2>&1 }}
+    pm2 restart all >> $LOG_FILE 2>&1
+    sudo systemctl restart nginx >> $LOG_FILE 2>&1
 fi
 
 echo "작업 완료: $(date)" >> $LOG_FILE
