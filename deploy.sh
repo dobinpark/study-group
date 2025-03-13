@@ -6,6 +6,7 @@ echo "배포 시작: $(date)" > $LOG_FILE
 
 # 배포 함수
 deploy() {
+    echo "PATH 환경 변수: $PATH" >> $LOG_FILE
     # 백엔드 업데이트
     echo "백엔드 업데이트 시작..." >> $LOG_FILE
     cd /home/ec2-user/study-group
@@ -46,11 +47,13 @@ deploy() {
 if deploy; then
     echo "배포 성공" >> $LOG_FILE
     echo "백엔드 재시작 중..." >> $LOG_FILE
+    # /home/ec2-user/.nvm/versions/node/v22.13.1/bin/pm2 restart all >> $LOG_FILE 2>&1
     pm2 restart all >> $LOG_FILE 2>&1
     sudo systemctl restart nginx >> $LOG_FILE 2>&1
 else
     echo "배포 실패" >> $LOG_FILE
     echo "백엔드 재시작 중..." >> $LOG_FILE
+    # /home/ec2-user/.nvm/versions/node/v22.13.1/bin/pm2 restart all >> $LOG_FILE 2>&1
     pm2 restart all >> $LOG_FILE 2>&1
     sudo systemctl restart nginx >> $LOG_FILE 2>&1
 fi
