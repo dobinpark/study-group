@@ -6,6 +6,9 @@ echo "배포 시작: $(date)" > $LOG_FILE
 
 # 배포 함수
 deploy() {
+    # PATH 환경 변수 설정 (NVM Node.js 경로 포함)
+    export PATH="/home/ec2-user/.nvm/versions/node/v22.13.1/bin:$PATH"
+
     echo "PATH 환경 변수: $PATH" >> $LOG_FILE
     # 백엔드 업데이트
     echo "백엔드 업데이트 시작..." >> $LOG_FILE
