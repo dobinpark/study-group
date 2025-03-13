@@ -1,5 +1,4 @@
 #!/bin/bash
-echo "PATH 환경 변수: $PATH"  # PATH 환경 변수 출력
 
 # 로그 파일 설정
 LOG_FILE="/home/ec2-user/deploy.log"
@@ -16,7 +15,8 @@ deploy() {
     fi
 
     # 백엔드 빌드
-    if ! /home/ec2-user/.nvm/versions/node/v22.13.1/bin/npm install >> $LOG_FILE 2>&1 || ! /home/ec2-user/.nvm/versions/node/v22.13.1/bin/npm run build >> $LOG_FILE 2>&1; then
+    echo "백엔드 빌드 시작..." >> $LOG_FILE
+    if ! npm install >> $LOG_FILE 2>&1 || ! npm run build >> $LOG_FILE 2>&1; then
         echo "백엔드 빌드 실패" >> $LOG_FILE
         return 1
     fi
