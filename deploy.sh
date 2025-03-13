@@ -20,7 +20,7 @@ deploy() {
 
     # 백엔드 빌드
     echo "백엔드 빌드 시작..." >> $LOG_FILE
-    if ! /home/ec2-user/.nvm/versions/node/v22.13.1/bin/npm install >> $LOG_FILE 2>&1 || ! /home/ec2-user/.nvm/versions/node/v22.13.1/bin/npm run build >> $LOG_FILE 2>&1; then
+    if ! /home/ec2-user/.nvm/versions/node/v22.13.1/bin/npm install >> $LOG_FILE 2>&1 && ! /home/ec2-user/.nvm/versions/node/v22.13.1/bin/npm run build >> $LOG_FILE 2>&1; then
         echo "백엔드 빌드 실패" >> $LOG_FILE
         return 1
     fi
