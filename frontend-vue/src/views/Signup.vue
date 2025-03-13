@@ -24,8 +24,8 @@
                 <label for="password">비밀번호</label>
                 <input type="password" id="password" v-model="form.password" required />
                 <div class="validation-message" v-if="form.password.length < 8">비밀번호는 최소 8자 이상이어야 합니다.</div>
-                <div class="validation-message" v-if="!passwordRegex.test(form.password) && form.password.length >= 8">
-                  비밀번호는 영문, 숫자, 특수문자를 포함해야 합니다.
+                <div class="validation-message" v-if="!passwordRegex.test(form.password)">
+                  영문, 숫자, 특수문자를 포함해야 합니다.
                 </div>
               </div>
               <div class="form-group">
@@ -89,6 +89,11 @@ const handleSubmit = async () => {
 
   if (!phoneNumberRegex.value.test(form.phoneNumber)) {
     alert('올바른 전화번호 형식이 아닙니다. (예: 01012345678)');
+    return;
+  }
+
+  if (!passwordRegex.test(form.password)) {
+    alert('비밀번호는 최소 8자 이상, 영문, 숫자, 특수문자를 포함해야 합니다.');
     return;
   }
 
