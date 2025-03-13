@@ -1,0 +1,1 @@
+  if ! /home/ec2-user/.nvm/versions/node/v22.13.1/bin/npm install >> $LOG_FILE 2>&1 || ! /home/ec2-user/.nvm/versions/node/v22.13.1/bin/npm run build >> $LOG_FILE 2>&1; then 
