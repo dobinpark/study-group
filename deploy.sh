@@ -25,7 +25,7 @@ deploy() {
     fi
 
     # 백엔드 빌드
-    if ! /usr/bin/npm install >> $LOG_FILE 2>&1 || ! /usr/bin/npm run build >> $LOG_FILE 2>&1; then
+    if ! /home/ec2-user/.nvm/versions/node/v22.13.1/bin/npm install >> $LOG_FILE 2>&1 || ! /home/ec2-user/.nvm/versions/node/v22.13.1/bin/npm run build >> $LOG_FILE 2>&1; then
         echo "백엔드 빌드 실패" >> $LOG_FILE
         return 1
     fi
@@ -47,7 +47,7 @@ deploy() {
     fi
 
     # 프론트엔드 빌드
-    if ! npm install >> $LOG_FILE 2>&1 || ! npm run build >> $LOG_FILE 2>&1; then
+    if ! /home/ec2-user/.nvm/versions/node/v22.13.1/bin/npm install >> $LOG_FILE 2>&1 || ! /home/ec2-user/.nvm/versions/node/v22.13.1/bin/npm run build >> $LOG_FILE 2>&1; then
         echo "프론트엔드 빌드 실패" >> $LOG_FILE
         return 1
     fi
@@ -66,13 +66,13 @@ rollback() {
 if deploy; then
     echo "배포 성공" >> $LOG_FILE
     echo "백엔드 재시작 중..." >> $LOG_FILE
-    /usr/local/bin/pm2 restart all >> $LOG_FILE 2>&1
+    /home/ec2-user/.nvm/versions/node/v22.13.1/bin/pm2 restart all >> $LOG_FILE 2>&1
     sudo systemctl restart nginx >> $LOG_FILE 2>&1
 else
     echo "배포 실패, 롤백 실행" >> $LOG_FILE
     rollback
     echo "백엔드 재시작 중..." >> $LOG_FILE
-    /usr/local/bin/pm2 restart all >> $LOG_FILE 2>&1
+    /home/ec2-user/.nvm/versions/node/v22.13.1/bin/pm2 restart all >> $LOG_FILE 2>&1
     sudo systemctl restart nginx >> $LOG_FILE 2>&1
 fi
 
