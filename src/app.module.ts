@@ -66,6 +66,7 @@ import { HttpModule } from '@nestjs/axios';
 })
 export class AppModule {
     constructor() {
+        console.log('🔥🔥🔥 AppModule 생성자 실행됨! 🔥🔥🔥');
         console.log('AppModule이 로딩되었습니다.');
     }
 }
