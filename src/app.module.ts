@@ -33,6 +33,8 @@ import { HttpModule } from '@nestjs/axios';
                     synchronize: true,
                 };
 
+                console.log('TypeORM 설정 값:', dataSourceOptions);
+
                 const dataSource = new DataSource(dataSourceOptions as DataSourceOptions);
 
                 try {
