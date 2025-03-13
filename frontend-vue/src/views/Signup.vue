@@ -11,6 +11,7 @@
               <div class="form-group">
                 <label for="username">아이디</label>
                 <input type="text" id="username" v-model="form.username" required />
+                <div class="validation-message" v-if="!form.username">아이디를 입력해주세요.</div>
               </div>
               <div class="form-group">
                 <label for="nickname">닉네임</label>
@@ -22,6 +23,10 @@
               <div class="form-group">
                 <label for="password">비밀번호</label>
                 <input type="password" id="password" v-model="form.password" required />
+                <div class="validation-message" v-if="form.password.length < 8">비밀번호는 최소 8자 이상이어야 합니다.</div>
+                <div class="validation-message" v-if="!passwordRegex.test(form.password) && form.password.length >= 8">
+                  비밀번호는 영문, 숫자, 특수문자를 포함해야 합니다.
+                </div>
               </div>
               <div class="form-group">
                 <label for="confirmPassword">비밀번호 확인</label>
@@ -36,7 +41,10 @@
               </div>
               <div class="form-group">
                 <label for="phoneNumber">전화번호</label>
-                <input type="tel" id="phoneNumber" v-model="form.phoneNumber" required />
+                <input type="tel" id="phoneNumber" v-model="form.phoneNumber" required placeholder="01012345678" />
+                <div class="validation-message" v-if="form.phoneNumber && !phoneNumberRegex.test(form.phoneNumber)">
+                  올바른 전화번호 형식이 아닙니다. (예: 01012345678)
+                </div>
               </div>
             </div>
             <div class="button-group">
@@ -51,11 +59,12 @@
 </template>
 
 <script setup lang="ts">
-import { reactive } from 'vue';
+import { reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from '../utils/axios';
 import { useAuthStore } from '../store/auth';
 import { getErrorMessage } from '../utils/axios';
+import { PASSWORD_REGEX } from '../utils/validation';
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -69,9 +78,17 @@ const form = reactive({
   phoneNumber: ''
 });
 
+const passwordRegex = PASSWORD_REGEX;
+const phoneNumberRegex = ref(/^[0-9]{10,11}$/);
+
 const handleSubmit = async () => {
   if (form.password.trim() !== form.confirmPassword.trim()) {
     alert('비밀번호가 일치하지 않습니다.');
+    return;
+  }
+
+  if (!phoneNumberRegex.value.test(form.phoneNumber)) {
+    alert('올바른 전화번호 형식이 아닙니다. (예: 01012345678)');
     return;
   }
 
@@ -157,5 +174,11 @@ const handleSubmit = async () => {
   max-width: 450px;
   margin: 2rem auto;
   padding: 0 1rem;
+}
+
+.validation-message {
+  color: red;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
 }
 </style>
