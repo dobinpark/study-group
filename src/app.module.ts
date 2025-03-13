@@ -1,6 +1,6 @@
 import { Module, forwardRef } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { ScheduleModule } from '@nestjs/schedule';
 import { UserModule } from './user/user.module';
 import { StudyModule } from './study/study.module';
@@ -9,7 +9,7 @@ import { validate } from './config/env.validation';
 import { AuthModule } from './auth/auth.module';
 import { CacheModule } from '@nestjs/cache-manager';
 import { SupportModule } from './support/support.module';
-import { DataSource } from 'typeorm';
+import { DataSource, DataSourceOptions } from 'typeorm';
 import { HttpModule } from '@nestjs/axios';
 
 @Module({
@@ -21,16 +21,29 @@ import { HttpModule } from '@nestjs/axios';
         }),
         TypeOrmModule.forRootAsync({
             imports: [ConfigModule],
-            useFactory: (configService: ConfigService) => ({
-                type: 'mysql',
-                host: configService.get<string>('DB_HOST'),
-                port: configService.get<number>('DB_PORT'),
-                username: configService.get<string>('DB_USERNAME'),
-                password: configService.get<string>('DB_PASSWORD'),
-                database: configService.get<string>('DB_DATABASE'),
-                entities: [__dirname + '/**/*.entity{.ts,.js}'],
-                synchronize: true,
-            }),
+            useFactory: async (configService: ConfigService): Promise<TypeOrmModuleOptions> => {
+                const dataSourceOptions: DataSourceOptions = {
+                    type: 'mysql',
+                    host: configService.get<string>('DB_HOST'),
+                    port: configService.get<number>('DB_PORT'),
+                    username: configService.get<string>('DB_USERNAME'),
+                    password: configService.get<string>('DB_PASSWORD'),
+                    database: configService.get<string>('DB_DATABASE'),
+                    entities: [__dirname + '/**/*.entity{.ts,.js}'],
+                    synchronize: true,
+                };
+
+                const dataSource = new DataSource(dataSourceOptions as DataSourceOptions);
+
+                try {
+                    await dataSource.initialize();
+                    console.log('🎉🎉🎉 데이터베이스 연결 성공! 🎉🎉🎉'); // 연결 성공 로그
+                } catch (error) {
+                    console.error('🔥🔥🔥 데이터베이스 연결 실패! 🔥🔥🔥', error); // 연결 실패 로그
+                }
+
+                return dataSourceOptions as TypeOrmModuleOptions;
+            },
             inject: [ConfigService],
         }),
         ScheduleModule.forRoot(),
