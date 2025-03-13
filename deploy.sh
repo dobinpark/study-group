@@ -1,4 +1,5 @@
 #!/bin/bash
+echo "PATH 환경 변수: $PATH"  # PATH 환경 변수 출력
 
 # 로그 파일 설정
 LOG_FILE="/home/ec2-user/deploy.log"
@@ -24,7 +25,7 @@ deploy() {
     fi
 
     # 백엔드 빌드
-    if ! npm install >> $LOG_FILE 2>&1 || ! npm run build >> $LOG_FILE 2>&1; then
+    if ! /usr/bin/npm install >> $LOG_FILE 2>&1 || ! /usr/bin/npm run build >> $LOG_FILE 2>&1; then
         echo "백엔드 빌드 실패" >> $LOG_FILE
         return 1
     fi
@@ -65,13 +66,13 @@ rollback() {
 if deploy; then
     echo "배포 성공" >> $LOG_FILE
     echo "백엔드 재시작 중..." >> $LOG_FILE
-    pm2 restart all >> $LOG_FILE 2>&1
+    /usr/local/bin/pm2 restart all >> $LOG_FILE 2>&1
     sudo systemctl restart nginx >> $LOG_FILE 2>&1
 else
     echo "배포 실패, 롤백 실행" >> $LOG_FILE
     rollback
     echo "백엔드 재시작 중..." >> $LOG_FILE
-    pm2 restart all >> $LOG_FILE 2>&1
+    /usr/local/bin/pm2 restart all >> $LOG_FILE 2>&1
     sudo systemctl restart nginx >> $LOG_FILE 2>&1
 fi
 
