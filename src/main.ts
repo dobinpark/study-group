@@ -40,7 +40,7 @@ async function bootstrap() {
     setupSession(app, configService);
 
     // CORS 설정
-    setupCors(app);
+    setupCors(app, configService);
 
     // Swagger 설정
     setupSwagger(app);
@@ -85,11 +85,12 @@ function setupSession(app: INestApplication, configService: ConfigService) {
     app.use(passport.session());
 }
 
-function setupCors(app: INestApplication) {
+function setupCors(app: INestApplication, configService: ConfigService) {
+    const corsOrigin = configService.get<string>('CORS_ORIGIN'); // 환경 변수에서 CORS origin 가져오기
     const corsOptions = {
         origin: process.env.NODE_ENV !== 'production'
             ? 'http://localhost:8080' // 개발 환경에서는 8080 포트 허용
-            : 'http://3.34.184.97',
+            : corsOrigin, // Production 환경에서는 환경 변수 값 사용
         credentials: true,
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
