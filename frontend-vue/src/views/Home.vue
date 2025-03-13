@@ -20,8 +20,11 @@
                 <span class="item-title">{{ post.title }}</span>
               </a>
             </li>
-            <li v-if="noticePosts.length === 0" class="board-item empty-item">
+            <li v-if="noticePosts.length === 0 && !isPostsLoading" class="board-item empty-item">
               공지사항이 없습니다.
+            </li>
+            <li v-if="isPostsLoading" class="board-item empty-item">
+              공지사항 로딩 중...
             </li>
           </ul>
           <button class="board-more-button" @click="goToNoticeBoard">
@@ -37,8 +40,11 @@
                 <span class="item-title">{{ post.title }}</span>
               </a>
             </li>
-            <li v-if="freePosts.length === 0" class="board-item empty-item">
+            <li v-if="freePosts.length === 0 && !isPostsLoading" class="board-item empty-item">
               게시글이 없습니다.
+            </li>
+            <li v-if="isPostsLoading" class="board-item empty-item">
+              자유게시판 로딩 중...
             </li>
           </ul>
           <button class="board-more-button" @click="goToFreeBoard">
@@ -80,6 +86,9 @@ interface Post {
 const noticePosts = ref<Post[]>([]);
 const freePosts = ref<Post[]>([]);
 
+// 게시글 로딩 상태 추가
+const isPostsLoading = ref<boolean>(false);
+
 const goToStudyGroups = () => {
   if (isAuthenticated.value) {
     router.push('/study-groups/create');
@@ -100,37 +109,52 @@ const goToFreeBoard = () => {
 
 // 공지사항 게시글 목록 가져오기
 const fetchNoticePosts = async () => {
+  console.log('fetchNoticePosts 시작');
+  isPostsLoading.value = true; // 로딩 시작
   try {
     const response = await axios.get('/supports', {
-      params: { category: 'NOTICE', page: 1, size: 5 }, // 최신 5개만 가져오기
+      params: { category: 'NOTICE', page: 1, size: 5 },
     });
     console.log('공지사항 API 응답:', response);
     if (response.status === 200) {
       noticePosts.value = response.data.data.items;
-      console.log('공지사항 게시글 데이터:', noticePosts.value); // 데이터 로그
+      console.log('공지사항 게시글 데이터:', noticePosts.value);
     }
   } catch (error: any) {
     console.error('공지사항 게시글을 불러오는데 실패했습니다.', error);
+    console.error('에러 상세:', error);
+  } finally {
+    isPostsLoading.value = false; // 로딩 종료 (성공/실패 모두)
+    console.log('fetchNoticePosts 종료');
   }
 };
 
 // 자유게시판 게시글 목록 가져오기
 const fetchFreePosts = async () => {
+  console.log('fetchFreePosts 시작');
+  isPostsLoading.value = true; // 로딩 시작
   try {
     const response = await axios.get('/posts', {
-      params: { category: 'FREE', page: 1, size: 5 }, // 최신 5개만 가져오기
+      params: { category: 'FREE', page: 1, size: 5 },
     });
     console.log('자유게시판 API 응답:', response);
     if (response.status === 200) {
       freePosts.value = response.data.data.items;
-      console.log('자유게시판 게시글 데이터:', freePosts.value); // 데이터 로그
+      console.log('자유게시판 게시글 데이터:', freePosts.value);
     }
   } catch (error: any) {
     console.error('자유게시판 게시글을 불러오는데 실패했습니다.', error);
+    console.error('에러 상세:', error);
+  } finally {
+    isPostsLoading.value = false; // 로딩 종료 (성공/실패 모두)
+    console.log('fetchFreePosts 종료');
   }
 };
 
 onMounted(async () => {
+  console.log('Home.vue onMounted 시작');
+  console.log('isAuthenticated.value:', isAuthenticated.value); // 현재 인증 상태 로그
+  console.log('isLoading.value:', isLoading.value); // 로딩 상태 로그
   // 세션 체크는 authStore 사용
   if (!authStore.sessionChecked) {
     await authStore.checkSession();
@@ -138,6 +162,9 @@ onMounted(async () => {
   // 게시글 목록 가져오기
   fetchNoticePosts();
   fetchFreePosts();
+  console.log('noticePosts.value:', noticePosts.value); // 공지사항 게시글 데이터 로그
+  console.log('freePosts.value:', freePosts.value); // 자유게시판 게시글 데이터 로그
+  console.log('Home.vue onMounted 종료');
 });
 </script>
 
