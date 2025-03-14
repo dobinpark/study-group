@@ -31,6 +31,7 @@ import { HttpModule } from '@nestjs/axios';
                     database: configService.get<string>('DB_DATABASE'),
                     entities: [__dirname + '/**/*.entity{.ts,.js}'],
                     synchronize: true,
+                    connectTimeout: 30000,
                 };
 
                 console.log('TypeORM 설정 값:', dataSourceOptions);

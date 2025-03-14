@@ -10,7 +10,7 @@ module.exports = {
       NODE_ENV: 'production',
       PORT: 3000,
       CORS_ORIGIN: 'http://3.34.184.97',
-      DB_HOST: '127.0.0.1', // ec2 내부에 mysql 서버가 있으므로 127.0.0.1또는 localhost로 설정
+      DB_HOST: '127.0.0.1',
       DB_PORT: 3306,
       DB_USERNAME: 'root',
       DB_PASSWORD: 'Ddgh93081)',
