@@ -18,6 +18,10 @@ import { HttpModule } from '@nestjs/axios';
             validate,
             envFilePath: `.env.${process.env.NODE_ENV || 'development'}`,
             isGlobal: true,
+            load: [() => {
+                console.log('ConfigModule이 환경 변수 로딩 시작!');
+                return {};
+            }]
         }),
         TypeOrmModule.forRootAsync({
             imports: [ConfigModule],
@@ -62,8 +66,7 @@ import { HttpModule } from '@nestjs/axios';
         HttpModule,
     ],
     controllers: [],
-    providers: [
-    ],
+    providers: [],
 })
 export class AppModule {
     constructor() {
