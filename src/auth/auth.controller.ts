@@ -13,6 +13,7 @@ import {
     HttpStatus,
     InternalServerErrorException,
     Logger,
+    Delete,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiCookieAuth } from '@nestjs/swagger';
@@ -268,6 +269,68 @@ export class AuthController {
             data: { tempPassword },
             message: '임시 비밀번호가 발급되었습니다.'
         };
+    }
+
+
+    // 회원 삭제
+    @ApiOperation({
+        summary: '회원 삭제',
+        description: '현재 로그인된 사용자의 계정을 삭제합니다.'
+    })
+    @ApiResponse({
+        status: 200,
+        description: '회원 삭제 성공',
+        schema: {
+            example: {
+                success: true,
+                message: '회원 탈퇴가 완료되었습니다.'
+            }
+        }
+    })
+    @ApiResponse({
+        status: 401,
+        description: '인증되지 않은 사용자',
+        schema: {
+            example: {
+                success: false,
+                error: '로그인이 필요합니다.',
+                statusCode: 401
+            }
+        }
+    })
+    @HttpCode(HttpStatus.OK)
+    @UseGuards(AuthGuard('session'))
+    @Delete('withdraw')
+    async withdrawUser(@Req() req: Request): Promise<BaseResponse> {
+        try {
+            if (!req.user) {
+                throw new UnauthorizedException('로그인이 필요합니다.');
+            }
+            
+            await this.authService.deleteUser((req.user as User).id);
+            
+            // 로그아웃 처리
+            await new Promise<void>((resolve, reject) => {
+                req.logout((err) => {
+                    if (err) reject(err);
+                    resolve();
+                });
+            });
+
+            req.session.destroy((err) => {
+                if (err) {
+                    this.logger.error('세션 삭제 중 오류:', err);
+                }
+            });
+
+            return {
+                success: true,
+                message: '회원 탈퇴가 완료되었습니다.'
+            };
+        } catch (error) {
+            this.logger.error('회원 탈퇴 중 오류:', error);
+            throw new InternalServerErrorException('회원 탈퇴 처리 중 오류가 발생했습니다.');
+        }
     }
 
 

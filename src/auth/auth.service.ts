@@ -239,4 +239,27 @@ export class AuthService {
             }
         }
     }
+
+    
+    // 회원 삭제
+    async deleteUser(userId: number): Promise<void> {
+        this.logger.debug(`회원 삭제 시도: 사용자 ID ${userId}`);
+        
+        try {
+            const user = await this.findUserById(userId);
+            if (!user) {
+                this.logger.warn(`회원 삭제 실패: 사용자 ID ${userId} 찾을 수 없음`);
+                throw new NotFoundException('사용자를 찾을 수 없습니다.');
+            }
+
+            await this.usersRepository.remove(user);
+            this.logger.log(`회원 삭제 성공: 사용자 ID ${userId}`);
+        } catch (error) {
+            this.logger.error(`회원 삭제 실패: 사용자 ID ${userId}`, error);
+            if (error instanceof NotFoundException) {
+                throw error;
+            }
+            throw new InternalServerErrorException('회원 삭제 처리 중 오류가 발생했습니다.');
+        }
+    }
 }
