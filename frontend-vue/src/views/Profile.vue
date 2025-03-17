@@ -82,19 +82,21 @@ const handleSubmit = async () => {
 
 // 회원 삭제
 const handleWithdraw = async () => {
-  if (!confirm('정말로 회원 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
-    return;
-  }
+  if (!confirm('정말 탈퇴하시겠습니까?')) return;
 
   try {
-    const response = await axios.delete('/auth/withdraw');
+    const response = await axios.delete('/auth/withdraw', {
+      withCredentials: true
+    });
+    
     if (response.data.success) {
       alert('회원 탈퇴가 완료되었습니다.');
       authStore.logout();
       router.push('/');
     }
   } catch (error: any) {
-    alert(error.response?.data?.message || '회원 탈퇴에 실패했습니다');
+    console.error('회원 탈퇴 실패:', error);
+    alert(error.response?.data?.message || '회원 탈퇴 중 오류가 발생했습니다.');
   }
 };
 

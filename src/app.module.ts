@@ -40,10 +40,9 @@ import { HttpModule } from '@nestjs/axios';
                     password: configService.get<string>('DB_PASSWORD'),
                     database: configService.get<string>('DB_DATABASE'),
                     entities: [__dirname + '/**/*.entity{.ts,.js}'],
-                    synchronize: false, // 운영 환경에서는 항상 false로 설정
-                    logging: isDevelopment, // 개발 환경에서만 로깅 활성화
-                    connectTimeout: 30000,
-                    acquireTimeout: 30000,
+                    synchronize: isDevelopment, // development 환경에서는 true가 되어야 함
+                    logging: true,
+                    connectTimeout: 30000
                 };
 
                 console.log('TypeORM 설정 값:', dataSourceOptions);
@@ -79,6 +78,5 @@ import { HttpModule } from '@nestjs/axios';
 export class AppModule {
     constructor() {
         console.log('🔥🔥🔥 AppModule 생성자 실행됨! 🔥🔥🔥');
-        console.log('AppModule이 로딩되었습니다.');
     }
 }

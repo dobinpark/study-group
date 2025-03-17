@@ -103,6 +103,7 @@ const handleSubmit = async () => {
     const response = await axios.post('/auth/signup', {
       username: form.username,
       password: form.password,
+      confirmPassword: form.confirmPassword,
       nickname: form.nickname,
       email: form.email,
       phoneNumber: form.phoneNumber

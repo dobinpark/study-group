@@ -27,6 +27,7 @@ import { AuthFindPasswordDto } from './dto/auth.findPassword.dto';
 import { AuthMeResponseDto } from './dto/meResponse.dto';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { AuthGuard } from '@nestjs/passport';
+import { AuthenticatedGuard } from './guards/authenticated.guard';
 
 @ApiTags('인증')
 @ApiCookieAuth()
@@ -299,37 +300,18 @@ export class AuthController {
         }
     })
     @HttpCode(HttpStatus.OK)
-    @UseGuards(AuthGuard('session'))
+    @UseGuards(AuthenticatedGuard)
     @Delete('withdraw')
-    async withdrawUser(@Req() req: Request): Promise<BaseResponse> {
+    async withdraw(@Req() req: Request) {
         try {
-            if (!req.user) {
-                throw new UnauthorizedException('로그인이 필요합니다.');
-            }
-            
-            await this.authService.deleteUser((req.user as User).id);
-            
-            // 로그아웃 처리
-            await new Promise<void>((resolve, reject) => {
-                req.logout((err) => {
-                    if (err) reject(err);
-                    resolve();
-                });
-            });
-
-            req.session.destroy((err) => {
-                if (err) {
-                    this.logger.error('세션 삭제 중 오류:', err);
-                }
-            });
-
+            const userId = (req.user as User).id;
+            await this.authService.deleteUser(userId);
             return {
                 success: true,
                 message: '회원 탈퇴가 완료되었습니다.'
             };
         } catch (error) {
-            this.logger.error('회원 탈퇴 중 오류:', error);
-            throw new InternalServerErrorException('회원 탈퇴 처리 중 오류가 발생했습니다.');
+            throw error;
         }
     }
 

@@ -23,6 +23,5 @@ import { AuthModule } from '../auth/auth.module';
 })
 export class SupportModule {
     constructor() {
-        console.log('SupportModule이 로딩되었습니다.');
     }
-} 
+}

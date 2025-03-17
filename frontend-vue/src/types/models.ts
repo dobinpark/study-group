@@ -1,10 +1,15 @@
 // 핵심 데이터 모델 정의(백엔드 API와 주고받는 데이터의 기본 구조를 정의)
+export enum UserRole {
+  ADMIN = 'admin',
+  USER = 'user'
+}
+
 export interface User {
   id: number;
   username: string;
   nickname: string;
   email: string;
-  role: string;
+  role: UserRole;
 }
 
 export interface StudyGroup {

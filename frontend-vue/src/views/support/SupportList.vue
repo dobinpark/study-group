@@ -63,8 +63,10 @@
                 다음
               </button>
             </div>
-            <button class="write-button" @click="createSupport" v-if="userStore.isLoggedIn"
-              :disabled="loading">글쓰기</button>
+            <button class="write-button" @click="createSupport"
+              v-if="userStore.isLoggedIn && userStore.user?.role === 'admin'" :disabled="loading">
+              글쓰기
+            </button>
           </div>
         </main>
       </div>
@@ -80,6 +82,7 @@ import { useUserStore } from '../../store/user';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ko';
 import { PostCategoryKorean } from '../../types/models';
+import { UserRole } from '../../types/models';
 dayjs.locale('ko');
 
 // SupportList.vue 스크립트 setup 바깥쪽에 상수 정의
@@ -95,7 +98,7 @@ interface Support {
   title: string;
   content: string;
   author: {
-    id?: number; // id 속성 추가 (null 또는 undefined일 수 있음)
+    id?: number;
     username: string;
     nickname?: string;
   } | null;
@@ -210,7 +213,8 @@ onMounted(() => {
 .post-list td {
   padding: 1rem;
   text-align: center;
-  border-bottom: 1px solid #ddd; /* border 색상 변경 */
+  border-bottom: 1px solid #ddd;
+  /* border 색상 변경 */
 }
 
 .post-list th {
@@ -242,7 +246,8 @@ onMounted(() => {
 
 .search-box input {
   padding: 0.5rem;
-  border: 1px solid #ccc; /* border 색상 변경 */
+  border: 1px solid #ccc;
+  /* border 색상 변경 */
   border-radius: 4px;
   width: 300px;
 }
@@ -296,7 +301,8 @@ onMounted(() => {
 
 .pagination button {
   padding: 0.5rem 1rem;
-  border: 1px solid #ccc; /* border 색상 변경 */
+  border: 1px solid #ccc;
+  /* border 색상 변경 */
   background-color: white;
   cursor: pointer;
 }
@@ -353,7 +359,8 @@ onMounted(() => {
 
 .category-tab {
   padding: 0.5rem 1rem;
-  border: 1px solid #ccc; /* border 색상 변경 */
+  border: 1px solid #ccc;
+  /* border 색상 변경 */
   background: #f8f9fa;
   cursor: pointer;
   border-radius: 4px;
@@ -404,6 +411,14 @@ onMounted(() => {
 }
 </style>
 <style>
-.support-list-page .content-card {background-color: #f8f8f8;} /* content-card 배경색 변경 */
-.support-list-page .page-header { background: #e0e0e0; } /* page-header 배경색 변경 */
+.support-list-page .content-card {
+  background-color: #f8f8f8;
+}
+
+/* content-card 배경색 변경 */
+.support-list-page .page-header {
+  background: #e0e0e0;
+}
+
+/* page-header 배경색 변경 */
 </style>
