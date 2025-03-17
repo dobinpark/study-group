@@ -6,15 +6,36 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import * as session from 'express-session';
 import * as passport from 'passport';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import { createClient } from 'redis';
+import * as connectRedis from 'connect-redis';
 
 declare const module: any; // HMR 타입 선언 추가
 
 async function bootstrap() {
     const app = await NestFactory.create<NestExpressApplication>(AppModule);
-
     const configService = app.get(ConfigService);
-
     const logger = new Logger('Main');
+    const isProduction = process.env.NODE_ENV === 'production';
+
+    let redisClient;
+    if (isProduction) {
+        // Redis 클라이언트 생성 (운영 환경에서만)
+        redisClient = createClient({
+            url: `redis://${configService.get('REDIS_HOST', 'localhost')}:${configService.get('REDIS_PORT', 6379)}`
+        });
+
+        try {
+            await redisClient.connect();
+            logger.log('Redis 서버에 연결되었습니다.');
+            
+            redisClient.on('error', (err) => {
+                logger.error('Redis 클라이언트 에러:', err);
+            });
+        } catch (err) {
+            logger.error('Redis 연결 실패:', err);
+            process.exit(1);
+        }
+    }
 
     // 전역 파이프 설정
     app.useGlobalPipes(new ValidationPipe({
@@ -36,8 +57,8 @@ async function bootstrap() {
     // API 경로 접두사
     app.setGlobalPrefix('api');
 
-    // 메모리 기반 세션 설정
-    setupSession(app, configService);
+    // 세션 설정
+    setupSession(app, configService, redisClient);
 
     // CORS 설정
     setupCors(app, configService);
@@ -66,21 +87,32 @@ async function bootstrap() {
     }
 }
 
-function setupSession(app: INestApplication, configService: ConfigService) {
-    app.use(
-        session({
-            secret: configService.get<string>('SESSION_SECRET') || 'secret',
-            resave: false,
-            saveUninitialized: false,
-            cookie: {
-                maxAge: 24 * 60 * 60 * 1000,
-                httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                sameSite: 'lax',
-            },
-        }),
-    );
+function setupSession(app: INestApplication, configService: ConfigService, redisClient: any) {
+    const isProduction = process.env.NODE_ENV === 'production';
+    const logger = new Logger('Session');
 
+    const sessionConfig: session.SessionOptions = {
+        secret: configService.get<string>('SESSION_SECRET') || 'secret',
+        resave: false,
+        saveUninitialized: false,
+        cookie: {
+            maxAge: configService.get<number>('SESSION_MAX_AGE', 24 * 60 * 60 * 1000),
+            httpOnly: true,
+            secure: isProduction,
+            sameSite: 'lax',
+        }
+    };
+
+    // 운영 환경에서만 Redis 세션 스토어 사용
+    if (isProduction && redisClient) {
+        const RedisStore = require('connect-redis').default;
+        sessionConfig.store = new RedisStore({ client: redisClient });
+        logger.log('Redis 세션 스토어를 사용합니다.');
+    } else {
+        logger.log('메모리 세션 스토어를 사용합니다.');
+    }
+
+    app.use(session(sessionConfig));
     app.use(passport.initialize());
     app.use(passport.session());
 }
