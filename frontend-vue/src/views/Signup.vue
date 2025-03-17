@@ -26,6 +26,8 @@
                 <div class="validation-message" v-if="form.password.length < 8">비밀번호는 최소 8자 이상이어야 합니다.</div>
                 <div class="validation-message" v-if="!passwordRegex.test(form.password)">
                   영문, 숫자, 특수문자를 포함해야 합니다.
+                  <br>
+                  허용되는 특수문자: !@#$%^&*()
                 </div>
               </div>
               <div class="form-group">
