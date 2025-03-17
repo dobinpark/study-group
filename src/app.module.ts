@@ -28,7 +28,7 @@ import { HttpModule } from '@nestjs/axios';
             useFactory: async (configService: ConfigService): Promise<TypeOrmModuleOptions> => {
                 const nodeEnv = configService.get<string>('NODE_ENV');
                 console.log('현재 NODE_ENV:', nodeEnv); // 환경 확인용 로그 추가
-                
+
                 const isDevelopment = nodeEnv !== 'production'; // 명확하게 production이 아닐 때만 development로 처리
                 console.log('isDevelopment:', isDevelopment); // 설정 확인용 로그 추가
 
