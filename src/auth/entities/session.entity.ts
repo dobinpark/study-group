@@ -1,6 +1,6 @@
 import { Entity, Column, PrimaryColumn } from 'typeorm';
 
-@Entity('sessions') // 테이블 이름을 'sessions'로 지정 (connect-typeorm 기본값)
+@Entity()
 export class Session {
     @PrimaryColumn('varchar', { length: 255 })
     id!: string;
