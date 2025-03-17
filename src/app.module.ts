@@ -27,7 +27,10 @@ import { HttpModule } from '@nestjs/axios';
             imports: [ConfigModule],
             useFactory: async (configService: ConfigService): Promise<TypeOrmModuleOptions> => {
                 const nodeEnv = configService.get<string>('NODE_ENV');
-                const isDevelopment = nodeEnv === 'development' || nodeEnv === 'dev';
+                console.log('현재 NODE_ENV:', nodeEnv); // 환경 확인용 로그 추가
+                
+                const isDevelopment = nodeEnv !== 'production'; // 명확하게 production이 아닐 때만 development로 처리
+                console.log('isDevelopment:', isDevelopment); // 설정 확인용 로그 추가
 
                 const dataSourceOptions: DataSourceOptions = {
                     type: 'mysql',
@@ -37,7 +40,8 @@ import { HttpModule } from '@nestjs/axios';
                     password: configService.get<string>('DB_PASSWORD'),
                     database: configService.get<string>('DB_DATABASE'),
                     entities: [__dirname + '/**/*.entity{.ts,.js}'],
-                    synchronize: isDevelopment,
+                    synchronize: false, // 운영 환경에서는 항상 false로 설정
+                    logging: isDevelopment, // 개발 환경에서만 로깅 활성화
                     connectTimeout: 30000,
                     acquireTimeout: 30000,
                 };
