@@ -21,6 +21,7 @@
             </div>
             <div class="button-group">
               <button type="submit" class="btn btn-primary">수정하기</button>
+              <button type="button" class="btn btn-danger" @click="handleWithdraw">회원 삭제</button>
             </div>
           </form>
         </main>
@@ -50,6 +51,7 @@ const form = reactive({
 const isAuthenticated = computed(() => authStore.isAuthenticated);
 const currentUser = computed(() => userStore.user);
 
+
 // 프로필 정보 불러오기
 const fetchProfile = async () => {
   try {
@@ -63,6 +65,7 @@ const fetchProfile = async () => {
   }
 };
 
+
 // 프로필 수정
 const handleSubmit = async () => {
   try {
@@ -73,6 +76,25 @@ const handleSubmit = async () => {
     }
   } catch (error: any) {
     alert(error.response?.data?.message || '프로필 수정에 실패했습니다');
+  }
+};
+
+
+// 회원 삭제
+const handleWithdraw = async () => {
+  if (!confirm('정말로 회원 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
+    return;
+  }
+
+  try {
+    const response = await axios.delete('/auth/withdraw');
+    if (response.data.success) {
+      alert('회원 탈퇴가 완료되었습니다.');
+      authStore.logout();
+      router.push('/');
+    }
+  } catch (error: any) {
+    alert(error.response?.data?.message || '회원 탈퇴에 실패했습니다');
   }
 };
 
@@ -107,5 +129,16 @@ onMounted(() => {
   text-align: center;
   display: flex;
   justify-content: center;
+  gap: 1rem;
+}
+
+.btn-danger {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+}
+
+.btn-danger:hover {
+  background-color: #c82333;
 }
 </style>
