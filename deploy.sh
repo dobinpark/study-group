@@ -32,7 +32,7 @@ verify_environment() {
     # PM2 설치 확인
     if ! command -v pm2 &> /dev/null; then
         handle_error "PM2가 설치되어 있지 않습니다."
-    }
+    fi
     
     # 필요한 디렉토리 존재 확인
     if [ ! -d "$BACKEND_DIR" ]; then
