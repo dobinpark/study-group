@@ -51,14 +51,14 @@ deploy() {
 if deploy; then
     echo "배포 성공" >> $LOG_FILE
     echo "백엔드 재시작 중..." >> $LOG_FILE
-    # /home/ec2-user/.nvm/versions/node/v22.13.1/bin/pm2 restart all >> $LOG_FILE 2>&1
     pm2 restart all >> $LOG_FILE 2>&1
+    pm2 restart ecosystem.config.js >> $LOG_FILE 2>&1
     sudo systemctl restart nginx >> $LOG_FILE 2>&1
 else
     echo "배포 실패" >> $LOG_FILE
     echo "백엔드 재시작 중..." >> $LOG_FILE
-    # /home/ec2-user/.nvm/versions/node/v22.13.1/bin/pm2 restart all >> $LOG_FILE 2>&1
     pm2 restart all >> $LOG_FILE 2>&1
+    pm2 restart ecosystem.config.js >> $LOG_FILE 2>&1
     sudo systemctl restart nginx >> $LOG_FILE 2>&1
 fi
 
