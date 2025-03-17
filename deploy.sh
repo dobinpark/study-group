@@ -27,8 +27,7 @@ deploy() {
 
     # 백엔드 Production 실행
     echo "백엔드 Production 서버 실행..." >> $LOG_FILE
-    # npm run start:prod >> $LOG_FILE 2>&1  <-- 기존 명령어 주석 처리
-    pm2 start ecosystem.config.js --no-daemon >> $LOG_FILE 2>&1  <-- 변경된 명령어
+    pm2 start ecosystem.config.js >> $LOG_FILE 2>&1
 
     # 프론트엔드 업데이트
     echo "프론트엔드 업데이트 시작..." >> $LOG_FILE
@@ -51,12 +50,14 @@ deploy() {
 if deploy; then
     echo "배포 성공" >> $LOG_FILE
     echo "백엔드 재시작 중..." >> $LOG_FILE
+    cd /home/ec2-user/study-group
     pm2 restart all >> $LOG_FILE 2>&1
     pm2 restart ecosystem.config.js >> $LOG_FILE 2>&1
     sudo systemctl restart nginx >> $LOG_FILE 2>&1
 else
     echo "배포 실패" >> $LOG_FILE
     echo "백엔드 재시작 중..." >> $LOG_FILE
+    cd /home/ec2-user/study-group
     pm2 restart all >> $LOG_FILE 2>&1
     pm2 restart ecosystem.config.js >> $LOG_FILE 2>&1
     sudo systemctl restart nginx >> $LOG_FILE 2>&1
