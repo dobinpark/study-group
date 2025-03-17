@@ -26,6 +26,9 @@ import { HttpModule } from '@nestjs/axios';
         TypeOrmModule.forRootAsync({
             imports: [ConfigModule],
             useFactory: async (configService: ConfigService): Promise<TypeOrmModuleOptions> => {
+                const nodeEnv = configService.get<string>('NODE_ENV');
+                const isDevelopment = nodeEnv === 'development' || nodeEnv === 'dev';
+
                 const dataSourceOptions: DataSourceOptions = {
                     type: 'mysql',
                     host: configService.get<string>('DB_HOST'),
@@ -34,7 +37,7 @@ import { HttpModule } from '@nestjs/axios';
                     password: configService.get<string>('DB_PASSWORD'),
                     database: configService.get<string>('DB_DATABASE'),
                     entities: [__dirname + '/**/*.entity{.ts,.js}'],
-                    synchronize: true,
+                    synchronize: isDevelopment,
                     connectTimeout: 30000,
                     acquireTimeout: 30000,
                 };
