@@ -16,7 +16,7 @@
           <h2 class="board-title">공지사항</h2>
           <ul class="board-list">
             <li v-for="post in noticePosts" :key="post.id" class="board-item">
-              <a href="#" class="board-link">
+              <a :href="`/supports/${post.id}`" class="board-link">
                 <span class="item-title">{{ post.title }}</span>
               </a>
             </li>
@@ -36,7 +36,7 @@
           <h2 class="board-title">자유게시판</h2>
           <ul class="board-list">
             <li v-for="post in freePosts" :key="post.id" class="board-item">
-              <a href="#" class="board-link">
+              <a :href="`/posts/${post.id}`" class="board-link">
                 <span class="item-title">{{ post.title }}</span>
               </a>
             </li>
