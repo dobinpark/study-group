@@ -49,7 +49,7 @@ async function bootstrap() {
     app.useGlobalPipes(new ValidationPipe({
         transform: true,
         whitelist: true,
-        forbidNonWhitelisted: true,
+        forbidNonWhitelisted: false,
         stopAtFirstError: true,
         exceptionFactory: (errors) => {
             console.error('Validation failed:');

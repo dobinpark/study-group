@@ -69,7 +69,14 @@ const fetchProfile = async () => {
 // 프로필 수정
 const handleSubmit = async () => {
   try {
-    const response = await axios.put('/users/profile', form);
+    // 필요한 필드만 포함하는 객체 생성
+    const profileData = {
+      nickname: form.nickname,
+      email: form.email,
+      phoneNumber: form.phoneNumber
+    };
+    
+    const response = await axios.put('/users/profile', profileData);
     if (response.data.success) {
       alert('프로필이 수정되었습니다');
       router.push('/');
