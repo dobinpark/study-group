@@ -1,7 +1,7 @@
 <template>
   <footer class="footer">
     <div class="footer-content">
-      <p>&copy; 2025 학공. All rights reserved.</p>
+      <p>&copy; 2025 함공. All rights reserved.</p>
     </div>
   </footer>
 </template>
