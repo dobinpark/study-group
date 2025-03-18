@@ -25,7 +25,11 @@ async function bootstrap() {
         });
 
         try {
-            await redisClient.connect();
+            await redisClient.connect().catch((err) => {
+                console.error('Redis 연결 실패 세부정보:', JSON.stringify(err));
+                console.error('Redis 연결 설정:', { redisHost: configService.get('REDIS_HOST'), redisPort: configService.get('REDIS_PORT') });
+                throw err;
+            });
             logger.log('Redis 서버에 연결되었습니다.');
             
             redisClient.on('error', (err) => {
@@ -105,9 +109,18 @@ function setupSession(app: INestApplication, configService: ConfigService, redis
 
     // 운영 환경에서만 Redis 세션 스토어 사용
     if (isProduction && redisClient) {
-        const RedisStore = require('connect-redis').default;
-        sessionConfig.store = new RedisStore({ client: redisClient });
-        logger.log('Redis 세션 스토어를 사용합니다.');
+        try {
+            // connect-redis v7.x 이상 사용 방식
+            const RedisStore = connectRedis.default;
+            sessionConfig.store = new RedisStore({ 
+                client: redisClient,
+                prefix: "session:" 
+            });
+            logger.log('Redis 세션 스토어를 사용합니다.');
+        } catch (error) {
+            logger.error('Redis 세션 스토어 초기화 실패:', error);
+            logger.warn('메모리 세션 스토어로 대체합니다.');
+        }
     } else {
         logger.log('메모리 세션 스토어를 사용합니다.');
     }
