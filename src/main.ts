@@ -106,7 +106,7 @@ function setupSession(app: INestApplication, configService: ConfigService, redis
         cookie: {
             maxAge: configService.get<number>('SESSION_MAX_AGE', 24 * 60 * 60 * 1000),
             httpOnly: true,
-            secure: isProduction,
+            secure: false,
             sameSite: 'lax',
         }
     };
