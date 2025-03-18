@@ -35,7 +35,7 @@ async function bootstrap() {
                 throw err;
             });
             logger.log('Redis 서버에 연결되었습니다.');
-            
+
             redisClient.on('error', (err) => {
                 logger.error('Redis 클라이언트 에러:', err);
             });
@@ -116,9 +116,11 @@ function setupSession(app: INestApplication, configService: ConfigService, redis
         try {
             // connect-redis v7.x 이상 사용 방식
             const RedisStore = connectRedis.default;
-            sessionConfig.store = new RedisStore({ 
+            sessionConfig.store = new RedisStore({
                 client: redisClient,
-                prefix: "session:" 
+                prefix: "sess:",
+                disableTouch: false,
+                ttl: 86400  // 명시적 TTL 설정 (초 단위)
             });
             logger.log('Redis 세션 스토어를 사용합니다.');
         } catch (error) {
