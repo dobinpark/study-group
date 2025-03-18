@@ -16,9 +16,9 @@
           <h2 class="board-title">공지사항</h2>
           <ul class="board-list">
             <li v-for="post in noticePosts" :key="post.id" class="board-item">
-              <a :href="`/supports/${post.id}`" class="board-link">
+              <router-link :to="`/supports/${post.id}`" class="board-link">
                 <span class="item-title">{{ post.title }}</span>
-              </a>
+              </router-link>
             </li>
             <li v-if="noticePosts.length === 0 && !isPostsLoading" class="board-item empty-item">
               공지사항이 없습니다.
@@ -36,9 +36,9 @@
           <h2 class="board-title">자유게시판</h2>
           <ul class="board-list">
             <li v-for="post in freePosts" :key="post.id" class="board-item">
-              <a :href="`/posts/${post.id}`" class="board-link">
+              <router-link :to="`/posts/${post.id}`" class="board-link">
                 <span class="item-title">{{ post.title }}</span>
-              </a>
+              </router-link>
             </li>
             <li v-if="freePosts.length === 0 && !isPostsLoading" class="board-item empty-item">
               게시글이 없습니다.
@@ -90,11 +90,7 @@ const freePosts = ref<Post[]>([]);
 const isPostsLoading = ref<boolean>(false);
 
 const goToStudyGroups = () => {
-  if (isAuthenticated.value) {
-    router.push('/study-groups/create');
-  } else {
-    router.push('/login');
-  }
+  router.push('/study-groups');
 };
 
 // 공지사항 게시판 더보기 버튼 클릭 핸들러

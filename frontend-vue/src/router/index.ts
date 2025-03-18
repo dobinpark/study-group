@@ -63,7 +63,6 @@ const routes: Array<RouteRecordRaw> = [
     path: '/study-groups',
     name: 'study-groups',
     component: StudyGroupList,
-    meta: { requiresAuth: true }
   },
   {
     path: '/study-groups/create',
@@ -87,7 +86,6 @@ const routes: Array<RouteRecordRaw> = [
     path: '/posts',
     name: 'post-list',
     component: PostList,
-    meta: { requiresAuth: true }
   },
   {
     path: '/posts/create',
@@ -97,7 +95,6 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/posts/:id',
     component: PostDetail,
-    meta: { requiresAuth: true }
   },
   {
     path: '/posts/:id/edit',
@@ -125,7 +122,6 @@ const routes: Array<RouteRecordRaw> = [
     path: '/supports',
     name: 'supports',
     component: SupportList,
-    meta: { requiresAuth: true }
   },
   {
     path: '/supports/create',
