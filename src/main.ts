@@ -21,7 +21,10 @@ async function bootstrap() {
     if (isProduction) {
         // Redis 클라이언트 생성 (운영 환경에서만)
         redisClient = createClient({
-            url: `redis://${configService.get('REDIS_HOST', 'localhost')}:${configService.get('REDIS_PORT', 6379)}`
+            socket: {
+                host: configService.get('REDIS_HOST', 'localhost'),
+                port: parseInt(configService.get('REDIS_PORT', '6379'))
+            }
         });
 
         try {
