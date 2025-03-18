@@ -26,7 +26,8 @@ async function bootstrap() {
 
         try {
             await redisClient.connect().catch((err) => {
-                console.error('Redis 연결 실패 세부정보:', JSON.stringify(err));
+                console.error('Redis 연결 실패 세부 정보:', err);
+                console.error('Redis 연결 실패 세부정보 JSON:', JSON.stringify(err));
                 console.error('Redis 연결 설정:', { redisHost: configService.get('REDIS_HOST'), redisPort: configService.get('REDIS_PORT') });
                 throw err;
             });
