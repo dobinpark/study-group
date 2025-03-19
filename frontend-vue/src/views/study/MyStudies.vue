@@ -99,10 +99,13 @@ const errorMessage = ref('');
 interface StudyGroupResponse {
   success: boolean;
   message?: string;
-  data: {
+  data?: {
     created: StudyGroup[];
     joined: StudyGroup[];
   };
+  // 백엔드 응답 포맷이 다양할 수 있으므로 직접 데이터가 루트에 있는 경우도 처리
+  created?: StudyGroup[];
+  joined?: StudyGroup[];
 }
 
 // 내 스터디 목록 가져오기
@@ -119,15 +122,36 @@ const fetchMyStudies = async () => {
     console.log('MyStudies.vue: fetchMyStudies() - 응답 상태:', response.status);
     console.log('MyStudies.vue: fetchMyStudies() - 응답 데이터:', response.data);
 
-    if (response.data.success) {
-      createdStudies.value = response.data.data.created || [];
-      joinedStudies.value = response.data.data.joined || [];
+    // 백엔드 응답 구조 확인
+    console.log('MyStudies.vue: fetchMyStudies() - 응답 구조 분석:');
+    console.log('response.data:', response.data);
+    
+    // 수정된 부분: 응답 구조에 맞게 데이터 할당
+    if (response.data && response.status === 200) {
+      // 백엔드로부터 받은 실제 데이터 구조를 사용
+      if (response.data.data) {
+        // data 구조가 있는 경우 (response.data.data.created 형식)
+        createdStudies.value = response.data.data.created || [];
+        joinedStudies.value = response.data.data.joined || [];
+      } else {
+        // data 구조가 없는 경우 (response.data.created 형식)
+        createdStudies.value = response.data.created || [];
+        joinedStudies.value = response.data.joined || [];
+      }
+      
+      console.log('MyStudies.vue: fetchMyStudies() - 데이터 할당 후:');
+      console.log('생성한 스터디:', createdStudies.value);
+      console.log('참여 중인 스터디:', joinedStudies.value);
     }
   } catch (error) {
     // ✅ 오류 시 상세 로깅 추가
     console.error('MyStudies.vue: fetchMyStudies() - API 요청 에러', error);
-    console.error('MyStudies.vue: fetchMyStudies() - 오류 객체 전체:', error); // 전체 오류 객체 로깅
+    console.error('MyStudies.vue: fetchMyStudies() - 오류 객체 전체:', error);
     if (isAxiosError(error)) {
+      console.error('MyStudies.vue: 요청 설정:', error.config);
+      console.error('MyStudies.vue: 응답 상태:', error.response?.status);
+      console.error('MyStudies.vue: 응답 데이터:', error.response?.data);
+      
       if (error.response?.status === 401 || error.response?.status === 403) {
         alert('접근 권한이 없습니다.');
         await router.push('/login');

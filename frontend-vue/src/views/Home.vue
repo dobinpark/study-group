@@ -90,7 +90,7 @@ const freePosts = ref<Post[]>([]);
 const isPostsLoading = ref<boolean>(false);
 
 const goToStudyGroups = () => {
-  router.push('/study-groups');
+  router.push('/study-groups/create');
 };
 
 // 공지사항 게시판 더보기 버튼 클릭 핸들러

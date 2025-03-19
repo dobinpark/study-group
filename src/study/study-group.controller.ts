@@ -15,6 +15,7 @@ import {
     Logger,
     UnauthorizedException,
     Patch,
+    BadRequestException,
 } from '@nestjs/common';
 import {
     ApiTags,
@@ -155,8 +156,75 @@ export class StudyGroupController {
         return { success: true, data: result };
     }
 
+    // 내 스터디 목록 조회 - 정적 라우트를 동적 라우트보다 먼저 배치
+    @ApiOperation({ summary: '내 스터디 목록 조회' })
+    @ApiOkResponse({
+        description: '내 스터디 목록 조회 성공',
+        type: DataResponse<GetMyStudiesResponseDto>,
+        schema: {
+            allOf: [
+                { $ref: getSchemaPath(DataResponse) },
+                {
+                    properties: {
+                        data: { $ref: getSchemaPath(GetMyStudiesResponseDto) }
+                    }
+                }
+            ]
+        }
+    })
+    @ApiUnauthorizedResponse({ description: '로그인이 필요합니다' })
+    @ApiInternalServerErrorResponse({ description: '스터디 목록 조회 실패' })
+    @ApiHeader({
+        name: 'Cookie',
+        description: '로그인 세션 쿠키',
+        required: true
+    })
+    @Get('my-studies')
+    async getMyStudies(@Req() req: Request) {
+        // 로깅 추가
+        console.log('✅✅✅ getMyStudies 메서드 진입 ✅✅✅');
+        console.log('요청 헤더:', req.headers);
+        console.log('요청 쿠키:', req.cookies);
 
-    // 스터디 그룹 상세 조회
+        try {
+            const user = req.user as User;
+            // ID 검증 강화
+            if (!user || !user.id) {
+                throw new BadRequestException('사용자 정보가 없습니다.');
+            }
+
+            return this.studyGroupService.getMyStudies(user.id);
+        } catch (error) {
+            console.error('getMyStudies 오류:', error);
+            throw error;
+        }
+    }
+
+    // 카테고리별 스터디 그룹 통계 - 정적 라우트를 동적 라우트보다 먼저 배치
+    @ApiOperation({ summary: '카테고리별 스터디 그룹 통계' })
+    @ApiOkResponse({
+        description: '카테고리별 통계 조회 성공',
+        schema: {
+            allOf: [
+                { $ref: getSchemaPath(DataResponse) },
+                {
+                    properties: {
+                        data: {
+                            type: 'array',
+                            items: { $ref: getSchemaPath(CategoryDto) }
+                        }
+                    }
+                }
+            ]
+        }
+    })
+    @Get('categories/stats')
+    async getCategoryStats(): Promise<DataResponse<CategoryDto[]>> {
+        const stats = await this.studyGroupService.getCategoryStats();
+        return { success: true, data: stats };
+    }
+
+    // 스터디 그룹 상세 조회 - 동적 라우트를 정적 라우트 이후에 배치
     @ApiOperation({ summary: '스터디 그룹 상세 조회' })
     @ApiParam({ name: 'id', required: true, description: '스터디 그룹 ID' })
     @ApiOkResponse({
@@ -348,63 +416,5 @@ export class StudyGroupController {
             this.logger.error(`스터디 그룹 탈퇴 실패: ${errorMessage}`);
             throw new InternalServerErrorException('스터디 그룹 탈퇴 중 오류가 발생했습니다.');
         }
-    }
-
-
-    // 카테고리별 스터디 그룹 통계
-    @ApiOperation({ summary: '카테고리별 스터디 그룹 통계' })
-    @ApiOkResponse({
-        description: '카테고리별 통계 조회 성공',
-        schema: {
-            allOf: [
-                { $ref: getSchemaPath(DataResponse) },
-                {
-                    properties: {
-                        data: {
-                            type: 'array',
-                            items: { $ref: getSchemaPath(CategoryDto) }
-                        }
-                    }
-                }
-            ]
-        }
-    })
-    @Get('categories/stats')
-    async getCategoryStats(): Promise<DataResponse<CategoryDto[]>> {
-        const stats = await this.studyGroupService.getCategoryStats();
-        return { success: true, data: stats };
-    }
-
-
-    // 내 스터디 목록 조회
-    @ApiOperation({ summary: '내 스터디 목록 조회' })
-    @ApiOkResponse({
-        description: '내 스터디 목록 조회 성공',
-        type: DataResponse<GetMyStudiesResponseDto>,
-        schema: {
-            allOf: [
-                { $ref: getSchemaPath(DataResponse) },
-                {
-                    properties: {
-                        data: { $ref: getSchemaPath(GetMyStudiesResponseDto) }
-                    }
-                }
-            ]
-        }
-    })
-    @ApiUnauthorizedResponse({ description: '로그인이 필요합니다' })
-    @ApiInternalServerErrorResponse({ description: '스터디 목록 조회 실패' })
-    @ApiHeader({
-        name: 'Cookie',
-        description: '로그인 세션 쿠키',
-        required: true
-    })
-    @Get('my-studies')
-    async getMyStudies(@Req() req: Request) {
-        console.log('✅✅✅ getMyStudies 메서드 진입 ✅✅✅');
-        this.logger.debug('getMyStudies 메서드 호출');
-        this.logger.debug(`User 정보: ${JSON.stringify(req.user)}`);
-        const user = req.user as User;
-        return this.studyGroupService.getMyStudies(user.id);
     }
 }

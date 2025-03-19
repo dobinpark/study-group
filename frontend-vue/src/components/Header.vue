@@ -20,13 +20,14 @@
           <div class="auth-container" :class="{ 'mobile-auth': isMobile }">
             <template v-if="isLoggedInComputed && currentUser">
               <div class="nav-buttons" :class="{ 'mobile-nav-buttons': isMobile }">
-                <router-link class="nav-button" to="/my-studies">
+    <router-link class="nav-button" to="/my-studies">
                   내 스터디
                 </router-link>
                 <router-link class="nav-button" to="/profile">
                   프로필
                 </router-link>
-                <button class="nav-button" @click="handleLogout" :disabled="isLoggingOut" style="background-color: red;">
+                <button class="nav-button" @click="handleLogout" :disabled="isLoggingOut"
+                  style="background-color: red;">
                   {{
                     isLoggingOut
                       ? '로그아웃 중...'
@@ -683,16 +684,16 @@ const handleSubCategoryClick = (mainCategory: string, subCategory: string) => {
     activeSubCategoryName.value = '';
   } else {
     activeSubCategoryName.value = subCategory;
-    
+
     // 소분류 메뉴 열 수 조절 (항목 수에 따라)
     nextTick(() => {
       const detailMenu = document.querySelector('.detail-menu.active') as HTMLElement;
       if (detailMenu) {
         const itemCount = detailMenu.querySelectorAll('.detail-menu-item').length;
-        
+
         // 클래스 초기화
         detailMenu.classList.remove('one-column', 'two-columns', 'three-columns');
-        
+
         // 항목 수에 따라 클래스 추가
         if (itemCount <= 10) {
           detailMenu.classList.add('one-column');
@@ -1021,7 +1022,7 @@ const fetchSubCategories = async (mainCategoryValue: string) => {
   grid-gap: 5px;
 }
 
-.sub-menu-item:hover > .detail-menu.active {
+.sub-menu-item:hover>.detail-menu.active {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   grid-gap: 5px;
@@ -1111,13 +1112,13 @@ const fetchSubCategories = async (mainCategoryValue: string) => {
   border-bottom: none;
 }
 
-.sub-menu-column > ul {
+.sub-menu-column>ul {
   display: block;
   width: fit-content;
   min-width: 180px;
 }
 
-.main-menu > li:first-child .sub-menu-column > ul {
+.main-menu>li:first-child .sub-menu-column>ul {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   width: 360px;
@@ -1265,13 +1266,13 @@ const fetchSubCategories = async (mainCategoryValue: string) => {
 }
 
 /* 학습자별과 전공별 카테고리의 너비 조정 */
-.main-menu > li:nth-child(2) .sub-menu-column > ul,
-.main-menu > li:nth-child(3) .sub-menu-column > ul {
+.main-menu>li:nth-child(2) .sub-menu-column>ul,
+.main-menu>li:nth-child(3) .sub-menu-column>ul {
   width: 180px;
 }
 
 /* 지역별 카테고리의 서브메뉴 너비 조정 */
-.main-menu > li:first-child .sub-menu-column > ul {
+.main-menu>li:first-child .sub-menu-column>ul {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   width: 360px;

@@ -19,6 +19,7 @@ export class StudyGroupService {
         private dataSource: DataSource,
     ) { }
 
+
     // 스터디 그룹 생성
     async create(createStudyGroupDto: CreateStudyGroupDto, userId: number): Promise<StudyGroup> {
         console.log(`createStudyGroup - service - userId: ${userId}, type: ${typeof userId}`);
@@ -32,6 +33,7 @@ export class StudyGroupService {
     }
 
 
+    // 스터디 그룹 목록 조회
     async findAll(
         mainCategory?: string,
         subCategory?: string,
@@ -62,6 +64,7 @@ export class StudyGroupService {
         return { items, total };
     }
 
+
     // 스터디 그룹 상세 조회
     async findOne(id: number): Promise<StudyGroup> {
         const studyGroup = await this.studyGroupRepository.findOne({
@@ -75,6 +78,7 @@ export class StudyGroupService {
 
         return studyGroup;
     }
+
 
     // 스터디 그룹 수정
     async update(id: number, updateData: UpdateStudyGroupDto, userId: number): Promise<StudyGroup> {
@@ -116,6 +120,7 @@ export class StudyGroupService {
         await this.studyGroupRepository.delete(id);
     }
 
+
     // 스터디 그룹 참여
     async joinGroup(groupId: number, userId: number): Promise<void> {
         const queryRunner = this.connection.createQueryRunner();
@@ -151,6 +156,7 @@ export class StudyGroupService {
         }
     }
 
+
     // 스터디 그룹 탈퇴
     async leaveGroup(groupId: number, userId: number): Promise<void> {
         const studyGroup = await this.findOne(groupId);
@@ -171,6 +177,7 @@ export class StudyGroupService {
 
         await this.studyGroupRepository.decrement({ id: groupId }, 'currentMembers', 1);
     }
+
 
     // 스터디 그룹 카테고리 통계
     async getCategoryStats(): Promise<CategoryDto[]> {
@@ -195,47 +202,50 @@ export class StudyGroupService {
         }));
     }
 
+
     // 내가 생성한 스터디 목록 조회
-    async getMyStudies(userId: number): Promise<{ created: StudyGroup[], joined: StudyGroup[] }> {
+    async getMyStudies(userId: number | string): Promise<{ created: StudyGroup[], joined: StudyGroup[] }> {
         this.logger.debug(`getMyStudies - service - 메서드 진입`);
         this.logger.debug(`getMyStudies - service - userId 파라미터 타입 (타입 체크 전): ${typeof userId}`);
-        if (typeof userId !== 'number' || isNaN(userId)) {
+        
+        // userId를 숫자로 변환
+        const numericUserId = typeof userId === 'string' ? parseInt(userId, 10) : userId;
+        
+        if (isNaN(numericUserId)) {
             throw new BadRequestException(`유효하지 않은 사용자 ID입니다. 숫자 타입이 필요합니다. (현재 타입: ${typeof userId})`);
         }
-        this.logger.debug(`getMyStudies - service - userId 파라미터 타입 (타입 체크 통과 후): ${typeof userId}`);
-        this.logger.debug(`getMyStudies - service - userId 값 (타입 체크 통과 후): ${userId}`);
-
+        
         try {
-            this.logger.debug(`getMyStudies - 사용자 ID: ${userId}의 스터디 목록 조회 시작`);
+            this.logger.debug(`getMyStudies - 사용자 ID: ${numericUserId}의 스터디 목록 조회 시작`);
 
             // [내가 생성한 스터디] 조회
-            this.logger.debug(`getMyStudies - 사용자 ID: ${userId}가 생성한 스터디 조회`);
+            this.logger.debug(`getMyStudies - 사용자 ID: ${numericUserId}가 생성한 스터디 조회`);
             const created = await this.studyGroupRepository.find({
-                where: { creatorId: userId },
+                where: { creatorId: numericUserId },
                 relations: ['creator', 'members'],
                 order: { createdAt: 'DESC' }
             });
             this.logger.debug(`getMyStudies - 생성한 스터디 조회 완료, 개수: ${created.length}`);
 
             // [내가 참여 중인 스터디] 조회 (내가 생성한 스터디는 제외)
-            this.logger.debug(`getMyStudies - 사용자 ID: ${userId}가 참여 중인 스터디 조회 (생성 스터디 제외)`);
+            this.logger.debug(`getMyStudies - 사용자 ID: ${numericUserId}가 참여 중인 스터디 조회 (생성 스터디 제외)`);
             const joined = await this.studyGroupRepository.createQueryBuilder('group')
-                .innerJoin('group.members', 'member', 'member.id = :userId', { userId })
+                .innerJoin('group.members', 'member', 'member.id = :userId', { userId: numericUserId })
                 .leftJoinAndSelect('group.creator', 'creator')
                 .leftJoinAndSelect('group.members', 'members')
-                .where('group.creatorId != :userId', { userId }) // 자신이 생성한 스터디는 제외
+                .where('group.creatorId != :userId', { userId: numericUserId }) // 자신이 생성한 스터디는 제외
                 .orderBy('group.createdAt', 'DESC')
                 .getMany();
             this.logger.debug(`getMyStudies - 참여 중인 스터디 조회 완료, 개수: ${joined.length}`);
 
-            this.logger.debug(`getMyStudies - 사용자 ID: ${userId}의 스터디 목록 조회 완료`);
+            this.logger.debug(`getMyStudies - 사용자 ID: ${numericUserId}의 스터디 목록 조회 완료`);
             return {
                 created,
                 joined
             };
 
         } catch (error) {
-            this.logger.error(`getMyStudies - 사용자 ID: ${userId}의 스터디 목록 조회 중 오류 발생`, error);
+            this.logger.error(`getMyStudies - 사용자 ID: ${numericUserId}의 스터디 목록 조회 중 오류 발생`, error);
             throw new InternalServerErrorException('내 스터디 목록을 조회하는 중 오류가 발생했습니다.');
         }
     }
