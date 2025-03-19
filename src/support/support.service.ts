@@ -156,7 +156,6 @@ export class SupportService {
         Object.assign(support, updateSupportDto);
         const updatedSupport = await this.supportRepository.save(support);
 
-        // 캐시 무효화
         await this.invalidateCache(id);
 
         return updatedSupport;

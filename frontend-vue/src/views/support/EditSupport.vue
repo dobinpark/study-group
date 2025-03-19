@@ -43,7 +43,8 @@ const authStore = useAuthStore();
 const form = ref({
   title: '',
   content: '',
- });
+  category: '',
+});
 const isSubmitting = ref(false);
 const loading = ref(true);
 
@@ -55,21 +56,22 @@ const fetchSupport = async () => {
       form.value = {
         title: response.data.data.title,
         content: response.data.data.content,
+        category: response.data.data.category,
       };
     } else {
       alert('게시글을 불러올 수 없습니다');
-      router.push('/supports'); // 경로 수정: /supports
+      router.push('/supports');
     }
   } catch (error: any) {
     alert('게시글을 불러올 수 없습니다');
-    router.push('/supports'); // 경로 수정: /supports
+    router.push('/supports');
   } finally {
     loading.value = false;
   }
 };
 
 // 게시글 수정
-const handleSubmit = async () => { // 함수 이름 유지 (handleSubmit)
+const handleSubmit = async () => {
   if (!authStore.isAuthenticated) {
     alert('로그인이 필요합니다.');
     router.push('/login');
@@ -93,15 +95,14 @@ const handleSubmit = async () => { // 함수 이름 유지 (handleSubmit)
 
 // 뒤로 가기
 const goBack = () => {
-  router.push(`/supports/${route.params.id}`); // 경로 수정: /supports/:id
+  router.push(`/supports/${route.params.id}`);
 };
 
 // 마운트 시 게시글 불러오기
 onMounted(async () => {
-  if (!authStore.sessionChecked) { // 세션 체크 유지
+  if (!authStore.sessionChecked) {
     await authStore.checkSession();
   }
-
   await fetchSupport();
 });
 </script>
@@ -175,6 +176,14 @@ textarea.form-control {
 }
 </style>
 <style>
-.support-header h1 {color: #333;} /* header 폰트 색상 변경 */
-.content-card {background-color: #f8f8f8;} /* content-card 배경색 변경 */
+.support-header h1 {
+  color: #333;
+}
+
+/* header 폰트 색상 변경 */
+.content-card {
+  background-color: #f8f8f8;
+}
+
+/* content-card 배경색 변경 */
 </style>
