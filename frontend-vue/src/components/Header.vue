@@ -129,7 +129,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, provide, computed, onMounted, onUnmounted, watch } from 'vue';
+import { ref, provide, computed, onMounted, onUnmounted, watch, nextTick } from 'vue';
 import mitt from 'mitt';
 import { useAuthStore } from '../store/auth';
 import { useUserStore } from '../store/user';
@@ -683,6 +683,26 @@ const handleSubCategoryClick = (mainCategory: string, subCategory: string) => {
     activeSubCategoryName.value = '';
   } else {
     activeSubCategoryName.value = subCategory;
+    
+    // 소분류 메뉴 열 수 조절 (항목 수에 따라)
+    nextTick(() => {
+      const detailMenu = document.querySelector('.detail-menu.active') as HTMLElement;
+      if (detailMenu) {
+        const itemCount = detailMenu.querySelectorAll('.detail-menu-item').length;
+        
+        // 클래스 초기화
+        detailMenu.classList.remove('one-column', 'two-columns', 'three-columns');
+        
+        // 항목 수에 따라 클래스 추가
+        if (itemCount <= 10) {
+          detailMenu.classList.add('one-column');
+        } else if (itemCount <= 20) {
+          detailMenu.classList.add('two-columns');
+        } else {
+          detailMenu.classList.add('three-columns');
+        }
+      }
+    });
   }
 };
 
@@ -952,14 +972,15 @@ const fetchSubCategories = async (mainCategoryValue: string) => {
   color: white;
   cursor: pointer;
   list-style-type: none;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
+  display: block;
+  text-align: left;
   white-space: nowrap;
-  padding-left: 0;
+  padding-left: 10px;
   margin-left: 0;
   transition: background-color 0.3s ease;
+  width: 180px;
+  box-sizing: border-box;
+  position: relative;
 }
 
 .sub-menu-item:hover {
@@ -982,25 +1003,28 @@ const fetchSubCategories = async (mainCategoryValue: string) => {
   position: absolute;
   left: 100%;
   top: 0;
-  min-width: 200px;
-  background-color: #4a90e2;
+  background-color: #2c5d8f;
   border-radius: 0 8px 8px 0;
-  box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.1);
-  padding: 10px;
-  z-index: 15;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+  border: 1px solid #214670;
+  padding: 15px;
+  z-index: 20;
+  width: auto;
+  min-width: 180px;
+  max-width: 800px;
   display: none;
 }
 
 .detail-menu.active {
-  display: block;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-gap: 5px;
 }
 
-.sub-menu-item {
-  position: relative;
-}
-
-.sub-menu-item:hover>.detail-menu.active {
-  display: block;
+.sub-menu-item:hover > .detail-menu.active {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-gap: 5px;
 }
 
 .detail-menu-item {
@@ -1008,10 +1032,12 @@ const fetchSubCategories = async (mainCategoryValue: string) => {
   border-radius: 4px;
   transition: background-color 0.2s;
   cursor: pointer;
+  color: #ffffff;
+  font-weight: 500;
 }
 
 .detail-menu-item:hover {
-  background-color: #357abd;
+  background-color: #1e3c5a;
 }
 
 .auth-container.mobile-auth {
@@ -1066,9 +1092,12 @@ const fetchSubCategories = async (mainCategoryValue: string) => {
   top: 100%;
   left: 0;
   flex-direction: row;
+  flex-wrap: wrap;
   z-index: 12;
   background-color: #4a90e2;
   padding: 10px 0;
+  min-width: auto;
+  width: max-content;
 }
 
 .menu-item:hover>.sub-menu.multi-column,
@@ -1077,9 +1106,22 @@ const fetchSubCategories = async (mainCategoryValue: string) => {
 }
 
 .sub-menu-column {
-  width: 200px;
+  width: auto;
   margin-right: 20px;
   border-bottom: none;
+}
+
+.sub-menu-column > ul {
+  display: block;
+  width: fit-content;
+  min-width: 180px;
+}
+
+.main-menu > li:first-child .sub-menu-column > ul {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  width: 360px;
+  gap: 0;
 }
 
 .sub-menu-column:last-child {
@@ -1220,5 +1262,46 @@ const fetchSubCategories = async (mainCategoryValue: string) => {
   .welcome-text {
     font-size: 14px;
   }
+}
+
+/* 학습자별과 전공별 카테고리의 너비 조정 */
+.main-menu > li:nth-child(2) .sub-menu-column > ul,
+.main-menu > li:nth-child(3) .sub-menu-column > ul {
+  width: 180px;
+}
+
+/* 지역별 카테고리의 서브메뉴 너비 조정 */
+.main-menu > li:first-child .sub-menu-column > ul {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  width: 360px;
+  gap: 0;
+}
+
+/* 소분류 컬럼의 너비 조정 */
+.sub-menu-column {
+  width: auto;
+  margin-right: 20px;
+  border-bottom: none;
+}
+
+.sub-menu-column:last-child {
+  margin-right: 0;
+}
+
+/* JavaScript로 동적으로 클래스 추가를 위한 스타일 */
+.detail-menu.one-column {
+  grid-template-columns: 1fr !important;
+  width: 180px !important;
+}
+
+.detail-menu.two-columns {
+  grid-template-columns: repeat(2, 1fr) !important;
+  width: 360px !important;
+}
+
+.detail-menu.three-columns {
+  grid-template-columns: repeat(3, 1fr) !important;
+  width: 540px !important;
 }
 </style>
