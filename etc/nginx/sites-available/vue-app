@@ -1,0 +1,13 @@
+server {
+    listen 80; # HTTP 포트 (HTTPS 설정 시 443으로 변경)
+    server_name 3.34.184.97; # 사용자 도메인 또는 IP 주소로 변경
+
+    root /path/to/your/vue/dist; # Vue.js 빌드 결과물 (dist) 폴더 경로로 변경
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ /index.html; # Vue Router history 모드 지원
+    }
+
+    # 필요한 경우 추가적인 설정 (예: static 파일 캐싱, gzip 압축 등)
+} 

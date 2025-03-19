@@ -50,7 +50,7 @@ const loading = ref(true);
 // 게시글 불러오기
 const fetchSupport = async () => {
   try {
-    const response = await axios.get(`/posts/${route.params.id}`);
+    const response = await axios.get(`/supports/${route.params.id}`);
     if (response.data.success) {
       form.value = {
         title: response.data.data.title,
