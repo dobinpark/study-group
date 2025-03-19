@@ -80,9 +80,9 @@ const handleSubmit = async () => { // 함수 이름 유지 (handleSubmit)
   isSubmitting.value = true;
 
   try {
-    const response = await axios.put(`/supports/${route.params.id}`, form.value); // API 엔드포인트 수정: /supports/:id
+    const response = await axios.put(`/supports/${route.params.id}`, form.value);
     if (response.data.success) {
-      router.push(`/supports/${route.params.id}`); // 경로 수정: /supports/:id
+      router.push(`/supports/${route.params.id}`);
     }
   } catch (error: any) {
     alert(error.response?.data?.message || '게시글 수정에 실패했습니다');

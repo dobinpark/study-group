@@ -233,7 +233,7 @@ export class SupportController {
 
 
     // 게시물 수정
-    @Patch(':id')
+    @Put(':id')
     @UseGuards(RolesGuard)
     @Roles(UserRole.ADMIN)
     @ApiOperation({ summary: '고객센터 게시글 수정' })
@@ -307,7 +307,7 @@ export class SupportController {
         const userId = user.id;
         this.logger.debug(`고객센터 게시글 수정 요청: ID ${id}, 사용자 ID ${userId}`);
 
-        const updatedSupport = await this.supportService.updatePost(+id, updateSupportDto, userId);
+        const updatedSupport = await this.supportService.update(+id, updateSupportDto, userId);
         return updatedSupport;
     }
 

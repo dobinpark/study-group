@@ -146,7 +146,7 @@ export class SupportService {
     }
 
     // 게시물 수정
-    async updatePost(id: number, updateSupportDto: UpdateSupportDto, userId: number): Promise<Support> {
+    async update(id: number, updateSupportDto: UpdateSupportDto, userId: number): Promise<Support> {
         const support = await this.findOne(id);
 
         if (support.authorId !== userId) {
