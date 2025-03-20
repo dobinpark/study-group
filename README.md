@@ -1,9 +1,7 @@
 <img width="100%" src="https://github.com/user-attachments/assets/3dd4d804-7a81-4542-af18-d7a397e02efe"/>
 
 # 함공
-
-함께 공부하는 공간,<br>
-함공입니다.
+함께 공부하는 공간, 함공입니다.
 
 # 💡 Topic
 스터디 그룹 관리 및 협업을 위한 서비스 플랫폼 개발을 통해 사용자들이<br>
