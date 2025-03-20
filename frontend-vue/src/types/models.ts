@@ -25,6 +25,7 @@ export interface StudyGroup {
   createdAt: string;
   updatedAt?: string;
   status?: string;
+  isOnline: boolean;
 }
 
 export interface Post {
@@ -120,3 +121,17 @@ export const SupportCategoryKorean = {
 } as const;
 
 export type SupportCategoryKeys = keyof typeof SupportCategoryKorean;
+
+// 스터디 참여 요청 인터페이스
+export interface JoinRequest {
+  id: number;
+  userId: number;
+  user: User;
+  studyGroupId: number;
+  studyGroup: StudyGroup;
+  reason: string;
+  experience: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  createdAt: string;
+  updatedAt: string;
+}

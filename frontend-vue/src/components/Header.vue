@@ -9,22 +9,15 @@
               <span class="title">함공</span>
             </a>
           </div>
-          <div v-if="isLoggedInComputed" class="welcome-container">
-            <span class="welcome-text">
-              {{
-                currentUser?.nickname ||
-                currentUser?.username
-              }}님 환영합니다!
-            </span>
-          </div>
+          <router-link class="notification-link" to="/messages">
+            <img alt="알림" class="notification-icon" src="../assets/images/jong.png" />
+            <span v-if="notificationCount > 0" class="notification-badge">{{ notificationCount }}</span>
+          </router-link>
           <div class="auth-container" :class="{ 'mobile-auth': isMobile }">
             <template v-if="isLoggedInComputed && currentUser">
               <div class="nav-buttons" :class="{ 'mobile-nav-buttons': isMobile }">
-    <router-link class="nav-button" to="/my-studies">
-                  내 스터디
-                </router-link>
-                <router-link class="nav-button" to="/profile">
-                  프로필
+                <router-link class="nav-button" to="/mypage">
+                  마이페이지
                 </router-link>
                 <button class="nav-button" @click="handleLogout" :disabled="isLoggingOut"
                   style="background-color: red;">
@@ -91,7 +84,7 @@
               </li>
               <li class="menu-item" :class="{ 'mobile-menu-item': isMobile }">
                 커뮤니티
-                <ul class="sub-menu">
+                <ul class="sub-menu multi-column">
                   <li class="sub-menu-column">
                     <ul>
                       <li v-for="category in communityCategories" :key="category.name" class="sub-menu-item" @click="
@@ -107,7 +100,7 @@
               </li>
               <li class="menu-item" :class="{ 'mobile-menu-item': isMobile }">
                 고객센터
-                <ul class="sub-menu">
+                <ul class="sub-menu multi-column">
                   <li class="sub-menu-column">
                     <ul>
                       <li v-for="category in supportCategories" :key="category.name" class="sub-menu-item" @click="
@@ -149,14 +142,18 @@ provide('emitter', emitter);
 
 // 로그인 상태 관리
 const isLoggedInComputed = computed(() => {
-  console.log('Header.vue: isLoggedInComputed computed 호출 - isAuthenticated:', authStore.isAuthenticated);
+  console.log('Header.vue: isLoggedInComputed computed, isAuthenticated:', authStore.isAuthenticated);
   return authStore.isAuthenticated;
 });
 const currentUser = computed(() => {
-  console.log('Header.vue: currentUser computed 호출 - user:', userStore.user);
+  console.log('Header.vue: currentUser computed, user:', userStore.user);
   return userStore.user;
 });
 const isLoggingOut = ref(false);
+
+// 알림 수 상태 관리
+const notificationCount = ref(0);
+const notificationInterval = ref<number | null>(null);
 
 // 모바일 화면 여부
 const isMobile = ref(false);
@@ -755,6 +752,44 @@ const goHome = () => {
   }
 };
 
+// 알림 수 가져오기
+const fetchNotificationCount = async () => {
+  if (!isLoggedInComputed.value) return;
+
+  let totalCount = 0;
+
+  try {
+    // 읽지 않은 쪽지 수 가져오기
+    try {
+      const messagesResponse = await axios.get('/messages/unread-count');
+      if (messagesResponse.status === 200 && messagesResponse.data.data !== undefined) {
+        totalCount += messagesResponse.data.data;
+      }
+    } catch (error) {
+      console.error('읽지 않은 쪽지 수를 가져오는데 실패했습니다:', error);
+      // 오류가 발생해도 계속 진행
+    }
+
+    // 새로운 공지사항 수 가져오기
+    try {
+      // API가 아직 구현되지 않았을 수 있으므로 조건부로 호출
+      // 구현된 API로 교체하세요
+      const noticesResponse = await axios.get('/study-groups/notices/unread-count');
+      if (noticesResponse.status === 200 && noticesResponse.data.data !== undefined) {
+        totalCount += noticesResponse.data.data;
+      }
+    } catch (error) {
+      console.error('읽지 않은 공지사항 수를 가져오는데 실패했습니다:', error);
+      // 오류가 발생해도 계속 진행
+    }
+
+    // 전체 알림 수 업데이트
+    notificationCount.value = totalCount;
+  } catch (error) {
+    console.error('알림 수를 가져오는데 실패했습니다:', error);
+  }
+};
+
 // 컴포넌트 마운트 시 인증 상태 다시 확인
 onMounted(() => {
   // 모바일 화면 체크
@@ -765,11 +800,23 @@ onMounted(() => {
   } else {
     console.log('세션 이미 확인됨');
   }
+
+  // 알림 수 가져오기
+  fetchNotificationCount();
+
+  // 1분마다 알림 수 업데이트
+  notificationInterval.value = window.setInterval(fetchNotificationCount, 60000);
 });
 
 // 컴포넌트 언마운트 시 이벤트 리스너 제거
 onUnmounted(() => {
   window.removeEventListener('resize', checkMobile);
+
+  // 알림 인터벌 정리
+  if (notificationInterval.value !== null) {
+    window.clearInterval(notificationInterval.value);
+    notificationInterval.value = null;
+  }
 });
 
 // 서브 카테고리 활성화 상태 감시
@@ -1304,5 +1351,50 @@ const fetchSubCategories = async (mainCategoryValue: string) => {
 .detail-menu.three-columns {
   grid-template-columns: repeat(3, 1fr) !important;
   width: 540px !important;
+}
+
+.notification-link {
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+  padding: 0.5rem 1rem;
+  color: #4a90e2;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  text-decoration: none;
+  margin-right: 1rem;
+}
+
+.notification-link:hover {
+  color: #357abd;
+  transform: translateY(-2px);
+}
+
+.notification-badge {
+  position: absolute;
+  top: -5px;
+  right: 2px;
+  background-color: #e53e3e;
+  color: white;
+  font-size: 0.7rem;
+  font-weight: bold;
+  height: 18px;
+  min-width: 18px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+}
+
+.notification-icon {
+width: 30px;
+  height: 30px;
+  margin-right: 8px;
+  vertical-align: middle;
 }
 </style>

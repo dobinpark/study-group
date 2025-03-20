@@ -159,6 +159,7 @@ function setupSwagger(app: INestApplication) {
         .addTag('스터디', '스터디 그룹 관련 API')
         .addTag('게시판', '게시판 관련 API')
         .addTag('고객센터', '고객센터 관련 API')
+        .addTag('쪽지', '쪽지 관련 API')
         .addBearerAuth()
         .build();
 

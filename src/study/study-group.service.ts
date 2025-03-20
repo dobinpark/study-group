@@ -249,4 +249,40 @@ export class StudyGroupService {
             throw new InternalServerErrorException('내 스터디 목록을 조회하는 중 오류가 발생했습니다.');
         }
     }
+
+
+    // 멤버 강제 탈퇴 (방장만 가능)
+    async removeMember(groupId: number, memberId: number, requestUserId: number): Promise<void> {
+        this.logger.debug(`removeMember - service - groupId: ${groupId}, memberId: ${memberId}, requestUserId: ${requestUserId}`);
+        
+        const studyGroup = await this.findOne(groupId);
+        
+        // 요청자가 방장인지 확인
+        if (studyGroup.creator.id !== requestUserId) {
+            throw new ForbiddenException('스터디 그룹의 방장만 멤버를 강제 탈퇴시킬 수 있습니다.');
+        }
+        
+        // 강제 탈퇴 대상이 방장인지 확인
+        if (memberId === studyGroup.creator.id) {
+            throw new BadRequestException('방장은 강제 탈퇴시킬 수 없습니다.');
+        }
+        
+        // 대상자가 스터디 멤버인지 확인
+        const isMember = studyGroup.members.some(member => member.id === memberId);
+        if (!isMember) {
+            throw new BadRequestException('해당 사용자는 스터디 그룹의 멤버가 아닙니다.');
+        }
+        
+        // 멤버 제거
+        await this.studyGroupRepository
+            .createQueryBuilder()
+            .relation(StudyGroup, 'members')
+            .of(studyGroup)
+            .remove(memberId);
+        
+        // 현재 멤버 수 감소
+        await this.studyGroupRepository.decrement({ id: groupId }, 'currentMembers', 1);
+        
+        this.logger.debug(`멤버 (ID: ${memberId}) 강제 탈퇴 완료 - 스터디 그룹 ID: ${groupId}`);
+    }
 }

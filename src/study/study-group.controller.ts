@@ -16,6 +16,9 @@ import {
     UnauthorizedException,
     Patch,
     BadRequestException,
+    ForbiddenException,
+    NotFoundException,
+    UseGuards,
 } from '@nestjs/common';
 import {
     ApiTags,
@@ -31,7 +34,9 @@ import {
     ApiInternalServerErrorResponse,
     ApiExtraModels,
     getSchemaPath,
-    ApiHeader
+    ApiHeader,
+    ApiForbiddenResponse,
+    ApiResponse,
 } from '@nestjs/swagger';
 import { StudyGroupService } from './study-group.service';
 import { CreateStudyGroupDto } from './dto/create-study-group.dto';
@@ -415,6 +420,50 @@ export class StudyGroupController {
             const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
             this.logger.error(`스터디 그룹 탈퇴 실패: ${errorMessage}`);
             throw new InternalServerErrorException('스터디 그룹 탈퇴 중 오류가 발생했습니다.');
+        }
+    }
+
+
+    // 스터디 그룹 멤버 강제 탈퇴 (방장만 가능)
+    @Delete(':id/members/:memberId')
+    @UseGuards(AuthGuard)
+    @ApiOperation({ summary: '스터디 그룹 멤버 강제 탈퇴 (방장만 가능)' })
+    @ApiParam({ name: 'id', required: true, description: '스터디 그룹 ID' })
+    @ApiParam({ name: 'memberId', required: true, description: '탈퇴시킬 멤버 ID' })
+    @ApiResponse({ status: 200, description: '멤버 강제 탈퇴 성공' })
+    @ApiResponse({ status: 401, description: '인증되지 않은 사용자' })
+    @ApiResponse({ status: 400, description: '잘못된 요청' })
+    @ApiResponse({ status: 404, description: '스터디 그룹을 찾을 수 없음' })
+    @ApiResponse({ status: 403, description: '방장만 멤버를 강제 탈퇴시킬 수 있음' })
+    async removeMember(
+        @Param('id', ParseIntPipe) id: number,
+        @Param('memberId', ParseIntPipe) memberId: number,
+        @Req() req: Request
+    ) {
+        this.logger.debug(`removeMember - 호출됨 - 그룹 ID: ${id}, 멤버 ID: ${memberId}`);
+        
+        if (!req.user) {
+            throw new UnauthorizedException('인증이 필요합니다.');
+        }
+        
+        const userId = (req.user as User).id;
+        this.logger.debug(`요청 사용자 ID: ${userId}`);
+        
+        try {
+            await this.studyGroupService.removeMember(id, memberId, userId);
+            return { success: true, message: '멤버가 성공적으로 강제 탈퇴되었습니다.' };
+        } catch (error: any) {
+            this.logger.error(`멤버 강제 탈퇴 중 오류 발생: ${error.message}`);
+            
+            if (error instanceof NotFoundException) {
+                throw error;
+            } else if (error instanceof BadRequestException) {
+                throw error;
+            } else if (error instanceof ForbiddenException) {
+                throw error;
+            } else {
+                throw new BadRequestException('멤버 강제 탈퇴 중 오류가 발생했습니다.');
+            }
         }
     }
 }

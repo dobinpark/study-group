@@ -18,6 +18,10 @@ import CreateSupport from '../views/support/CreateSupport.vue';
 import SupportDetail from '../views/support/SupportDetail.vue';
 import EditSupport from '../views/support/EditSupport.vue';
 import SupportList from '../views/support/SupportList.vue';
+import MessageList from '../views/messages/MessageList.vue';
+import MessageDetail from '../views/messages/MessageDetail.vue';
+import MyPage from '../views/MyPage.vue';
+import StudyRequests from '../views/study/StudyRequests.vue';
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -160,6 +164,30 @@ const routes: Array<RouteRecordRaw> = [
     path: '/supports/:id/comments',
     name: 'supportComments',
     component: SupportDetail,
+  },
+  {
+    path: '/messages',
+    name: 'messages',
+    component: MessageList,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/messages/:id',
+    name: 'message-detail',
+    component: MessageDetail,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/mypage',
+    name: 'mypage',
+    component: MyPage,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/study-requests',
+    name: 'study-requests',
+    component: StudyRequests,
+    meta: { requiresAuth: true }
   },
 ];
 
