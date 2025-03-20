@@ -101,7 +101,29 @@ onMounted(() => {
   resetForm();
   if (route.query.expired === 'true') {
     loginError.value = '세션이 만료되었습니다. 다시 로그인해주세요.';
+  } else if (route.query.loggedOut === 'true') {
+    // 로그아웃 후 로그인 페이지 접근 시
+    console.log('로그인 페이지: 로그아웃 후 접근');
+  } else {
+    console.log('로그인 페이지: 일반 접근');
   }
+
+  // 로그인 페이지 접근 시 잠재적인 세션 문제 해결을 위한 추가 작업
+  const clearSessionState = async () => {
+    // 인증 상태 초기화 (로그인 페이지 접근 시)
+    if (authStore.isAuthenticated) {
+      console.log('로그인 페이지 접근: 클라이언트 인증 상태 초기화');
+      authStore.clearUser();
+      userStore.clearUser();
+    }
+
+    // 브라우저 재시작 후 쿠키가 남아있는 문제를 해결하기 위해 쿠키 정리
+    if (authStore.clearCookies && typeof authStore.clearCookies === 'function') {
+      authStore.clearCookies();
+    }
+  };
+
+  clearSessionState();
 });
 </script>
 

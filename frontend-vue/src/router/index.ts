@@ -205,14 +205,32 @@ router.beforeEach(async (to, from, next) => {
 
   console.log(`Router Guard: beforeEach 시작 - to.path: ${to.path}, from.path: ${from.path}`); // ✅ beforeEach 시작 로그
 
+  // 로그인 페이지로 이동하는 경우 특별 처리
+  if (to.name === 'login') {
+    console.log('Router Guard: 로그인 페이지 접근');
+    
+    // 명시적인 로그아웃 요청이 아닌데 이미 로그인된 상태인 경우 홈으로 리다이렉트
+    if (authStore.isAuthenticated && !from.query.loggedOut) {
+      console.log('Router Guard: 이미 로그인된 상태로 로그인 페이지 접근, 홈으로 리다이렉트');
+      return next({ path: '/' });
+    }
+    
+    // 로그인 페이지 접근은 세션 체크 없이 허용 (쿠키 충돌 방지)
+    console.log('Router Guard: 로그인 페이지 접근 허용');
+    return next();
+  }
+
   // 세션 체크가 완료되지 않았으면 대기 (초기 로딩 시 불필요한 리다이렉트 방지)
   if (!authStore.sessionChecked) {
     console.log('Router Guard: 세션 체크 대기 중... - to.path:', to.path); // ✅ 세션 체크 대기 로그
-    await authStore.checkSession();
-    console.log('Router Guard: 세션 체크 완료 - to.path:', to.path, ', sessionChecked:', authStore.sessionChecked); // ✅ 세션 체크 완료 로그
-    if (!authStore.sessionChecked) {
-      console.log('Router Guard: 세션 체크 실패, public 라우트로 진행 - to.path:', to.path); // ✅ 세션 체크 실패 로그
-      return next(); // 세션 체크 실패 시 public 라우트는 허용
+    try {
+      await authStore.checkSession();
+      console.log('Router Guard: 세션 체크 완료 - isAuthenticated:', authStore.isAuthenticated); // ✅ 세션 체크 완료 로그
+    } catch (error) {
+      console.log('Router Guard: 세션 체크 중 오류 발생, 인증 상태 초기화', error);
+      authStore.clearUser();
+    } finally {
+      console.log('Router Guard: 세션 체크 프로세스 완료 - sessionChecked:', authStore.sessionChecked);
     }
   }
 
@@ -232,11 +250,7 @@ router.beforeEach(async (to, from, next) => {
       console.log('Router Guard: 인증 완료, 라우트 진행 - to.path:', to.path); // ✅ 인증 완료, 진행 로그
       next();
     }
-  } else if (to.name === 'login' && isAuth) {
-    console.log('Router Guard: 로그인 페이지 접근, 이미 로그인 상태, 홈으로 리다이렉트 - to.path:', to.path); // ✅ 로그인 페이지 접근, 홈 리다이렉트 로그
-    next({ path: '/' });
-  }
-  else {
+  } else {
     console.log('Router Guard: public 라우트, 라우트 진행 - to.path:', to.path); // ✅ public 라우트, 진행 로그
     next();
   }

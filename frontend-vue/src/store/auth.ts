@@ -59,6 +59,19 @@ export const useAuthStore = defineStore('auth', {
       console.log('AuthStore: login 액션 시작', { username, password });
       this.isLoading = true;
       try {
+        // 로그인 시도 전에 기존 세션 정리 (쿠키 충돌 방지)
+        try {
+          console.log('AuthStore: 로그인 전 세션 정리 시도');
+          await axios.post('/auth/logout', {}, { 
+            // 오류가 발생해도 계속 진행하도록 설정
+            validateStatus: (status) => true 
+          });
+          console.log('AuthStore: 기존 세션 정리 완료');
+        } catch (cleanupError) {
+          console.log('AuthStore: 세션 정리 중 오류 발생 (무시됨)', cleanupError);
+          // 세션 정리 실패는 무시하고 로그인 진행
+        }
+
         const response = await axios.post('/auth/login', { username, password });
 
         if (response.status === 200 && response.data.success === true) {
@@ -122,27 +135,62 @@ export const useAuthStore = defineStore('auth', {
     async logout() {
       console.log('AuthStore: logout 액션 시작');
       this.isLoading = true;
+      let logoutSuccess = false;
+      
       try {
-        await axios.post('/auth/logout');
+        // 서버에 로그아웃 요청
+        try {
+          await axios.post('/auth/logout');
+          logoutSuccess = true;
+          console.log('AuthStore: 서버 로그아웃 API 호출 성공');
+        } catch (serverError) {
+          console.error('AuthStore: 서버 로그아웃 API 호출 실패', serverError);
+          // 서버 로그아웃 실패해도 클라이언트 상태는 초기화
+        }
+        
+        // 클라이언트 상태 초기화 (서버 응답과 무관하게 항상 실행)
         this.isAuthenticated = false;
         this.user = null;
         this.sessionChecked = false;
-        console.log('AuthStore: 로그아웃 성공', this.isAuthenticated);
-        console.log('AuthStore: isAuthenticated 상태 변경: false');
-        console.log('AuthStore: sessionChecked 상태 변경: false (로그아웃)');
-
+        
         const userStore = useUserStore();
         userStore.clearUser();
 
+        // 스토어 상태 초기화
         this.$reset();
-        console.log('AuthStore: persist 상태 초기화 완료');
+        console.log('AuthStore: 스토어 상태 초기화 완료');
 
-        await router.push('/login');
+        // 클라이언트 측 쿠키 정리
+        this.clearCookies();
+        
+        // 로그인 페이지로 이동 (loggedOut 파라미터 추가)
+        await router.push({ 
+          path: '/login',
+          query: { loggedOut: 'true' } 
+        });
+        
+        return true;
       } catch (error: any) {
-        console.error('AuthStore: 로그아웃 에러', error);
+        console.error('AuthStore: 로그아웃 중 오류 발생', error);
+        return false;
       } finally {
         this.isLoading = false;
-        console.log('AuthStore: logout 액션 완료, isLoading:', this.isLoading, 'isAuthenticated:', this.isAuthenticated, 'sessionChecked:', this.sessionChecked);
+        console.log('AuthStore: logout 액션 완료, isAuthenticated:', this.isAuthenticated);
+      }
+    },
+    
+    // 쿠키 정리 헬퍼 함수
+    clearCookies() {
+      try {
+        document.cookie.split(';').forEach(cookie => {
+          const [name] = cookie.trim().split('=');
+          if (name) {
+            document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+          }
+        });
+        console.log('AuthStore: 클라이언트 쿠키 정리 완료');
+      } catch (error) {
+        console.error('AuthStore: 쿠키 정리 중 오류', error);
       }
     },
 
