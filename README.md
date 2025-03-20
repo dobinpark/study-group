@@ -40,12 +40,12 @@
 # 📷 Screenshot
 <h3>메인 페이지</h3>
 ![함공_메인 페이지](https://github.com/user-attachments/assets/bf0a60f8-ef65-4e9d-b621-666bc976acc8)
-<br>
+
 <h3>스터디 그룹 페이지</h3>
 ![함공_스터디 그룹 리스트 페이지](https://github.com/user-attachments/assets/1bad21c5-ec94-4d17-a01a-0398d17409bd)
-<br>
+
 <h3>공지사항 페이지</h3>
 ![함공_공지사항 리스트 페이지](https://github.com/user-attachments/assets/3548dc43-cb0e-4874-b687-ca12ba47af23)
-<br>
+
 <h3>마이 페이지</h3>
 ![함공_마이페이지](https://github.com/user-attachments/assets/d7cc4798-7284-4435-bd9c-ab1ff5ce9d65)
