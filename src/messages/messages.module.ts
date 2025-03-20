@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, Logger } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { MessagesService } from './messages.service';
 import { MessagesController } from './messages.controller';
@@ -11,7 +11,7 @@ import { StudyGroup } from '../study/entities/study-group.entity';
         TypeOrmModule.forFeature([Message, User, StudyGroup])
     ],
     controllers: [MessagesController],
-    providers: [MessagesService],
+    providers: [MessagesService, Logger],
     exports: [MessagesService]
 })
 export class MessagesModule { }

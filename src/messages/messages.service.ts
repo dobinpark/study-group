@@ -138,4 +138,29 @@ export class MessagesService {
       }
     });
   }
+
+  // 쪽지 읽음 상태로 변경
+  async markAsRead(id: number, userId: number): Promise<void> {
+    const message = await this.messageRepository.findOne({
+      where: { id }
+    });
+
+    if (!message) {
+      throw new NotFoundException('쪽지를 찾을 수 없습니다.');
+    }
+
+    // 받은 쪽지만 읽음 상태로 변경 가능
+    if (message.receiverId !== userId) {
+      throw new ForbiddenException('해당 쪽지를 읽음 처리할 권한이 없습니다.');
+    }
+
+    // 이미 읽음 상태이면 아무 것도 하지 않음
+    if (message.isRead) {
+      return;
+    }
+
+    // 읽음 상태로 변경
+    message.isRead = true;
+    await this.messageRepository.save(message);
+  }
 }

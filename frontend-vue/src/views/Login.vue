@@ -43,6 +43,7 @@ import { reactive, ref, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useAuthStore } from '../store/auth';
 import { useUserStore } from '../store/user';
+import axios from '../utils/axios';
 
 const router = useRouter();
 const route = useRoute();
@@ -65,6 +66,9 @@ const handleSubmit = async () => {
   try {
     console.log('로그인 시도:', { username: form.username, password: form.password, rememberMe: form.rememberMe });
     
+    // 로그인 전에 세션 상태 초기화 (문제 방지)
+    await clearSessionState();
+    
     const success = await authStore.login(form.username, form.password);
     
     if (success) {
@@ -72,11 +76,11 @@ const handleSubmit = async () => {
       const redirectPath = route.query.redirect as string || '/';
       router.push(redirectPath);
     } else {
-      loginError.value = '아이디 또는 비밀번호를 확인해주세요.';
+      loginError.value = '로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.';
     }
   } catch (error: any) {
     console.error('로그인 에러:', error);
-    loginError.value = error.response?.data?.message || '로그인 중 오류가 발생했습니다.';
+    loginError.value = error.response?.data?.message || '로그인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
   } finally {
     isLoading.value = false;
   }
@@ -97,10 +101,56 @@ const closeFindPasswordModal = () => {
   isFindPasswordModalOpen.value = false;
 };
 
+// 세션 상태를 초기화하는 함수
+const clearSessionState = async () => {
+  console.log('로그인 페이지: 세션 상태 초기화 시작');
+  
+  // 로컬 스토리지 인증 상태 초기화
+  try {
+    window.localStorage.removeItem('auth-session');
+    console.log('로그인 페이지: 로컬 스토리지 인증 상태 초기화 완료');
+  } catch (err) {
+    console.error('로그인 페이지: 로컬 스토리지 초기화 실패', err);
+  }
+  
+  // 인증 스토어 상태 초기화
+  authStore.clearUser();
+  userStore.clearUser();
+  
+  // 쿠키 정리
+  try {
+    document.cookie.split(';').forEach(cookie => {
+      const [name] = cookie.trim().split('=');
+      if (name) {
+        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+      }
+    });
+    console.log('로그인 페이지: 쿠키 정리 완료');
+  } catch (cookieErr) {
+    console.error('로그인 페이지: 쿠키 정리 실패', cookieErr);
+  }
+  
+  // 백엔드 세션도 정리 (선택적)
+  try {
+    await axios.post('/auth/logout', {}, { 
+      // 오류가 발생해도 계속 진행하도록 설정
+      validateStatus: (status) => true 
+    });
+    console.log('로그인 페이지: 백엔드 세션 정리 완료');
+  } catch (err) {
+    console.log('로그인 페이지: 백엔드 세션 정리 실패 (무시됨)');
+  }
+  
+  console.log('로그인 페이지: 세션 상태 초기화 완료');
+};
+
 onMounted(() => {
   resetForm();
+  
+  // 페이지 접근 이유에 따른 메시지 표시
   if (route.query.expired === 'true') {
-    loginError.value = '세션이 만료되었습니다. 다시 로그인해주세요.';
+    loginError.value = '세션이 만료되었거나 유효하지 않습니다. 다시 로그인해주세요.';
+    console.log('로그인 페이지: 세션 만료로 인한 접근');
   } else if (route.query.loggedOut === 'true') {
     // 로그아웃 후 로그인 페이지 접근 시
     console.log('로그인 페이지: 로그아웃 후 접근');
@@ -108,21 +158,7 @@ onMounted(() => {
     console.log('로그인 페이지: 일반 접근');
   }
 
-  // 로그인 페이지 접근 시 잠재적인 세션 문제 해결을 위한 추가 작업
-  const clearSessionState = async () => {
-    // 인증 상태 초기화 (로그인 페이지 접근 시)
-    if (authStore.isAuthenticated) {
-      console.log('로그인 페이지 접근: 클라이언트 인증 상태 초기화');
-      authStore.clearUser();
-      userStore.clearUser();
-    }
-
-    // 브라우저 재시작 후 쿠키가 남아있는 문제를 해결하기 위해 쿠키 정리
-    if (authStore.clearCookies && typeof authStore.clearCookies === 'function') {
-      authStore.clearCookies();
-    }
-  };
-
+  // 로그인 페이지 접근 시 인증 및 세션 상태 초기화
   clearSessionState();
 });
 </script>

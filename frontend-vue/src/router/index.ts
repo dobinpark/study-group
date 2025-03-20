@@ -28,11 +28,13 @@ const routes: Array<RouteRecordRaw> = [
     path: '/',
     name: 'home',
     component: Home,
+    meta: { public: true },
   },
   {
     path: '/home',
     name: 'home-alias',
     component: Home,
+    meta: { public: true },
   },
   {
     path: '/login',
@@ -205,6 +207,12 @@ router.beforeEach(async (to, from, next) => {
 
   console.log(`Router Guard: beforeEach 시작 - to.path: ${to.path}, from.path: ${from.path}`); // ✅ beforeEach 시작 로그
 
+  // public 라우트 또는 메인 페이지는 인증 상태에 관계없이 항상 접근 가능
+  if (to.meta.public || to.path === '/' || to.path === '/home') {
+    console.log('Router Guard: public 라우트 또는 메인 페이지 접근, 인증 확인 없이 허용');
+    return next();
+  }
+
   // 로그인 페이지로 이동하는 경우 특별 처리
   if (to.name === 'login') {
     console.log('Router Guard: 로그인 페이지 접근');
@@ -251,7 +259,7 @@ router.beforeEach(async (to, from, next) => {
       next();
     }
   } else {
-    console.log('Router Guard: public 라우트, 라우트 진행 - to.path:', to.path); // ✅ public 라우트, 진행 로그
+    console.log('Router Guard: 인증 불필요, 라우트 진행 - to.path:', to.path); // ✅ 인증 불필요, 진행 로그
     next();
   }
   console.log('Router Guard: beforeEach 완료 - to.path:', to.path); // ✅ beforeEach 완료 로그

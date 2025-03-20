@@ -37,21 +37,81 @@ export const useAuthStore = defineStore('auth', {
       return new Promise(async (resolve, reject) => {
         try {
           console.log('AuthStore: checkSession - axios.get(/auth/session) 요청'); // ✅ axios 요청 로그
-          await axios.get('/auth/session');
-          this.isAuthenticated = true;
-          this.sessionChecked = true;
-          console.log('AuthStore: 세션 유효, 로그인 상태 유지 - checkSession 성공'); // ✅ 세션 유효 로그
-          console.log('AuthStore: checkSession - document.cookie 값:', document.cookie); // ✅ 쿠키 값 로그 추가
-          resolve(true);
+          
+          // 현재 경로가 메인 페이지인지 확인
+          const currentPath = window.location.pathname;
+          const isMainPage = currentPath === '/' || currentPath === '/home' || currentPath === '/index.html';
+          console.log('AuthStore: checkSession - 현재 경로:', currentPath, '메인페이지:', isMainPage);
+          
+          try {
+            // 세션 상태 초기화 (혹시 모를 쿠키 충돌 방지)
+            localStorage.getItem('auth-session') || console.log('AuthStore: 로컬 스토리지에 auth-session 없음');
+            
+            const response = await axios.get('/auth/session');
+            
+            if (response.status === 200 && response.data.success) {
+              this.isAuthenticated = true;
+              this.sessionChecked = true;
+              console.log('AuthStore: 세션 유효, 로그인 상태 유지 - checkSession 성공');
+              console.log('AuthStore: checkSession - document.cookie 값:', document.cookie);
+              
+              // 사용자 정보 갱신 (선택적으로 서버에서 최신 정보를 받아옴)
+              if (response.data.data && response.data.data.user) {
+                this.user = response.data.data.user;
+                const userStore = useUserStore();
+                userStore.setUser(response.data.data.user);
+              }
+              
+              resolve(true);
+            } else {
+              throw new Error('세션 체크 실패: 서버 응답이 유효하지 않음');
+            }
+          } catch (error) {
+            // 메인 페이지인 경우 오류를 무시하고 성공으로 처리
+            if (isMainPage) {
+              console.log('AuthStore: 메인 페이지에서 세션 체크 실패, 오류 무시하고 세션 체크 완료로 처리');
+              this.isAuthenticated = false;
+              this.sessionChecked = true;
+              
+              // 세션 정리 (필요 시)
+              this.clearSessionState();
+              
+              // 메인 페이지는 세션 체크 실패해도 성공으로 간주
+              resolve(false);
+              return;
+            }
+            
+            throw error; // 메인 페이지가 아니면 오류를 아래 catch 블록으로 전달
+          }
         } catch (error: any) {
           this.isAuthenticated = false;
           this.sessionChecked = true;
-          console.log('AuthStore: 세션 유효하지 않음, 로그아웃 상태 - checkSession 실패', error); // ✅ 세션 무효 로그
+          console.log('AuthStore: 세션 유효하지 않음, 로그아웃 상태 - checkSession 실패', error);
+          
+          // 세션이 유효하지 않으면 쿠키와 로컬 스토리지 정리
+          this.clearSessionState();
+          
           reject(false);
         } finally {
           console.log('AuthStore: checkSession 액션 완료 (finally)'); // ✅ finally 로그
         }
       });
+    },
+    
+    // 세션 상태 초기화 헬퍼 함수 (코드 중복 방지)
+    clearSessionState() {
+      try {
+        localStorage.removeItem('auth-session');
+        document.cookie.split(';').forEach(cookie => {
+          const [name] = cookie.trim().split('=');
+          if (name) {
+            document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+          }
+        });
+        console.log('AuthStore: 세션 상태 정리 완료');
+      } catch (cleanupError) {
+        console.error('AuthStore: 상태 정리 중 오류', cleanupError);
+      }
     },
 
     // 로그인
@@ -62,6 +122,18 @@ export const useAuthStore = defineStore('auth', {
         // 로그인 시도 전에 기존 세션 정리 (쿠키 충돌 방지)
         try {
           console.log('AuthStore: 로그인 전 세션 정리 시도');
+          // 로컬 스토리지 정리
+          localStorage.removeItem('auth-session');
+          
+          // 쿠키 정리
+          document.cookie.split(';').forEach(cookie => {
+            const [name] = cookie.trim().split('=');
+            if (name) {
+              document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+            }
+          });
+          
+          // 백엔드 세션 정리
           await axios.post('/auth/logout', {}, { 
             // 오류가 발생해도 계속 진행하도록 설정
             validateStatus: (status) => true 

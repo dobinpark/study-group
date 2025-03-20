@@ -10,7 +10,8 @@ import {
     ParseIntPipe,
     Req,
     Logger,
-    InternalServerErrorException
+    InternalServerErrorException,
+    Patch
 } from '@nestjs/common';
 import {
     ApiTags,
@@ -262,9 +263,42 @@ export class MessagesController {
         try {
             const user = req.user as User;
             await this.messagesService.deleteMessage(id, user.id);
-            return { success: true, message: '쪽지가 삭제되었습니다.' };
+            return { success: true };
         } catch (error: any) {
             this.logger.error(`쪽지 삭제 실패: ${error.message}`);
+            throw error;
+        }
+    }
+
+    // 쪽지 읽음 상태로 변경
+    @ApiOperation({ summary: '쪽지 읽음 상태로 변경' })
+    @ApiParam({ name: 'id', description: '쪽지 ID' })
+    @ApiOkResponse({
+        description: '쪽지 읽음 상태 변경 성공',
+        schema: {
+            allOf: [
+                { $ref: getSchemaPath(BaseResponse) }
+            ]
+        }
+    })
+    @ApiNotFoundResponse({ description: '쪽지를 찾을 수 없음' })
+    @ApiUnauthorizedResponse({ description: '인증 필요' })
+    @ApiHeader({
+        name: 'Cookie',
+        description: '로그인 세션 쿠키',
+        required: true
+    })
+    @Patch(':id/read')
+    async markAsRead(
+        @Param('id', ParseIntPipe) id: number,
+        @Req() req: Request
+    ): Promise<BaseResponse> {
+        try {
+            const user = req.user as User;
+            await this.messagesService.markAsRead(id, user.id);
+            return { success: true };
+        } catch (error: any) {
+            this.logger.error(`쪽지 읽음 상태 변경 실패: ${error.message}`);
             throw error;
         }
     }

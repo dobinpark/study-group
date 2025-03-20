@@ -15,6 +15,11 @@ const API_URL = process.env.NODE_ENV === 'production'
   ? process.env.VUE_APP_API_URL || '/api'
   : '/api';
 
+// 로깅 추가
+console.log('[axios.ts] API_URL 설정:', API_URL);
+console.log('[axios.ts] NODE_ENV:', process.env.NODE_ENV);
+console.log('[axios.ts] VUE_APP_API_URL:', process.env.VUE_APP_API_URL);
+
 axios.defaults.withCredentials = true;
 
 // 기본 axios 인스턴스 생성
@@ -88,10 +93,73 @@ apiClient.interceptors.response.use(
       message: (error.response?.data as { message?: string })?.message || error.message,
     });
 
-
-    if (error.response?.status === 401 && !originalRequest?._retry) {
-      originalRequest!._retry = true;
+    // 401 오류 처리 (인증 오류, 세션 만료)
+    if (error.response?.status === 401) {
+      console.log('[API 인터셉터] 401 인증 오류 감지: 세션 만료 또는 로그인 필요');
+      
+      // 현재 페이지 경로 확인
+      const currentPath = window.location.pathname;
+      const isMainPage = currentPath === '/' || currentPath === '/index.html';
+      const isLoginPage = currentPath.includes('/login');
+      
+      console.log(`[API 인터셉터] 현재 경로: ${currentPath}, 메인페이지: ${isMainPage}, 로그인페이지: ${isLoginPage}`);
+      
+      // 메인 페이지나 로그인 페이지가 아닌 경우에만 리다이렉트 처리
+      if (!isMainPage && !isLoginPage) {
+        console.log('[API 인터셉터] 로그인 페이지로 리다이렉트 준비 시작');
+        
+        // 이미 재시도 중인 요청이 아닌 경우에만 처리
+        if (!originalRequest?._retry) {
+          originalRequest!._retry = true;
+          
+          console.log('[API 인터셉터] 인증 상태 정리 시작');
+          
+          // 인증 상태 완전 초기화 (더 철저한 방식)
+          try {
+            // 로컬 스토리지에서 인증 정보 제거
+            window.localStorage.removeItem('auth-session');
+            console.log('[API 인터셉터] 로컬 스토리지 인증 정보 제거 완료');
+            
+            // 쿠키 정리
+            document.cookie.split(';').forEach(cookie => {
+              const [name] = cookie.trim().split('=');
+              if (name) {
+                document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+              }
+            });
+            console.log('[API 인터셉터] 쿠키 정리 완료');
+            
+            // 백엔드 세션도 정리 (선택적)
+            try {
+              await apiClient.post('/auth/logout', {}, { 
+                validateStatus: (status) => true // 오류가 발생해도 계속 진행
+              });
+              console.log('[API 인터셉터] 백엔드 세션 정리 완료');
+            } catch (logoutErr) {
+              console.log('[API 인터셉터] 백엔드 세션 정리 실패 (무시됨)');
+            }
+            
+          } catch (clearError) {
+            console.error('[API 인터셉터] 인증 상태 초기화 중 오류:', clearError);
+          }
+          
+          console.log('[API 인터셉터] 인증 상태 정리 완료, 로그인 페이지로 리다이렉트 실행');
+          
+          // 페이지 이동 (지연시간 단축)
+          setTimeout(() => {
+            window.location.href = '/login?expired=true';
+          }, 50);
+        } else {
+          console.log('[API 인터셉터] 이미 재시도 중인 요청, 추가 처리 없음');
+        }
+      } else if (isMainPage) {
+        console.log('[API 인터셉터] 메인 페이지에서 401 오류 발생, 리다이렉트 없이 오류만 반환');
+        // 메인 페이지에서는 리다이렉트 없이 오류만 반환
+      } else {
+        console.log('[API 인터셉터] 이미 로그인 페이지에 있음, 리다이렉트 건너뜀');
+      }
     }
+    
     return Promise.reject(error);
   }
 );

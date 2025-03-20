@@ -30,12 +30,10 @@
               </div>
             </template>
             <template v-else>
-              <router-link to="/login">
-                <button class="login-button">
-                  <img alt="로그인" class="login-icon" src="../assets/images/man.png" />
-                  로그인
-                </button>
-              </router-link>
+              <button class="login-button" @click="goToLogin">
+                <img alt="로그인" class="login-icon" src="../assets/images/man.png" />
+                로그인
+              </button>
             </template>
           </div>
         </div>
@@ -869,6 +867,45 @@ const fetchSubCategories = async (mainCategoryValue: string) => {
   } catch (error: any) {
     console.error(`${mainCategoryValue} 카테고리의 서브 카테고리 목록을 불러오는데 실패했습니다.`, error);
   }
+};
+
+// 로그인 페이지 이동 함수
+const goToLogin = () => {
+  console.log('Header: 로그인 페이지로 이동');
+  
+  // 세션 상태 초기화 (쿠키 문제 해결을 위한 철저한 정리)
+  try {
+    // 로컬 스토리지에서 인증 정보 제거
+    window.localStorage.removeItem('auth-session');
+    
+    // 쿠키 정리
+    document.cookie.split(';').forEach(cookie => {
+      const [name] = cookie.trim().split('=');
+      if (name) {
+        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+      }
+    });
+    
+    console.log('Header: 로그인 페이지 이동 전 인증 상태 초기화 완료');
+    
+    // 백엔드 세션도 정리
+    axios.post('/auth/logout', {}, { 
+      validateStatus: (status) => true // 오류가 발생해도 계속 진행
+    }).catch(err => {
+      console.log('Header: 백엔드 로그아웃 호출 실패 (무시됨)');
+    });
+    
+    // 스토어 초기화
+    if (authStore.clearUser && typeof authStore.clearUser === 'function') {
+      authStore.clearUser();
+    }
+    
+  } catch (error) {
+    console.error('Header: 인증 상태 초기화 중 오류:', error);
+  }
+  
+  // 로그인 페이지로 이동 (새 인증 흐름 시작을 위해)
+  router.push('/login');
 };
 </script>
 

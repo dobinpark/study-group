@@ -103,6 +103,7 @@ interface Message {
   };
   createdAt: string;
   read: boolean;
+  isRead: boolean;
 }
 
 const route = useRoute();
@@ -120,6 +121,7 @@ const replyData = ref({
   receiverId: 0
 });
 
+// 쪽지 상세 정보 가져오기
 const fetchMessage = async () => {
   try {
     const response = await axios.get(`/messages/${route.params.id}`);
@@ -145,12 +147,14 @@ const markAsRead = async () => {
     await axios.patch(`/messages/${message.value.id}/read`);
     if (message.value) {
       message.value.read = true;
+      message.value.isRead = true;
     }
   } catch (error) {
     console.error('쪽지 읽음 상태 변경 실패:', error);
   }
 };
 
+// 날짜 형식 변환
 const formatDate = (dateString: string) => {
   try {
     const date = new Date(dateString);

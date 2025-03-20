@@ -47,6 +47,7 @@
 import { ref, reactive } from 'vue';
 import axios from '../../utils/axios';
 
+// 쪽지 보내기 모달 컴포넌트
 const props = defineProps<{
   receiverId: number;
   receiverName: string;
@@ -63,10 +64,12 @@ const messageForm = reactive({
   content: '',
 });
 
+// 모달 닫기 이벤트 발생
 const closeModal = () => {
   emit('close');
 };
 
+// 쪽지 전송 이벤트 처리
 const sendMessage = async () => {
   if (!messageForm.title.trim() || !messageForm.content.trim()) {
     error.value = '제목과 내용을 모두 입력해주세요.';

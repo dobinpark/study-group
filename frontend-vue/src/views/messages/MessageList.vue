@@ -14,7 +14,7 @@
           </div>
 
           <!-- 쪽지 목록 - 데이터가 없어도 테이블 구조를 보여줌 -->
-          <div class="message-list" v-if="!loading && messages">
+          <div class="message-list" v-if="!loading">
             <table>
               <thead>
                 <tr>
@@ -26,15 +26,18 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-if="messages.length === 0">
+                <tr v-if="messages.length === 0 && !errorMessage">
                   <td colspan="5" class="no-messages">받은 쪽지가 없습니다.</td>
                 </tr>
-                <tr v-for="message in messages" :key="message.id" @click="viewMessage(message.id)" :class="{ 'unread': !message.read }">
+                <tr v-if="errorMessage">
+                  <td colspan="5" class="error-message">{{ errorMessage }}</td>
+                </tr>
+                <tr v-for="message in messages" :key="message.id" @click="viewMessage(message.id)" :class="{ 'unread': !(message.read || message.isRead) }">
                   <td>{{ message.displayNumber || '-' }}</td>
                   <td class="title">{{ message.title }}</td>
                   <td>{{ message.sender?.nickname || message.sender?.username || '알 수 없음' }}</td>
                   <td>{{ formatDate(message.createdAt) }}</td>
-                  <td>{{ message.read ? '읽음' : '안읽음' }}</td>
+                  <td>{{ (message.read || message.isRead) ? '읽음' : '안읽음' }}</td>
                 </tr>
               </tbody>
             </table>
@@ -44,12 +47,6 @@
           <div v-if="loading" class="loading">
             <div class="spinner"></div>
             <p>쪽지를 불러오는 중입니다...</p>
-          </div>
-          <div v-else-if="errorMessage" class="error-message">
-            {{ errorMessage }}
-          </div>
-          <div v-else-if="!messages" class="loading">
-            쪽지 목록이 없습니다.
           </div>
 
           <!-- 페이지네이션 -->
@@ -89,49 +86,142 @@ interface Message {
     username: string;
     nickname?: string;
   } | null;
+  receiver?: {
+    id: number;
+    username: string;
+    nickname?: string;
+  } | null;
+  senderId: number;
+  receiverId: number;
+  studyGroupId?: number;
   createdAt: string;
-  read: boolean;
+  updatedAt?: string;
+  isRead: boolean; // 백엔드에서는 isRead를 사용
+  read?: boolean; // 프론트엔드 호환을 위한 별칭
   displayNumber?: number;
 }
 
 const router = useRouter();
 const userStore = useUserStore();
-const messages = ref<Message[] | null>(null);
+const allMessages = ref<Message[]>([]);
+const messages = ref<Message[]>([]);
 const loading = ref(true);
 const page = ref(1);
 const totalPages = ref(1);
 const searchQuery = ref('');
 const errorMessage = ref('');
-const currentPage = ref(1);
-const pageSize = 10;
+const pageSize = 10; // 페이지당 표시할 항목 수
+
+// 클라이언트 측 페이지네이션 및 검색 처리
+const processMessages = () => {
+  let filtered = [...allMessages.value];
+  
+  // isRead 필드를 read로 매핑 (필요한 경우)
+  filtered = filtered.map(msg => {
+    return {
+      ...msg,
+      read: msg.isRead // 백엔드의 isRead를 프론트엔드의 read로 매핑
+    };
+  });
+  
+  // 검색어가 있는 경우 필터링
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase();
+    filtered = filtered.filter(message => 
+      message.title.toLowerCase().includes(query) || 
+      (message.sender?.nickname?.toLowerCase().includes(query) || 
+       message.sender?.username.toLowerCase().includes(query))
+    );
+  }
+  
+  // 전체 페이지 수 계산
+  totalPages.value = Math.max(1, Math.ceil(filtered.length / pageSize));
+  
+  // 현재 페이지가 총 페이지 수보다 크면 마지막 페이지로 설정
+  if (page.value > totalPages.value) {
+    page.value = totalPages.value;
+  }
+  
+  // 현재 페이지에 해당하는 메시지만 추출
+  const startIndex = (page.value - 1) * pageSize;
+  messages.value = filtered.slice(startIndex, startIndex + pageSize);
+  
+  // 표시 번호 추가
+  messages.value.forEach((message, index) => {
+    message.displayNumber = filtered.length - startIndex - index;
+  });
+};
 
 // 쪽지 목록 불러오기
 const fetchMessages = async () => {
   loading.value = true;
   errorMessage.value = '';
-  messages.value = null;
+  messages.value = [];
+  
+  console.log('메시지 불러오기 시작 - API 호출 전');
   try {
-    const response = await axios.get(`/messages`, {
-      params: {
-        page: currentPage.value,
-        size: pageSize,
-        searchKeyword: searchQuery.value,
-      },
-    });
+    // API 요청 정보 로깅
+    console.log('API 호출: GET /messages/received');
+    const response = await axios.get(`/messages/received`);
+    
+    console.log('API 응답 받음:', response);
     
     if (response.status === 200) {
-      messages.value = response.data.data.items;
-      totalPages.value = response.data.data.totalPages;
+      // 데이터 구조 로깅
+      console.log('API 데이터 구조:', {
+        responseType: typeof response.data,
+        hasData: 'data' in response.data,
+        dataType: response.data.data ? typeof response.data.data : 'undefined',
+        isArray: response.data.data ? Array.isArray(response.data.data) : false,
+        dataLength: response.data.data ? (Array.isArray(response.data.data) ? response.data.data.length : 'not an array') : 0
+      });
+      
+      // 모든 메시지 저장
+      allMessages.value = response.data.data || [];
+      console.log(`받은 메시지 ${allMessages.value.length}개 불러옴`);
+      
+      // 표시할 메시지 처리
+      processMessages();
     } else {
+      console.error(`예상치 못한 상태 코드: ${response.status}`);
       errorMessage.value = `쪽지 목록을 불러올 수 없습니다. 상태 코드: ${response.status}`;
-      messages.value = null;
     }
   } catch (error: any) {
     console.error('쪽지 목록 불러오기 오류', error);
-    errorMessage.value = '쪽지 목록을 불러오는 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
-    messages.value = null;
+    
+    // 오류 객체 상세 정보 로깅
+    console.error('오류 상세:', {
+      message: error.message,
+      name: error.name,
+      code: error.code,
+      response: error.response ? {
+        status: error.response.status,
+        statusText: error.response.statusText,
+        data: error.response.data
+      } : 'No response',
+      request: error.request ? 'Request exists' : 'No request',
+      config: error.config ? {
+        url: error.config.url,
+        method: error.config.method,
+        baseURL: error.config.baseURL,
+        withCredentials: error.config.withCredentials
+      } : 'No config'
+    });
+    
+    // 더 상세한 오류 메시지
+    if (error.response) {
+      // 서버가 응답한 경우
+      errorMessage.value = `서버 오류: ${error.response.status} ${error.response.data?.message || '알 수 없는 오류'}`;
+    } else if (error.request) {
+      // 요청은 전송됐지만 응답이 없는 경우
+      errorMessage.value = '서버에서 응답이 없습니다. 네트워크 연결을 확인해주세요.';
+    } else {
+      // 요청 설정 중 오류
+      errorMessage.value = `요청 오류: ${error.message}`;
+    }
   } finally {
     loading.value = false;
+    console.log('메시지 불러오기 완료 (성공 또는 실패)');
   }
 };
 
@@ -140,25 +230,43 @@ const formatDate = (date: string) => new Date(date).toLocaleDateString();
 
 // 검색
 const search = () => {
-  currentPage.value = 1;
-  fetchMessages();
+  page.value = 1; // 검색 시 첫 페이지로 이동
+  processMessages(); // 메시지 처리
 };
 
 // 페이지 변경
 const changePage = (newPage: number) => {
-  currentPage.value = newPage;
-  fetchMessages();
+  page.value = newPage;
+  processMessages(); // 메시지 처리
 };
 
 // 쪽지 상세 페이지로 이동
 const viewMessage = (id: number) => router.push(`/messages/${id}`);
 
 onMounted(() => {
+  // 환경 변수 정보 로깅
+  console.log('=== 메시지 목록 컴포넌트 마운트 ===');
+  console.log('NODE_ENV:', process.env.NODE_ENV);
+  console.log('VUE_APP_API_URL:', process.env.VUE_APP_API_URL);
+  console.log('axios baseURL:', axios.defaults.baseURL);
+  
+  // axios 인스턴스 상태 확인
+  console.log('axios withCredentials:', axios.defaults.withCredentials);
+  console.log('axios 기본 헤더:', axios.defaults.headers);
+  
+  // 브라우저 정보
+  console.log('브라우저 URL:', window.location.href);
+  console.log('쿠키 상태:', document.cookie ? 'cookie 있음' : 'cookie 없음');
+  console.log('================================');
+
   // 로그인 상태 확인
   if (!userStore.isLoggedIn) {
+    console.log('로그인 상태 아님, 로그인 페이지로 리다이렉트');
     router.push('/login');
     return;
   }
+  
+  console.log('로그인 상태 확인됨, 메시지 불러오기 시작');
   fetchMessages();
 });
 </script>

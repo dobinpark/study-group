@@ -11,6 +11,7 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { SupportModule } from './support/support.module';
 import { DataSource, DataSourceOptions } from 'typeorm';
 import { HttpModule } from '@nestjs/axios';
+import { MessagesModule } from './messages/messages.module';
 
 @Module({
     imports: [
@@ -70,6 +71,7 @@ import { HttpModule } from '@nestjs/axios';
         }),
         PostsModule,
         SupportModule,
+        MessagesModule,
         HttpModule,
     ],
     controllers: [],

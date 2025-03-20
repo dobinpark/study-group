@@ -103,44 +103,60 @@ const goToFreeBoard = () => {
   router.push({ path: '/posts', query: { category: 'FREE' } });
 };
 
-// 공지사항 게시글 목록 가져오기
+// 공지사항 게시글 목록 가져오기 - 오류 처리 강화
 const fetchNoticePosts = async () => {
   console.log('fetchNoticePosts 시작');
   isPostsLoading.value = true; // 로딩 시작
+  
   try {
     const response = await axios.get('/supports', {
       params: { category: 'NOTICE', page: 1, size: 5 },
+      // 401 오류가 발생해도 정상 처리로 간주 (메인 페이지는 비로그인도 허용)
+      validateStatus: (status) => (status >= 200 && status < 300) || status === 401
     });
+    
     console.log('공지사항 API 응답:', response);
     if (response.status === 200) {
       noticePosts.value = response.data.data.items;
       console.log('공지사항 게시글 데이터:', noticePosts.value);
+    } else if (response.status === 401) {
+      console.log('공지사항 API 401 응답 (인증 필요) - 메인 페이지 표시는 계속');
+      // 인증 오류지만 메인 페이지이므로 빈 배열로 처리
+      noticePosts.value = [];
     }
   } catch (error: any) {
     console.error('공지사항 게시글을 불러오는데 실패했습니다.', error);
-    console.error('에러 상세:', error);
+    noticePosts.value = []; // 오류 시 빈 배열로 설정하여 UI 표시 문제 없도록
   } finally {
     isPostsLoading.value = false; // 로딩 종료 (성공/실패 모두)
     console.log('fetchNoticePosts 종료');
   }
 };
 
-// 자유게시판 게시글 목록 가져오기
+// 자유게시판 게시글 목록 가져오기 - 오류 처리 강화
 const fetchFreePosts = async () => {
   console.log('fetchFreePosts 시작');
   isPostsLoading.value = true; // 로딩 시작
+  
   try {
     const response = await axios.get('/posts', {
       params: { category: 'FREE', page: 1, size: 5 },
+      // 401 오류가 발생해도 정상 처리로 간주 (메인 페이지는 비로그인도 허용)
+      validateStatus: (status) => (status >= 200 && status < 300) || status === 401
     });
+    
     console.log('자유게시판 API 응답:', response);
     if (response.status === 200) {
       freePosts.value = response.data.data.items;
       console.log('자유게시판 게시글 데이터:', freePosts.value);
+    } else if (response.status === 401) {
+      console.log('자유게시판 API 401 응답 (인증 필요) - 메인 페이지 표시는 계속');
+      // 인증 오류지만 메인 페이지이므로 빈 배열로 처리
+      freePosts.value = [];
     }
   } catch (error: any) {
     console.error('자유게시판 게시글을 불러오는데 실패했습니다.', error);
-    console.error('에러 상세:', error);
+    freePosts.value = []; // 오류 시 빈 배열로 설정하여 UI 표시 문제 없도록
   } finally {
     isPostsLoading.value = false; // 로딩 종료 (성공/실패 모두)
     console.log('fetchFreePosts 종료');
@@ -150,16 +166,29 @@ const fetchFreePosts = async () => {
 onMounted(async () => {
   console.log('Home.vue onMounted 시작');
   console.log('isAuthenticated.value:', isAuthenticated.value); // 현재 인증 상태 로그
-  console.log('isLoading.value:', isLoading.value); // 로딩 상태 로그
-  // 세션 체크는 authStore 사용
-  if (!authStore.sessionChecked) {
-    await authStore.checkSession();
+  
+  try {
+    // 세션 체크를 시도하되, 실패해도 페이지 로딩을 계속
+    if (!authStore.sessionChecked) {
+      try {
+        await authStore.checkSession();
+        console.log('Home.vue: 세션 체크 성공');
+      } catch (sessionError) {
+        console.log('Home.vue: 세션 체크 실패 (무시됨, 메인 페이지는 계속 표시)');
+        // 세션 체크 실패해도 게시글 목록은 가져옴
+      }
+    }
+    
+    // 게시글 목록 가져오기 (세션 성공/실패 여부와 무관하게 실행)
+    await Promise.allSettled([
+      fetchNoticePosts(),
+      fetchFreePosts()
+    ]);
+    
+  } catch (error) {
+    console.error('Home.vue 초기화 중 오류:', error);
   }
-  // 게시글 목록 가져오기
-  fetchNoticePosts();
-  fetchFreePosts();
-  console.log('noticePosts.value:', noticePosts.value); // 공지사항 게시글 데이터 로그
-  console.log('freePosts.value:', freePosts.value); // 자유게시판 게시글 데이터 로그
+  
   console.log('Home.vue onMounted 종료');
 });
 </script>
