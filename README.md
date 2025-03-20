@@ -1,4 +1,4 @@
-<img width="100%" src="https://github.com/dobinpark/study-group/issues/2#issue-2935970653"/>
+<img width="100%" src="https://github.com/user-attachments/assets/3dd4d804-7a81-4542-af18-d7a397e02efe"/>
 
 # 함공
 
