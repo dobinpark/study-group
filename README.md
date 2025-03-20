@@ -39,7 +39,7 @@
 
 # 📷 Screenshot
 <h3>메인 페이지</h3>
-<img width="100%" src="https://github.com/dobinpark/study-group/issues/4"/>
+<img src="https://github.com/dobinpark/study-group/issues/4"/>
 
 
 <h3>스터디 그룹 페이지</h3>
