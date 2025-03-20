@@ -38,8 +38,7 @@
 할 수 있도록 구현 예정.
 
 # 📷 Screenshot
-<h3>메인 페이지</h3>
-[Image](https://github.com/user-attachments/assets/7d7b72bb-4709-41bb-b4c6-09e29a68bd39)
+![Image](https://github.com/user-attachments/assets/7d7b72bb-4709-41bb-b4c6-09e29a68bd39)
 
 <h3>스터디 그룹 페이지</h3>
 ![함공_스터디 그룹 리스트 페이지](https://github.com/user-attachments/assets/1bad21c5-ec94-4d17-a01a-0398d17409bd)
