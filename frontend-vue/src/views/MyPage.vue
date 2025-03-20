@@ -19,7 +19,7 @@
           <div class="menu-cards">
             <div class="menu-card" @click="navigateTo('/messages')">
               <div class="card-icon">
-                <i class="fas fa-envelope"></i>
+                <img src="@/assets/images/note.png" alt="쪽지함" class="section-icon">
               </div>
               <div class="card-content">
                 <h3>쪽지함</h3>
@@ -32,7 +32,7 @@
 
             <div class="menu-card" @click="navigateTo('/profile')">
               <div class="card-icon">
-                <i class="fas fa-user-edit"></i>
+                <img src="@/assets/images/man.png" alt="프로필 수정" class="section-icon">
               </div>
               <div class="card-content">
                 <h3>프로필 수정</h3>
@@ -45,7 +45,7 @@
 
             <div class="menu-card" @click="navigateTo('/my-studies')">
               <div class="card-icon">
-                <i class="fas fa-book"></i>
+                <img src="@/assets/images/book.png" alt="내 스터디" class="section-icon">
               </div>
               <div class="card-content">
                 <h3>내 스터디</h3>
@@ -250,9 +250,10 @@ onMounted(async () => {
   margin-bottom: 1rem;
 }
 
-.card-icon i {
-  color: #4A90E2;
-  font-size: 1.5rem;
+.card-icon img {
+  width: 70%;
+  height: 70%;
+  object-fit: contain;
 }
 
 .card-content {
@@ -424,5 +425,20 @@ onMounted(async () => {
     width: 100%;
     justify-content: center;
   }
+}
+
+.icon-container {
+  width: 60px;
+  height: 60px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.section-icon {
+  width: 70%;
+  height: 70%;
+  object-fit: contain;
 }
 </style> 
