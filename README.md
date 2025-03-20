@@ -38,8 +38,8 @@
 할 수 있도록 구현 예정.
 
 # 📷 Screenshot
-<h3>메인페이지</h3>
-![함공_메인 페이지](https://github.com/user-attachments/assets/bf0a60f8-ef65-4e9d-b621-666bc976acc8)
+<h3>메인 페이지</h3>
+(https://github.com/dobinpark/study-group/issues/4#issue-2936029312)
 
 <h3>스터디 그룹 페이지</h3>
 ![함공_스터디 그룹 리스트 페이지](https://github.com/user-attachments/assets/1bad21c5-ec94-4d17-a01a-0398d17409bd)
