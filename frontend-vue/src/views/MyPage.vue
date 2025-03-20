@@ -75,7 +75,7 @@
             </div>
 
             <!-- 스터디 참여 요청 관리 카드 (오른쪽) -->
-            <div v-if="hasCreatedStudies" class="request-manage-card">
+            <div class="request-manage-card">
               <h4>스터디 참여 요청 관리</h4>
               <p class="card-description">생성한 스터디의 참여 요청을 확인하고 관리하세요.</p>
               <button @click="navigateTo('/study-requests')" class="btn-action">
