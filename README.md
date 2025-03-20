@@ -40,11 +40,8 @@
 # 📷 Screenshot
 ![Image](https://github.com/user-attachments/assets/7d7b72bb-4709-41bb-b4c6-09e29a68bd39)
 
-<h3>스터디 그룹 페이지</h3>
-![함공_스터디 그룹 리스트 페이지](https://github.com/user-attachments/assets/1bad21c5-ec94-4d17-a01a-0398d17409bd)
+![Image](https://github.com/user-attachments/assets/1a7f9502-1308-43b2-a277-3bcb61fc18b6)
 
-<h3>공지사항 페이지</h3>
-![함공_공지사항 리스트 페이지](https://github.com/user-attachments/assets/3548dc43-cb0e-4874-b687-ca12ba47af23)
+![Image](https://github.com/user-attachments/assets/ecd94b71-f54a-4206-91a2-703b37f3f36d)
 
-<h3>마이 페이지</h3>
-![함공_마이페이지](https://github.com/user-attachments/assets/d7cc4798-7284-4435-bd9c-ab1ff5ce9d65)
+![Image](https://github.com/user-attachments/assets/32df33ba-88f0-43d0-a77c-ab3cb7d498cf)
