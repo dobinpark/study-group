@@ -123,15 +123,21 @@ const replyData = ref({
 
 // 쪽지 상세 정보 가져오기
 const fetchMessage = async () => {
+  console.log('메시지 상세 정보 가져오기 시작');
   try {
     const response = await axios.get(`/messages/${route.params.id}`);
+    console.log('메시지 상세 정보 응답:', response.data);
     message.value = response.data.data;
     
     // 쪽지를 읽으면 자동으로 읽음 상태로 변경
     if (message.value && !message.value.read) {
+      console.log('읽지 않은 메시지 발견, 읽음 상태로 변경 시도');
       await markAsRead();
+    } else {
+      console.log('이미 읽은 메시지이거나 메시지 정보 없음:', message.value);
     }
   } catch (error) {
+    console.error('쪽지를 불러올 수 없습니다', error);
     alert('쪽지를 불러올 수 없습니다');
     router.push('/messages');
   } finally {
@@ -141,13 +147,30 @@ const fetchMessage = async () => {
 
 // 쪽지 읽음 상태로 변경
 const markAsRead = async () => {
-  if (!message.value) return;
+  if (!message.value) {
+    console.log('메시지 정보가 없어 읽음 상태 변경 불가');
+    return;
+  }
   
+  console.log('메시지 읽음 상태 변경 시도:', message.value.id);
   try {
-    await axios.patch(`/messages/${message.value.id}/read`);
+    const response = await axios.patch(`/messages/${message.value.id}/read`);
+    console.log('메시지 읽음 상태 변경 응답:', response.data);
+    
     if (message.value) {
       message.value.read = true;
       message.value.isRead = true;
+      console.log('메시지 읽음 상태 변경 완료');
+      
+      // 알림 카운트 즉시 업데이트를 위해 이벤트 발생
+      try {
+        if (window.dispatchEvent) {
+          console.log('updateNotificationCount 이벤트 발생 - 읽음 상태 변경 후');
+          window.dispatchEvent(new CustomEvent('updateNotificationCount'));
+        }
+      } catch (e) {
+        console.error('알림 이벤트 발생 오류:', e);
+      }
     }
   } catch (error) {
     console.error('쪽지 읽음 상태 변경 실패:', error);

@@ -9,7 +9,7 @@
               <span class="title">함공</span>
             </a>
           </div>
-          <router-link class="notification-link" to="/messages">
+          <router-link class="notification-link" to="/messages" @click="refreshNotificationAfterNavigation" @mouseenter="fetchNotificationCount">
             <img alt="알림" class="notification-icon" src="../assets/images/jong.png" />
             <span v-if="notificationCount > 0" class="notification-badge">{{ notificationCount }}</span>
           </router-link>
@@ -752,39 +752,62 @@ const goHome = () => {
 
 // 알림 수 가져오기
 const fetchNotificationCount = async () => {
-  if (!isLoggedInComputed.value) return;
+  if (!isLoggedInComputed.value) {
+    console.log('알림 수 가져오기: 로그인되지 않은 상태');
+    notificationCount.value = 0;
+    return;
+  }
 
+  console.log('알림 수 가져오기 시작');
   let totalCount = 0;
 
+  // 읽지 않은 쪽지 수 가져오기
   try {
-    // 읽지 않은 쪽지 수 가져오기
-    try {
-      const messagesResponse = await axios.get('/messages/unread-count');
-      if (messagesResponse.status === 200 && messagesResponse.data.data !== undefined) {
-        totalCount += messagesResponse.data.data;
+    console.log('읽지 않은 쪽지 수 API 호출');
+    const messagesResponse = await axios.get('/messages/unread/count');
+    console.log('읽지 않은 쪽지 API 응답:', messagesResponse);
+    
+    if (messagesResponse.status === 200) {
+      if (messagesResponse.data.data !== undefined) {
+        const unreadMessagesCount = Number(messagesResponse.data.data);
+        console.log('읽지 않은 쪽지 수:', unreadMessagesCount);
+        totalCount = unreadMessagesCount; // 숫자로 변환하여 할당 (더하기가 아님)
+      } else {
+        console.warn('API 응답에 data 필드가 없습니다:', messagesResponse.data);
       }
-    } catch (error) {
-      console.error('읽지 않은 쪽지 수를 가져오는데 실패했습니다:', error);
-      // 오류가 발생해도 계속 진행
     }
-
-    // 새로운 공지사항 수 가져오기
-    try {
-      // API가 아직 구현되지 않았을 수 있으므로 조건부로 호출
-      // 구현된 API로 교체하세요
-      const noticesResponse = await axios.get('/study-groups/notices/unread-count');
-      if (noticesResponse.status === 200 && noticesResponse.data.data !== undefined) {
-        totalCount += noticesResponse.data.data;
-      }
-    } catch (error) {
-      console.error('읽지 않은 공지사항 수를 가져오는데 실패했습니다:', error);
-      // 오류가 발생해도 계속 진행
-    }
-
-    // 전체 알림 수 업데이트
-    notificationCount.value = totalCount;
   } catch (error) {
-    console.error('알림 수를 가져오는데 실패했습니다:', error);
+    console.error('읽지 않은 쪽지 수를 가져오는데 실패했습니다:', error);
+    // 에러가 발생할 경우 데이터베이스에서 직접 읽지 않은 메시지 수를 확인하는 로깅 추가
+    console.log('알림 수 가져오기 오류 발생 - 데이터베이스 확인 필요');
+  }
+
+  // 전체 알림 수 업데이트 (읽지 않은 쪽지 수만 포함)
+  console.log('총 알림 수(읽지 않은 쪽지만):', totalCount);
+  notificationCount.value = totalCount;
+};
+
+// 알림 이벤트 핸들러
+const handleUpdateNotification = () => {
+  console.log('Header: updateNotificationCount 이벤트 수신');
+  fetchNotificationCount();
+};
+
+// 윈도우 포커스 핸들러
+const handleFocus = () => {
+  console.log('윈도우 포커스 시 알림 카운트 업데이트');
+  if (isLoggedInComputed.value) {
+    fetchNotificationCount();
+  }
+};
+
+// 페이지 가시성 변경 핸들러
+const handleVisibilityChange = () => {
+  if (document.visibilityState === 'visible') {
+    console.log('페이지 가시성 변경 시 알림 카운트 업데이트');
+    if (isLoggedInComputed.value) {
+      fetchNotificationCount();
+    }
   }
 };
 
@@ -793,27 +816,64 @@ onMounted(() => {
   // 모바일 화면 체크
   checkMobile();
   window.addEventListener('resize', checkMobile);
+  
+  // 외부 컴포넌트에서 알림 카운트 업데이트 요청을 처리하기 위한 이벤트 리스너
+  window.addEventListener('updateNotificationCount', handleUpdateNotification);
+  
+  // 윈도우 포커스가 변경될 때 알림 카운트 업데이트
+  window.addEventListener('focus', handleFocus);
+  
+  // 탭 전환 시 알림 카운트 업데이트
+  document.addEventListener('visibilitychange', handleVisibilityChange);
+  
+  // 인증 상태 확인
   if (!authStore.sessionChecked) {
-    authStore.checkSession();
+    authStore.checkSession().then(() => {
+      console.log('세션 체크 완료 후 알림 수 가져오기 시작');
+      // 로그인 상태 확인 후 알림 수 가져오기
+      if (isLoggedInComputed.value) {
+        fetchNotificationCount();
+      }
+    });
   } else {
-    console.log('세션 이미 확인됨');
+    console.log('세션 이미 확인됨, 즉시 알림 수 가져오기');
+    // 이미 로그인되어 있으면 즉시 알림 수 가져오기
+    if (isLoggedInComputed.value) {
+      fetchNotificationCount();
+    }
   }
 
-  // 알림 수 가져오기
-  fetchNotificationCount();
-
-  // 1분마다 알림 수 업데이트
-  notificationInterval.value = window.setInterval(fetchNotificationCount, 60000);
+  // 10초마다 알림 수 업데이트
+  notificationInterval.value = window.setInterval(() => {
+    if (isLoggedInComputed.value) {
+      fetchNotificationCount();
+    }
+  }, 10000); // 60초에서 10초로 변경
 });
 
 // 컴포넌트 언마운트 시 이벤트 리스너 제거
 onUnmounted(() => {
   window.removeEventListener('resize', checkMobile);
+  window.removeEventListener('updateNotificationCount', handleUpdateNotification);
+  window.removeEventListener('focus', handleFocus);
+  document.removeEventListener('visibilitychange', handleVisibilityChange);
 
   // 알림 인터벌 정리
   if (notificationInterval.value !== null) {
     window.clearInterval(notificationInterval.value);
     notificationInterval.value = null;
+  }
+});
+
+// 로그인 상태 변경 감시
+watch(isLoggedInComputed, (newValue) => {
+  console.log('로그인 상태 변경 감지:', newValue);
+  if (newValue) {
+    // 로그인 상태가 되면 즉시 알림 수 가져오기
+    fetchNotificationCount();
+  } else {
+    // 로그아웃 상태가 되면 알림 수 초기화
+    notificationCount.value = 0;
   }
 });
 
@@ -906,6 +966,17 @@ const goToLogin = () => {
   
   // 로그인 페이지로 이동 (새 인증 흐름 시작을 위해)
   router.push('/login');
+};
+
+// 알림 아이콘 클릭 후 알림 카운트 새로고침
+const refreshNotificationAfterNavigation = () => {
+  // 즉시 알림 카운트 새로고침 먼저 실행
+  fetchNotificationCount();
+  
+  // 약간의 지연 후 한 번 더 새로고침 (페이지 이동 후 실행되도록)
+  setTimeout(() => {
+    fetchNotificationCount();
+  }, 500);
 };
 </script>
 

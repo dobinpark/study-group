@@ -143,7 +143,7 @@ function setupCors(app: INestApplication, configService: ConfigService) {
             ? 'http://localhost:8080' // 개발 환경에서는 8080 포트 허용
             : corsOrigin, // Production 환경에서는 환경 변수 값 사용
         credentials: true,
-        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
     };
     app.enableCors(corsOptions);

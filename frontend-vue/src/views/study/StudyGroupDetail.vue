@@ -49,12 +49,8 @@
             <div class="members-card">
               <h2>참여 멤버 ({{ studyGroup.members?.length || 0 }}명)</h2>
               <div v-if="studyGroup.members?.length" class="members-list">
-                <div 
-                  v-for="member in studyGroup.members" 
-                  :key="member.id" 
-                  class="member-item"
-                  @click.stop="handleMemberClick(member, $event)"
-                >
+                <div v-for="member in studyGroup.members" :key="member.id" class="member-item"
+                  @click.stop="handleMemberClick(member, $event)">
                   <div class="member-avatar">{{ member.nickname[0] }}</div>
                   <span class="member-name">
                     {{ member.nickname }}
@@ -69,14 +65,12 @@
 
             <!-- 멤버 메뉴를 별도로 분리 -->
             <div v-if="selectedMember" class="menu-container-wrapper">
-              <div class="member-menu-container" :style="menuPosition ? { top: menuPosition.top, left: menuPosition.left } : {}">
-                <MemberActionMenu
-                  :isCreator="isCreator"
+              <div class="member-menu-container"
+                :style="menuPosition ? { top: menuPosition.top, left: menuPosition.left } : {}">
+                <MemberActionMenu :isCreator="isCreator"
                   :isMemberCreator="selectedMember.id === studyGroup?.creator?.id"
                   @sendMessage="openSendMessageModal(selectedMember)"
-                  @removeMember="openRemoveMemberConfirm(selectedMember)"
-                  @close="selectedMember = null"
-                />
+                  @removeMember="openRemoveMemberConfirm(selectedMember)" @close="selectedMember = null" />
               </div>
             </div>
 
@@ -114,17 +108,12 @@
         </main>
       </div>
     </div>
-    
+
     <!-- 쪽지 보내기 모달 -->
-    <SendMessageModal
-      v-if="showSendMessageModal && messageRecipient"
-      :receiverId="messageRecipient.id"
-      :receiverName="messageRecipient.nickname"
-      :studyGroupId="studyGroup?.id"
-      @close="showSendMessageModal = false"
-      @sent="handleMessageSent"
-    />
-    
+    <SendMessageModal v-if="showSendMessageModal && messageRecipient" :receiverId="messageRecipient.id"
+      :receiverName="messageRecipient.nickname" :studyGroupId="studyGroup?.id" @close="showSendMessageModal = false"
+      @sent="handleMessageSent" />
+
     <!-- 스터디 참여 신청 모달 -->
     <div v-if="showJoinRequestModal" class="modal-backdrop" @click="showJoinRequestModal = false">
       <div class="join-request-modal" @click.stop>
@@ -133,56 +122,38 @@
           <button class="close-button" @click="showJoinRequestModal = false">×</button>
         </div>
         <div class="modal-body">
-          <p class="join-modal-description">스터디 참여를 위한 정보를 작성해주세요. 방장이 이 정보를 확인하고 참여 여부를 결정합니다.</p>
-          
+          <p class="join-modal-description">스터디 참여를 위한 정보를 작성해주세요.<br>
+          방장이 이 정보를 확인하고 참여 여부를 결정합니다.</p>
+
           <div class="form-group">
-            <label for="joinReason">1. 참여 동기를 알려주세요. (필수)</label>
-            <textarea 
-              id="joinReason" 
-              v-model="joinRequest.reason" 
-              class="form-control" 
-              placeholder="이 스터디에 참여하고자 하는 동기가 무엇인가요?"
-              rows="3"
-              required
-            ></textarea>
+            <label for="joinReason">1. 참여 가능한 시간과 주당 예상 가능한 시간을 알려주세요. (필수)</label>
+            <textarea id="joinReason" v-model="joinRequest.reason" class="form-control"
+              placeholder="참여 가능한 시간과 주당 예상 가능한 시간을 알려주세요." rows="3" required></textarea>
           </div>
-          
+
           <div class="form-group">
-            <label for="joinExperience">2. 관련 경험이나 스킬을 알려주세요. (필수)</label>
-            <textarea 
-              id="joinExperience" 
-              v-model="joinRequest.experience" 
-              class="form-control" 
-              placeholder="관련 경험이나 스킬에 대해 간략히 설명해주세요."
-              rows="3"
-              required
-            ></textarea>
+            <label for="joinExperience">2. 스터디를 통해 달성하고 싶은 개인적인 목표나 바람은 무엇인가요? (필수)</label>
+            <textarea id="joinExperience" v-model="joinRequest.experience" class="form-control"
+              placeholder="스터디를 통해 달성하고 싶은 개인적인 목표나 바람을 알려주세요." rows="3" required></textarea>
           </div>
-          
-          <div class="form-group">
+
+          <div class="form-group agreement-group">
             <div class="agreement-checkbox">
-              <input 
-                type="checkbox" 
-                id="joinAgreement" 
-                v-model="joinRequest.agreement"
-              >
               <label for="joinAgreement">스터디 규칙을 읽었으며, 성실히 참여할 것을 약속합니다. (필수)</label>
+              <input type="checkbox" id="joinAgreement" v-model="joinRequest.agreement">
             </div>
           </div>
         </div>
         <div class="modal-footer">
           <button class="btn btn-secondary" @click="showJoinRequestModal = false">취소</button>
-          <button 
-            class="btn btn-primary" 
-            @click="submitJoinRequest"
-            :disabled="!isJoinRequestValid || isJoinRequestSubmitting"
-          >
+          <button class="btn btn-primary" @click="submitJoinRequest"
+            :disabled="!isJoinRequestValid || isJoinRequestSubmitting">
             {{ isJoinRequestSubmitting ? '처리 중...' : '신청하기' }}
           </button>
         </div>
       </div>
     </div>
-    
+
     <!-- 확인 모달 -->
     <div v-if="showConfirmModal" class="modal-backdrop" @click="showConfirmModal = false">
       <div class="confirm-modal" @click.stop>
@@ -198,11 +169,7 @@
         </div>
         <div class="modal-footer">
           <button class="btn btn-secondary" @click="showConfirmModal = false">취소</button>
-          <button 
-            class="btn btn-danger" 
-            @click="removeMember" 
-            :disabled="isRemoving"
-          >
+          <button class="btn btn-danger" @click="removeMember" :disabled="isRemoving">
             {{ isRemoving ? '처리 중...' : '강제 탈퇴' }}
           </button>
         </div>
@@ -276,13 +243,13 @@ const joinButtonText = computed(() => {
 const joinStudyGroup = async () => {
   if (!userStore.isLoggedIn || !studyGroup.value) return;
   if (isAlreadyMember.value || isCreator.value) return;
-  
+
   // 승인 대기 중이면 신청 불가
   if (joinRequestStatus.value === 'pending') {
     alert('이미 참여 신청이 진행 중입니다. 방장의 승인을 기다려주세요.');
     return;
   }
-  
+
   // 참여 신청 모달 표시
   showJoinRequestModal.value = true;
 };
@@ -290,7 +257,7 @@ const joinStudyGroup = async () => {
 // 스터디 그룹 참여 요청 상태 확인
 const checkJoinRequestStatus = async () => {
   if (!userStore.isLoggedIn || !studyGroup.value || isCreator.value || isAlreadyMember.value) return;
-  
+
   try {
     const response = await studyGroupService.checkJoinRequestStatus(studyGroup.value.id);
     if (response.data && response.data.status) {
@@ -312,7 +279,7 @@ const loadStudyGroup = async () => {
     const id = route.params.id;
     const response = await axios.get(`/study-groups/${id}`);
     studyGroup.value = response.data.data;
-    
+
     // 참여 요청 상태 확인
     await checkJoinRequestStatus();
   } catch (err: any) {
@@ -367,15 +334,15 @@ const goToList = () => {
 const handleMemberClick = (member: User, event: MouseEvent) => {
   // 이벤트 전파 중지
   event.stopPropagation();
-  
+
   if (selectedMember.value?.id === member.id) {
     selectedMember.value = null;
   } else {
     selectedMember.value = member;
-    
+
     // 클릭한 요소의 위치 정보 저장
     const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
-    
+
     // 메뉴가 멤버 바로 아래에 표시되도록 설정 (fixed 위치는 viewport 기준)
     menuPosition.value = {
       top: `${rect.bottom + 5}px`, // viewport 상단에서부터의 거리
@@ -406,16 +373,16 @@ const openRemoveMemberConfirm = (member: User) => {
 // 멤버 강제 탈퇴 실행
 const removeMember = async () => {
   if (!confirmTargetMember.value || !studyGroup.value) return;
-  
+
   isRemoving.value = true;
   try {
     // 스터디 그룹장이 강제 탈퇴시키는 API 호출 (백엔드에서 구현 필요)
     await axios.delete(`/study-groups/${studyGroup.value.id}/members/${confirmTargetMember.value.id}`);
     alert(`${confirmTargetMember.value.nickname}님을 스터디에서 탈퇴시켰습니다.`);
-    
+
     // 스터디 그룹 정보 새로고침
     await loadStudyGroup();
-    
+
     // 모달 닫기
     showConfirmModal.value = false;
     confirmTargetMember.value = null;
@@ -439,9 +406,9 @@ const handleDocumentClick = (event: MouseEvent) => {
 
 // 참여 신청 유효성 검사
 const isJoinRequestValid = computed(() => {
-  return joinRequest.value.reason.trim() !== '' && 
-         joinRequest.value.experience.trim() !== '' && 
-         joinRequest.value.agreement === true;
+  return joinRequest.value.reason.trim() !== '' &&
+    joinRequest.value.experience.trim() !== '' &&
+    joinRequest.value.agreement === true;
 });
 
 // 참여 신청서 제출
@@ -455,11 +422,11 @@ const submitJoinRequest = async () => {
       reason: joinRequest.value.reason,
       experience: joinRequest.value.experience
     });
-    
+
     // 참여 신청 완료 후 처리
     alert('스터디 그룹 참여 신청이 완료되었습니다. 방장의 승인을 기다려주세요.');
     showJoinRequestModal.value = false;
-    
+
     // 방장에게 쪽지 보내기
     if (studyGroup.value.creator) {
       try {
@@ -472,14 +439,14 @@ const submitJoinRequest = async () => {
         console.error('방장에게 메시지 전송 실패:', error);
       }
     }
-    
+
     // 폼 초기화
     joinRequest.value = {
       reason: '',
       experience: '',
       agreement: false
     };
-    
+
   } catch (error: any) {
     console.error('스터디 그룹 참여 신청 실패:', error);
     alert(error.response?.data?.message || '참여 신청에 실패했습니다.');
@@ -667,7 +634,8 @@ onUnmounted(() => {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   padding: 0;
   min-width: 160px;
-  max-width: 90vw; /* 화면 너비의 90%를 넘지 않도록 */
+  max-width: 90vw;
+  /* 화면 너비의 90%를 넘지 않도록 */
 }
 
 /* 화살표 추가 - 메뉴 상단 중앙에 작은 삼각형 화살표 */
@@ -835,8 +803,13 @@ onUnmounted(() => {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .error-message {
@@ -948,7 +921,8 @@ onUnmounted(() => {
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 999; /* 메뉴보다 낮은 z-index */
+  z-index: 999;
+  /* 메뉴보다 낮은 z-index */
 }
 
 .menu-container-wrapper {
@@ -997,18 +971,23 @@ onUnmounted(() => {
   outline: none;
 }
 
+.agreement-group {
+  margin-top: 1.5rem;
+}
+
 .agreement-checkbox {
   display: flex;
+  flex-direction: column;
   align-items: flex-start;
   gap: 0.5rem;
 }
 
 .agreement-checkbox input[type="checkbox"] {
-  margin-top: 0.25rem;
+  margin: 0;
 }
 
 .agreement-checkbox label {
-  margin-bottom: 0;
+  margin: 0;
   font-size: 0.95rem;
   line-height: 1.5;
 }

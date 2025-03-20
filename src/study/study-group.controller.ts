@@ -48,6 +48,9 @@ import { Request } from 'express';
 import { User } from '../user/entities/user.entity';
 import { AuthGuard } from '../auth/guards/auth.guard';
 import { GetMyStudiesResponseDto } from './dto/get-my-studies-response.dto';
+import { CreateJoinRequestDto } from './dto/create-join-request.dto';
+import { StudyGroupJoinRequest, JoinRequestStatus } from './entities/study-group-join-request.entity';
+import { In } from 'typeorm';
 
 @ApiTags('스터디')
 @ApiExtraModels(StudyGroup, CategoryDto, DataResponse<any>, BaseResponse)
@@ -441,20 +444,20 @@ export class StudyGroupController {
         @Req() req: Request
     ) {
         this.logger.debug(`removeMember - 호출됨 - 그룹 ID: ${id}, 멤버 ID: ${memberId}`);
-        
+
         if (!req.user) {
             throw new UnauthorizedException('인증이 필요합니다.');
         }
-        
+
         const userId = (req.user as User).id;
         this.logger.debug(`요청 사용자 ID: ${userId}`);
-        
+
         try {
             await this.studyGroupService.removeMember(id, memberId, userId);
             return { success: true, message: '멤버가 성공적으로 강제 탈퇴되었습니다.' };
         } catch (error: any) {
             this.logger.error(`멤버 강제 탈퇴 중 오류 발생: ${error.message}`);
-            
+
             if (error instanceof NotFoundException) {
                 throw error;
             } else if (error instanceof BadRequestException) {
@@ -464,6 +467,326 @@ export class StudyGroupController {
             } else {
                 throw new BadRequestException('멤버 강제 탈퇴 중 오류가 발생했습니다.');
             }
+        }
+    }
+
+
+    // 스터디 그룹 참여 요청
+    @ApiOperation({ summary: '스터디 그룹 참여 요청' })
+    @ApiParam({ name: 'id', required: true, description: '스터디 그룹 ID' })
+    @ApiBody({
+        type: CreateJoinRequestDto,
+        description: '참여 요청 정보'
+    })
+    @ApiCreatedResponse({
+        description: '참여 요청 생성 성공',
+        schema: {
+            allOf: [
+                { $ref: getSchemaPath(BaseResponse) },
+                {
+                    properties: {
+                        success: { type: 'boolean', example: true },
+                        message: { type: 'string', example: '참여 요청이 전송되었습니다.' }
+                    }
+                }
+            ]
+        }
+    })
+    @ApiBadRequestResponse({ description: '잘못된 요청' })
+    @ApiUnauthorizedResponse({ description: '인증 필요' })
+    @Post(':id/join-requests')
+    @HttpCode(HttpStatus.CREATED)
+    async createJoinRequest(
+        @Param('id', ParseIntPipe) id: number,
+        @Body() createJoinRequestDto: CreateJoinRequestDto,
+        @Req() req: Request
+    ): Promise<BaseResponse> {
+        try {
+            const user = req.user as User;
+            await this.studyGroupService.createJoinRequest(id, user.id, createJoinRequestDto);
+            return { success: true, message: '참여 요청이 전송되었습니다.' };
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+            this.logger.error(`스터디 그룹 참여 요청 생성 실패: ${errorMessage}`);
+            throw new InternalServerErrorException('스터디 그룹 참여 요청 생성 중 오류가 발생했습니다.');
+        }
+    }
+
+
+    // 대기 중인 참여 요청 목록 조회
+    @ApiOperation({ summary: '대기 중인 참여 요청 목록 조회 (방장용)' })
+    @ApiOkResponse({
+        description: '대기 중인 참여 요청 목록 조회 성공',
+        schema: {
+            allOf: [
+                { $ref: getSchemaPath(DataResponse) },
+                {
+                    properties: {
+                        data: {
+                            type: 'array',
+                            items: {
+                                type: 'object',
+                                properties: {
+                                    id: { type: 'number' },
+                                    userId: { type: 'number' },
+                                    studyGroupId: { type: 'number' },
+                                    status: { type: 'string', enum: ['pending', 'approved', 'rejected'] },
+                                    reason: { type: 'string' },
+                                    experience: { type: 'string' },
+                                    createdAt: { type: 'string', format: 'date-time' },
+                                    updatedAt: { type: 'string', format: 'date-time' },
+                                    user: { type: 'object' },
+                                    studyGroup: { type: 'object' }
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        }
+    })
+    @ApiUnauthorizedResponse({ description: '인증 필요' })
+    @Get('join-requests/pending')
+    async getPendingJoinRequests(@Req() req: Request): Promise<DataResponse<StudyGroupJoinRequest[]>> {
+        try {
+            const user = req.user as User;
+            const requests = await this.studyGroupService.getPendingJoinRequests(user.id);
+            return { success: true, data: requests };
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+            this.logger.error(`대기 중인 참여 요청 목록 조회 실패: ${errorMessage}`);
+            throw new InternalServerErrorException('대기 중인 참여 요청 목록 조회 중 오류가 발생했습니다.');
+        }
+    }
+
+
+    // 참여 요청 승인 (PATCH 메서드)
+    @ApiOperation({ summary: '참여 요청 승인' })
+    @ApiParam({ name: 'id', required: true, description: '스터디 그룹 ID' })
+    @ApiParam({ name: 'requestId', required: true, description: '참여 요청 ID' })
+    @ApiOkResponse({
+        description: '참여 요청 승인 성공',
+        schema: {
+            allOf: [
+                { $ref: getSchemaPath(BaseResponse) },
+                {
+                    properties: {
+                        success: { type: 'boolean', example: true },
+                        message: { type: 'string', example: '참여 요청이 승인되었습니다.' }
+                    }
+                }
+            ]
+        }
+    })
+    @ApiBadRequestResponse({ description: '잘못된 요청' })
+    @ApiUnauthorizedResponse({ description: '인증 필요' })
+    @ApiForbiddenResponse({ description: '권한 없음' })
+    @Patch(':id/join-requests/:requestId/approve')
+    async approveJoinRequest(
+        @Param('id', ParseIntPipe) id: number,
+        @Param('requestId', ParseIntPipe) requestId: number,
+        @Req() req: Request
+    ): Promise<BaseResponse> {
+        try {
+            const user = req.user as User;
+            await this.studyGroupService.approveJoinRequest(id, requestId, user.id);
+            return { success: true, message: '참여 요청이 승인되었습니다.' };
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+            this.logger.error(`참여 요청 승인 실패: ${errorMessage}`);
+            throw new InternalServerErrorException('참여 요청 승인 중 오류가 발생했습니다.');
+        }
+    }
+
+    // 참여 요청 승인 (POST 메서드)
+    @ApiOperation({ summary: '참여 요청 승인 (POST)' })
+    @ApiParam({ name: 'id', required: true, description: '스터디 그룹 ID' })
+    @ApiParam({ name: 'requestId', required: true, description: '참여 요청 ID' })
+    @ApiOkResponse({
+        description: '참여 요청 승인 성공',
+        schema: {
+            allOf: [
+                { $ref: getSchemaPath(BaseResponse) },
+                {
+                    properties: {
+                        success: { type: 'boolean', example: true },
+                        message: { type: 'string', example: '참여 요청이 승인되었습니다.' }
+                    }
+                }
+            ]
+        }
+    })
+    @ApiBadRequestResponse({ description: '잘못된 요청' })
+    @ApiUnauthorizedResponse({ description: '인증 필요' })
+    @ApiForbiddenResponse({ description: '권한 없음' })
+    @Post(':id/join-requests/:requestId/approve')
+    async approveJoinRequestPost(
+        @Param('id', ParseIntPipe) id: number,
+        @Param('requestId', ParseIntPipe) requestId: number,
+        @Req() req: Request
+    ): Promise<BaseResponse> {
+        try {
+            const user = req.user as User;
+            await this.studyGroupService.approveJoinRequest(id, requestId, user.id);
+            return { success: true, message: '참여 요청이 승인되었습니다.' };
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+            this.logger.error(`참여 요청 승인 실패: ${errorMessage}`);
+            throw new InternalServerErrorException('참여 요청 승인 중 오류가 발생했습니다.');
+        }
+    }
+
+    // 참여 요청 거절 (PATCH 메서드)
+    @ApiOperation({ summary: '참여 요청 거절' })
+    @ApiParam({ name: 'id', required: true, description: '스터디 그룹 ID' })
+    @ApiParam({ name: 'requestId', required: true, description: '참여 요청 ID' })
+    @ApiOkResponse({
+        description: '참여 요청 거절 성공',
+        schema: {
+            allOf: [
+                { $ref: getSchemaPath(BaseResponse) },
+                {
+                    properties: {
+                        success: { type: 'boolean', example: true },
+                        message: { type: 'string', example: '참여 요청이 거절되었습니다.' }
+                    }
+                }
+            ]
+        }
+    })
+    @ApiBadRequestResponse({ description: '잘못된 요청' })
+    @ApiUnauthorizedResponse({ description: '인증 필요' })
+    @ApiForbiddenResponse({ description: '권한 없음' })
+    @Patch(':id/join-requests/:requestId/reject')
+    async rejectJoinRequest(
+        @Param('id', ParseIntPipe) id: number,
+        @Param('requestId', ParseIntPipe) requestId: number,
+        @Req() req: Request
+    ): Promise<BaseResponse> {
+        try {
+            const user = req.user as User;
+            await this.studyGroupService.rejectJoinRequest(id, requestId, user.id);
+            return { success: true, message: '참여 요청이 거절되었습니다.' };
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+            this.logger.error(`참여 요청 거절 실패: ${errorMessage}`);
+            throw new InternalServerErrorException('참여 요청 거절 중 오류가 발생했습니다.');
+        }
+    }
+
+    // 참여 요청 거절 (POST 메서드)
+    @ApiOperation({ summary: '참여 요청 거절 (POST)' })
+    @ApiParam({ name: 'id', required: true, description: '스터디 그룹 ID' })
+    @ApiParam({ name: 'requestId', required: true, description: '참여 요청 ID' })
+    @ApiOkResponse({
+        description: '참여 요청 거절 성공',
+        schema: {
+            allOf: [
+                { $ref: getSchemaPath(BaseResponse) },
+                {
+                    properties: {
+                        success: { type: 'boolean', example: true },
+                        message: { type: 'string', example: '참여 요청이 거절되었습니다.' }
+                    }
+                }
+            ]
+        }
+    })
+    @ApiBadRequestResponse({ description: '잘못된 요청' })
+    @ApiUnauthorizedResponse({ description: '인증 필요' })
+    @ApiForbiddenResponse({ description: '권한 없음' })
+    @Post(':id/join-requests/:requestId/reject')
+    async rejectJoinRequestPost(
+        @Param('id', ParseIntPipe) id: number,
+        @Param('requestId', ParseIntPipe) requestId: number,
+        @Req() req: Request
+    ): Promise<BaseResponse> {
+        try {
+            const user = req.user as User;
+            await this.studyGroupService.rejectJoinRequest(id, requestId, user.id);
+            return { success: true, message: '참여 요청이 거절되었습니다.' };
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+            this.logger.error(`참여 요청 거절 실패: ${errorMessage}`);
+            throw new InternalServerErrorException('참여 요청 거절 중 오류가 발생했습니다.');
+        }
+    }
+
+    // 참여 요청 상태 확인
+    @ApiOperation({ summary: '참여 요청 상태 확인' })
+    @ApiParam({ name: 'id', required: true, description: '스터디 그룹 ID' })
+    @ApiOkResponse({
+        description: '참여 요청 상태 조회 성공',
+        schema: {
+            allOf: [
+                { $ref: getSchemaPath(DataResponse) },
+                {
+                    properties: {
+                        data: {
+                            type: 'object',
+                            properties: {
+                                status: {
+                                    type: 'string',
+                                    enum: ['pending', 'approved', 'rejected'],
+                                    nullable: true,
+                                    description: '참여 요청 상태 (null: 요청 없음)'
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        }
+    })
+    @ApiUnauthorizedResponse({ description: '인증 필요' })
+    @Get(':id/join-requests/status')
+    async checkJoinRequestStatus(
+        @Param('id', ParseIntPipe) id: number,
+        @Req() req: Request
+    ): Promise<DataResponse<{ status: JoinRequestStatus | null }>> {
+        try {
+            const user = req.user as User;
+            const status = await this.studyGroupService.checkJoinRequestStatus(id, user.id);
+            return { success: true, data: status };
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+            this.logger.error(`참여 요청 상태 확인 실패: ${errorMessage}`);
+            throw new InternalServerErrorException('참여 요청 상태 확인 중 오류가 발생했습니다.');
+        }
+    }
+
+    // 내 스터디 그룹의 읽지 않은 공지사항 수 조회
+    @ApiOperation({ summary: '참여한 스터디 그룹의 읽지 않은 공지사항 수 조회' })
+    @ApiOkResponse({
+        description: '읽지 않은 공지사항 수 조회 성공',
+        schema: {
+            allOf: [
+                { $ref: getSchemaPath(DataResponse) },
+                {
+                    properties: {
+                        data: {
+                            type: 'number',
+                            description: '읽지 않은 공지사항 수'
+                        }
+                    }
+                }
+            ]
+        }
+    })
+    @ApiUnauthorizedResponse({ description: '인증 필요' })
+    @Get('my-studies/notices/unread-count')
+    async getUnreadNoticesCount(
+        @Req() req: Request
+    ): Promise<DataResponse<number>> {
+        try {
+            const user = req.user as User;
+            // 서비스에 해당 메서드가 구현되어 있다고 가정
+            const count = await this.studyGroupService.getUnreadNoticesCount(user.id);
+            return { success: true, data: count };
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+            this.logger.error(`읽지 않은 공지사항 수 조회 실패: ${errorMessage}`);
+            throw new InternalServerErrorException('읽지 않은 공지사항 수 조회 중 오류가 발생했습니다.');
         }
     }
 }

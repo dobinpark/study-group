@@ -1,5 +1,6 @@
 import axios from './axios';
 import type { StudyGroup, JoinRequest } from '../types/models';
+import { AxiosResponse } from 'axios';
 
 /**
  * 스터디 그룹 관련 API 서비스
@@ -64,17 +65,27 @@ export const studyGroupService = {
   /**
    * 참여 요청을 승인합니다.
    */
-  async approveJoinRequest(studyGroupId: number, requestId: number) {
-    const response = await axios.patch(`/study-groups/${studyGroupId}/join-requests/${requestId}/approve`);
-    return response.data;
+  async approveJoinRequest(studyGroupId: number, requestId: number): Promise<AxiosResponse> {
+    try {
+      const response = await axios.post(`/study-groups/${studyGroupId}/join-requests/${requestId}/approve`);
+      return response;
+    } catch (error) {
+      console.error('참여 요청 승인 실패:', error);
+      throw error;
+    }
   },
 
   /**
    * 참여 요청을 거절합니다.
    */
-  async rejectJoinRequest(studyGroupId: number, requestId: number) {
-    const response = await axios.patch(`/study-groups/${studyGroupId}/join-requests/${requestId}/reject`);
-    return response.data;
+  async rejectJoinRequest(studyGroupId: number, requestId: number): Promise<AxiosResponse> {
+    try {
+      const response = await axios.post(`/study-groups/${studyGroupId}/join-requests/${requestId}/reject`);
+      return response;
+    } catch (error) {
+      console.error('참여 요청 거절 실패:', error);
+      throw error;
+    }
   },
 
   /**

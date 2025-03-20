@@ -241,7 +241,27 @@ const changePage = (newPage: number) => {
 };
 
 // 쪽지 상세 페이지로 이동
-const viewMessage = (id: number) => router.push(`/messages/${id}`);
+const viewMessage = (id: number) => {
+  console.log(`메시지 상세 보기 이동: ID ${id}`);
+  
+  // 읽지 않은 메시지를 클릭했을 때 아이콘 카운트를 갱신하기 위해
+  // 읽지 않은 메시지 하나를 읽고 메시지 목록을 다시 불러온 후 상세 페이지로 이동하는 방식
+  const message = messages.value.find(m => m.id === id);
+  if (message && !(message.read || message.isRead)) {
+    console.log(`읽지 않은 메시지를 클릭했습니다: ID ${id}, 헤더 알림 업데이트를 위해 처리 필요`);
+    try {
+      // 헤더에 있는 emitter 이벤트를 통해 알림 카운트 갱신 요청
+      if (window.dispatchEvent) {
+        console.log('updateNotificationCount 이벤트 발생');
+        window.dispatchEvent(new CustomEvent('updateNotificationCount'));
+      }
+    } catch (error) {
+      console.error('알림 카운트 갱신 이벤트 발생 실패:', error);
+    }
+  }
+  
+  router.push(`/messages/${id}`);
+};
 
 onMounted(() => {
   // 환경 변수 정보 로깅

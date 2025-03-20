@@ -1,12 +1,14 @@
 import { Injectable, NotFoundException, ForbiddenException, BadRequestException, InternalServerErrorException, Logger, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Like, FindOptionsWhere } from 'typeorm';
+import { Repository, Like, FindOptionsWhere, In } from 'typeorm';
 import { StudyGroup } from './entities/study-group.entity';
 import { CreateStudyGroupDto } from './dto/create-study-group.dto';
 import { UpdateStudyGroupDto } from './dto/update-study-group.dto';
 import { User } from '../user/entities/user.entity';
 import { CategoryDto } from './dto/category.dto';
 import { Connection, DataSource } from 'typeorm';
+import { StudyGroupJoinRequest, JoinRequestStatus } from './entities/study-group-join-request.entity';
+import { CreateJoinRequestDto } from './dto/create-join-request.dto';
 
 @Injectable()
 export class StudyGroupService {
@@ -15,6 +17,8 @@ export class StudyGroupService {
     constructor(
         @InjectRepository(StudyGroup)
         private readonly studyGroupRepository: Repository<StudyGroup>,
+        @InjectRepository(StudyGroupJoinRequest)
+        private readonly joinRequestRepository: Repository<StudyGroupJoinRequest>,
         private readonly connection: Connection,
         private dataSource: DataSource,
     ) { }
@@ -207,14 +211,14 @@ export class StudyGroupService {
     async getMyStudies(userId: number | string): Promise<{ created: StudyGroup[], joined: StudyGroup[] }> {
         this.logger.debug(`getMyStudies - service - 메서드 진입`);
         this.logger.debug(`getMyStudies - service - userId 파라미터 타입 (타입 체크 전): ${typeof userId}`);
-        
+
         // userId를 숫자로 변환
         const numericUserId = typeof userId === 'string' ? parseInt(userId, 10) : userId;
-        
+
         if (isNaN(numericUserId)) {
             throw new BadRequestException(`유효하지 않은 사용자 ID입니다. 숫자 타입이 필요합니다. (현재 타입: ${typeof userId})`);
         }
-        
+
         try {
             this.logger.debug(`getMyStudies - 사용자 ID: ${numericUserId}의 스터디 목록 조회 시작`);
 
@@ -254,35 +258,256 @@ export class StudyGroupService {
     // 멤버 강제 탈퇴 (방장만 가능)
     async removeMember(groupId: number, memberId: number, requestUserId: number): Promise<void> {
         this.logger.debug(`removeMember - service - groupId: ${groupId}, memberId: ${memberId}, requestUserId: ${requestUserId}`);
-        
+
         const studyGroup = await this.findOne(groupId);
-        
+
         // 요청자가 방장인지 확인
         if (studyGroup.creator.id !== requestUserId) {
             throw new ForbiddenException('스터디 그룹의 방장만 멤버를 강제 탈퇴시킬 수 있습니다.');
         }
-        
+
         // 강제 탈퇴 대상이 방장인지 확인
         if (memberId === studyGroup.creator.id) {
             throw new BadRequestException('방장은 강제 탈퇴시킬 수 없습니다.');
         }
-        
+
         // 대상자가 스터디 멤버인지 확인
         const isMember = studyGroup.members.some(member => member.id === memberId);
         if (!isMember) {
             throw new BadRequestException('해당 사용자는 스터디 그룹의 멤버가 아닙니다.');
         }
-        
+
         // 멤버 제거
         await this.studyGroupRepository
             .createQueryBuilder()
             .relation(StudyGroup, 'members')
             .of(studyGroup)
             .remove(memberId);
-        
+
         // 현재 멤버 수 감소
         await this.studyGroupRepository.decrement({ id: groupId }, 'currentMembers', 1);
-        
+
         this.logger.debug(`멤버 (ID: ${memberId}) 강제 탈퇴 완료 - 스터디 그룹 ID: ${groupId}`);
+    }
+
+
+    // 스터디 참여 요청 생성
+    async createJoinRequest(
+        studyGroupId: number,
+        userId: number,
+        createJoinRequestDto: CreateJoinRequestDto
+    ): Promise<StudyGroupJoinRequest> {
+        this.logger.debug(`참여 요청 생성 - studyGroupId: ${studyGroupId}, userId: ${userId}`);
+
+        // 스터디 그룹 존재 확인
+        const studyGroup = await this.findOne(studyGroupId);
+
+        // 이미 멤버인지 확인 - members가 undefined인 경우를 대비하여 안전하게 처리
+        const isMember = studyGroup.members && studyGroup.members.some(member => member && member.id === userId);
+        if (isMember) {
+            throw new BadRequestException('이미 스터디 그룹의 멤버입니다.');
+        }
+
+        // 이미 대기 중인 요청이 있는지 확인
+        const existingRequest = await this.joinRequestRepository.findOne({
+            where: {
+                studyGroupId,
+                userId,
+                status: JoinRequestStatus.PENDING
+            }
+        });
+
+        if (existingRequest) {
+            throw new BadRequestException('이미 참여 요청을 보냈습니다. 방장의 승인을 기다려주세요.');
+        }
+
+        // 참여 요청 생성
+        const joinRequest = this.joinRequestRepository.create({
+            studyGroupId,
+            userId,
+            reason: createJoinRequestDto.reason,
+            experience: createJoinRequestDto.experience,
+            status: JoinRequestStatus.PENDING
+        });
+
+        return await this.joinRequestRepository.save(joinRequest);
+    }
+
+
+    // 대기 중인 참여 요청 목록 조회 (방장용)
+    async getPendingJoinRequests(userId: number): Promise<StudyGroupJoinRequest[]> {
+        this.logger.debug(`대기 중인 참여 요청 조회 - userId: ${userId}`);
+
+        // 해당 사용자가 방장인 스터디 그룹 ID 목록 조회
+        const ownedGroups = await this.studyGroupRepository.find({
+            where: { creatorId: userId },
+            select: ['id']
+        });
+
+        if (!ownedGroups.length) {
+            return [];
+        }
+
+        const studyGroupIds = ownedGroups.map(group => group.id);
+
+        // 해당 스터디 그룹들의 대기 중인 참여 요청 조회
+        return await this.joinRequestRepository.find({
+            where: {
+                studyGroupId: In(studyGroupIds),
+                status: JoinRequestStatus.PENDING
+            },
+            relations: ['user', 'studyGroup'],
+            order: { createdAt: 'DESC' }
+        });
+    }
+
+
+    // 참여 요청 승인
+    async approveJoinRequest(studyGroupId: number, requestId: number, userId: number): Promise<void> {
+        this.logger.debug(`참여 요청 승인 - studyGroupId: ${studyGroupId}, requestId: ${requestId}, userId: ${userId}`);
+
+        // 요청 존재 확인
+        const joinRequest = await this.joinRequestRepository.findOne({
+            where: { id: requestId, studyGroupId },
+            relations: ['studyGroup']
+        });
+
+        if (!joinRequest) {
+            throw new NotFoundException('참여 요청을 찾을 수 없습니다.');
+        }
+
+        // 스터디 그룹 확인
+        const studyGroup = await this.findOne(studyGroupId);
+
+        // 요청자가 방장인지 확인
+        if (studyGroup.creator.id !== userId) {
+            throw new ForbiddenException('스터디 그룹의 방장만 참여 요청을 승인할 수 있습니다.');
+        }
+
+        // 이미 처리된 요청인지 확인
+        if (joinRequest.status !== JoinRequestStatus.PENDING) {
+            throw new BadRequestException('이미 처리된 참여 요청입니다.');
+        }
+
+        // 스터디 그룹이 가득 찼는지 확인
+        if (studyGroup.currentMembers >= studyGroup.maxMembers) {
+            throw new BadRequestException('스터디 그룹이 가득 찼습니다.');
+        }
+
+        // 트랜잭션 시작
+        const queryRunner = this.connection.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
+        try {
+            // 참여 요청 상태 업데이트
+            joinRequest.status = JoinRequestStatus.APPROVED;
+            await queryRunner.manager.save(joinRequest);
+
+            // 멤버 추가
+            await queryRunner.manager
+                .createQueryBuilder()
+                .relation(StudyGroup, 'members')
+                .of(studyGroup)
+                .add(joinRequest.userId);
+
+            // 현재 멤버 수 증가
+            await queryRunner.manager.increment(
+                StudyGroup,
+                { id: studyGroupId },
+                'currentMembers',
+                1
+            );
+
+            await queryRunner.commitTransaction();
+        } catch (error) {
+            await queryRunner.rollbackTransaction();
+            throw error;
+        } finally {
+            await queryRunner.release();
+        }
+    }
+
+
+    // 참여 요청 거절
+    async rejectJoinRequest(studyGroupId: number, requestId: number, userId: number): Promise<void> {
+        this.logger.debug(`참여 요청 거절 - studyGroupId: ${studyGroupId}, requestId: ${requestId}, userId: ${userId}`);
+
+        // 요청 존재 확인
+        const joinRequest = await this.joinRequestRepository.findOne({
+            where: { id: requestId, studyGroupId }
+        });
+
+        if (!joinRequest) {
+            throw new NotFoundException('참여 요청을 찾을 수 없습니다.');
+        }
+
+        // 스터디 그룹 확인
+        const studyGroup = await this.findOne(studyGroupId);
+
+        // 요청자가 방장인지 확인
+        if (studyGroup.creator.id !== userId) {
+            throw new ForbiddenException('스터디 그룹의 방장만 참여 요청을 거절할 수 있습니다.');
+        }
+
+        // 이미 처리된 요청인지 확인
+        if (joinRequest.status !== JoinRequestStatus.PENDING) {
+            throw new BadRequestException('이미 처리된 참여 요청입니다.');
+        }
+
+        // 참여 요청 상태 업데이트
+        joinRequest.status = JoinRequestStatus.REJECTED;
+        await this.joinRequestRepository.save(joinRequest);
+    }
+
+
+    // 참여 요청 상태 확인
+    async checkJoinRequestStatus(studyGroupId: number, userId: number): Promise<{ status: JoinRequestStatus | null }> {
+        this.logger.debug(`참여 요청 상태 확인 - studyGroupId: ${studyGroupId}, userId: ${userId}`);
+        
+        // 가장 최근 참여 요청 조회
+        const joinRequest = await this.joinRequestRepository.findOne({
+            where: { studyGroupId, userId },
+            order: { createdAt: 'DESC' }
+        });
+        
+        return {
+            status: joinRequest ? joinRequest.status : null
+        };
+    }
+
+
+    // 참여한 스터디 그룹의 읽지 않은 공지사항 수 가져오기
+    async getUnreadNoticesCount(userId: number): Promise<number> {
+        try {
+            // 사용자가 참여한 스터디 그룹 목록 가져오기
+            const participatingGroups = await this.studyGroupRepository
+                .createQueryBuilder('studyGroup')
+                .innerJoin('studyGroup.members', 'member', 'member.id = :userId', { userId })
+                .getMany();
+
+            // 현재는 실제 공지사항 테이블이 없으므로 임시로 0을 반환
+            // 공지사항 기능이 구현되면 아래 주석을 해제하고 실제 코드로 대체
+            /*
+            // 참여한 스터디 그룹의 공지사항 중 읽지 않은 것 카운트
+            const unreadCount = await this.noticeRepository
+                .createQueryBuilder('notice')
+                .innerJoin('notice.studyGroup', 'studyGroup')
+                .leftJoin('notice.readBy', 'readBy', 'readBy.userId = :userId', { userId })
+                .where('studyGroup.id IN (:...groupIds)', { 
+                    groupIds: participatingGroups.map(group => group.id) 
+                })
+                .andWhere('readBy.id IS NULL')
+                .getCount();
+            
+            return unreadCount;
+            */
+            
+            // 임시 구현: 각 그룹당 1개의 읽지 않은 공지사항이 있다고 가정
+            return participatingGroups.length;
+        } catch (error) {
+            this.logger.error(`읽지 않은 공지사항 수 조회 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
+            return 0; // 오류 발생 시 0을 반환
+        }
     }
 }

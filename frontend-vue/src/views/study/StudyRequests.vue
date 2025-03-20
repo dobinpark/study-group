@@ -121,6 +121,7 @@ const handleApprove = async (request: JoinRequest & { isProcessing?: boolean }) 
     // 쪽지 보내기
     await axios.post('/messages', {
       receiverId: request.userId,
+      title: `스터디 '${request.studyGroup.name}' 참여 승인`,
       content: `스터디 '${request.studyGroup.name}'에 참여 요청이 승인되었습니다. 스터디에 참여해 주셔서 감사합니다.`,
       studyGroupId: request.studyGroupId
     });
@@ -159,6 +160,7 @@ const handleReject = async (request: JoinRequest & { isProcessing?: boolean }) =
     
     await axios.post('/messages', {
       receiverId: request.userId,
+      title: `스터디 '${request.studyGroup.name}' 참여 거절`,
       content: messageContent,
       studyGroupId: request.studyGroupId
     });
